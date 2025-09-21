@@ -1,0 +1,154 @@
+.offcanvas-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+}
+
+.offcanvas {
+  position: fixed;
+  background: white;
+  z-index: 1000;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  color: var(--title-color);
+  /* FORÇAR altura e largura completas */
+  height: 100vh !important;
+  max-height: 100vh !important;
+  min-height: 100vh !important;
+}
+
+.offcanvas-close {
+  align-self: flex-end;
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  padding: 0.5rem;
+  cursor: pointer;
+}
+
+.offcanvas-content {
+  padding: 1rem;
+  overflow: auto;
+  flex: 1; /* Ocupa o espaço restante */
+}
+
+.offcanvas.left {
+  top: 0 !important;
+  left: 0 !important;
+  bottom: 0 !important; /* Força ir até o bottom */
+  height: 100vh !important;
+  width: var(--offcanvas-width, 400px);
+  max-width: 90vw;
+}
+
+.offcanvas.right {
+  top: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important; /* Força ir até o bottom */
+  height: 100vh !important;
+  width: var(--offcanvas-width, 400px);
+  max-width: 90vw;
+}
+
+.offcanvas.top {
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  width: 100vw !important;
+  height: var(--offcanvas-height, 300px);
+  max-height: 90vh;
+}
+
+.offcanvas.bottom {
+  bottom: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  width: 100vw !important;
+  height: var(--offcanvas-height, 300px);
+  max-height: 90vh;
+}
+
+/* Transições - mantendo as originais */
+.offcanvas-left-enter-from,
+.offcanvas-left-leave-to {
+  transform: translateX(-100%);
+}
+.offcanvas-left-enter-to,
+.offcanvas-left-leave-from {
+  transform: translateX(0);
+}
+
+.offcanvas-right-enter-from,
+.offcanvas-right-leave-to {
+  transform: translateX(100%);
+}
+.offcanvas-right-enter-to,
+.offcanvas-right-leave-from {
+  transform: translateX(0);
+}
+
+.offcanvas-top-enter-from,
+.offcanvas-top-leave-to {
+  transform: translateY(-100%);
+}
+.offcanvas-top-enter-to,
+.offcanvas-top-leave-from {
+  transform: translateY(0);
+}
+
+.offcanvas-bottom-enter-from,
+.offcanvas-bottom-leave-to {
+  transform: translateY(100%);
+}
+.offcanvas-bottom-enter-to,
+.offcanvas-bottom-leave-from {
+  transform: translateY(0);
+}
+
+.offcanvas-left-enter-active,
+.offcanvas-left-leave-active,
+.offcanvas-right-enter-active,
+.offcanvas-right-leave-active,
+.offcanvas-top-enter-active,
+.offcanvas-top-leave-active,
+.offcanvas-bottom-enter-active,
+.offcanvas-bottom-leave-active {
+  transition: transform 0.3s ease;
+}
+
+/* Previne o scroll do body quando offcanvas está aberto */
+body.offcanvas-open {
+  overflow: hidden;
+}
+
+/* Garante que elementos dentro do navbar não interfiram */
+.navbar {
+  position: relative;
+  z-index: auto;
+}
+
+/* Reset de qualquer transformação que possa interferir */
+.navbar * {
+  transform: none;
+}
+
+/* Para casos específicos onde o VOffcanvas precisa escapar do contexto */
+.v-offcanvas {
+  position: fixed !important;
+  top: 0 !important;
+  bottom: 0 !important;
+  height: 100vh !important;
+  z-index: 1000 !important;
+}
+
+.v-offcanvas.right {
+  right: 0 !important;
+  left: auto !important;
+}
+
+.v-offcanvas.left {
+  left: 0 !important;
+  right: auto !important;
+}
