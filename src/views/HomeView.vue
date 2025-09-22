@@ -4,7 +4,7 @@
       <!-- Loading Overlay -->
       <div v-if="isLoading" class="loading-overlay">
         <div class="loading-spinner"></div>
-        <p>Autenticando...</p>
+        <p>{{ loadingMessage }}</p>
       </div>
 
       <div class="image-content">
@@ -22,11 +22,11 @@
           <!-- Header -->
           <div class="form-header">
             <p class="welcome-text">{{ welcomeMessage }}</p>
-            <h1 class="main-title">Acesse o portal</h1>
+            <h1 class="main-title">{{ currentMode === 'login' ? 'Acesse o portal' : 'Criar conta' }}</h1>
           </div>
 
-          <!-- Form Content -->
-          <form @submit.prevent="handleLogin" class="form-content" novalidate>
+          <!-- Login Form -->
+          <form v-if="currentMode === 'login'" @submit.prevent="handleLogin" class="form-content" novalidate>
             <!-- Email Input -->
             <div class="input-group">
               <VInput
@@ -94,6 +94,117 @@
               class="login-button"
             />
 
+            <!-- Microsoft Login -->
+            <div class="divider">
+              <span>ou</span>
+            </div>
+
+            <VButton
+              text="Entrar com Microsoft"
+              variant="secondary"
+              type="button"
+              :loading="microsoftLoading"
+              class="microsoft-button"
+              @click="handleMicrosoftLogin"
+            >
+              <template #prefix>
+                <img src="/icons/microsoft.svg" alt="Microsoft" class="microsoft-icon" />
+              </template>
+            </VButton>
+
+            <div v-if="generalError" class="error-message">
+              <i class="icon-alert"></i>
+              <span>{{ generalError }}</span>
+            </div>
+          </form>
+
+          <!-- Register Form -->
+          <form v-else @submit.prevent="handleRegister" class="form-content" novalidate>
+            <!-- Name Input -->
+            <div class="input-group">
+              <VInput
+                v-model="registerData.nome"
+                placeholder="Nome completo"
+                label="Nome *"
+                type="text"
+                :error="errors.nome"
+                :disabled="isLoading"
+                custom-class="primary-input"
+                required
+                @blur="validateName"
+                @input="clearError('nome')"
+              />
+            </div>
+
+            <!-- Email Input -->
+            <div class="input-group">
+              <VInput
+                v-model="registerData.email"
+                placeholder="E-mail @jotanunes"
+                label="Email *"
+                type="email"
+                :error="errors.email"
+                :disabled="isLoading"
+                custom-class="primary-input"
+                required
+                @blur="validateRegisterEmail"
+                @input="clearError('email')"
+              />
+            </div>
+
+            <!-- Password Input -->
+            <div class="input-group">
+              <VInput
+                v-model="registerData.senha"
+                :type="showPassword ? 'text' : 'password'"
+                label="Senha *"
+                placeholder="Senha (mín. 8 caracteres)"
+                :error="errors.senha"
+                :disabled="isLoading"
+                custom-class="primary-input"
+                required
+                @blur="validateRegisterPassword"
+                @input="clearError('senha')"
+              >
+                <template #suffix>
+                  <button
+                    type="button"
+                    class="password-toggle"
+                    @click="togglePassword"
+                    :disabled="isLoading"
+                    tabindex="-1"
+                  >
+                    <i :class="showPassword ? 'icon-eye-off' : 'icon-eye'"></i>
+                  </button>
+                </template>
+              </VInput>
+            </div>
+
+            <!-- Confirm Password Input -->
+            <div class="input-group">
+              <VInput
+                v-model="registerData.confirmSenha"
+                :type="showPassword ? 'text' : 'password'"
+                label="Confirmar Senha *"
+                placeholder="Confirme sua senha"
+                :error="errors.confirmSenha"
+                :disabled="isLoading"
+                custom-class="primary-input"
+                required
+                @blur="validateConfirmPassword"
+                @input="clearError('confirmSenha')"
+              />
+            </div>
+
+            <!-- Register Button -->
+            <VButton
+              text="Criar conta"
+              variant="add"
+              type="submit"
+              :loading="isLoading"
+              class="login-button"
+            />
+
             <div v-if="generalError" class="error-message">
               <i class="icon-alert"></i>
               <span>{{ generalError }}</span>
@@ -102,10 +213,15 @@
 
           <!-- Footer -->
           <div class="form-container-footer">
-            <p>
-              Solicite seu acesso.
-              <a href="#" @click.prevent="requestAccess" class="access-link"> Clique aqui! </a>
+            <p v-if="currentMode === 'login'">
+              Não tem uma conta?
+              <a href="#" @click.prevent="switchMode('register')" class="access-link">Criar conta</a>
             </p>
+            <p v-else>
+              Já tem uma conta?
+              <a href="#" @click.prevent="switchMode('login')" class="access-link">Fazer login</a>
+            </p>
+            
             <div class="version-info">
               <span>v{{ appVersion }}</span>
             </div>
@@ -114,43 +230,97 @@
       </div>
     </div>
 
+    <!-- Success Toast -->
     <Transition name="toast">
       <div v-if="showSuccessToast" class="success-toast">
         <i class="icon-check"></i>
-        <span>Login realizado com sucesso!</span>
+        <span>{{ successMessage }}</span>
       </div>
     </Transition>
+
+    <!-- Pending Approval Modal -->
+    <VPopup
+      v-model:visible="showPendingModal"
+      msg="Aguardando Aprovação"
+      mark="warning"
+      :auto-close="0"
+    >
+      <div class="pending-content">
+        <h3>Cadastro realizado com sucesso!</h3>
+        <p>Sua conta foi criada e está aguardando aprovação do administrador.</p>
+        <p>Você receberá um e-mail quando sua conta for aprovada.</p>
+        <div class="pending-actions">
+          <VButton
+            text="Entendi"
+            variant="primary"
+            @click="showPendingModal = false"
+          />
+        </div>
+      </div>
+    </VPopup>
   </div>
 </template>
 
 <script>
 import VInput from '@/components/Input/VInput.vue'
 import VButton from '@/components/Button/VButton.vue'
+import VPopup from '@/components/Popup/VPopup.vue'
+import { useAuthStore } from '@/store/auth'
 
 export default {
   name: 'LoginPage',
-  components: { VInput, VButton },
+  components: { VInput, VButton, VPopup },
 
   data() {
     return {
+      currentMode: 'login',
       userCredentials: {
         username: '',
         userPassword: '',
       },
+      registerData: {
+        nome: '',
+        email: '',
+        senha: '',
+        confirmSenha: ''
+      },
       errors: {
         username: '',
         userPassword: '',
+        nome: '',
+        email: '',
+        senha: '',
+        confirmSenha: ''
       },
-      isLoading: false,
       showPassword: false,
       rememberMe: false,
       generalError: '',
       showSuccessToast: false,
+      showPendingModal: false,
+      successMessage: '',
       appVersion: '1.0.0',
+      microsoftLoading: false,
+      loadingMessage: 'Autenticando...'
     }
   },
 
   computed: {
+    authStore() {
+      return useAuthStore()
+    },
+    
+    isLoading() {
+      return this.authStore.isLoading
+    },
+    
+    isAuthenticated() {
+      return this.authStore.isAuthenticated
+    },
+    
+    microsoftAuthInProgress() {
+      return this.authStore.microsoftAuthInProgress
+    },
+    
     welcomeMessage() {
       const hour = new Date().getHours()
       if (hour < 12) return 'Bom dia!'
@@ -159,24 +329,62 @@ export default {
     },
 
     isFormValid() {
-      return (
-        this.userCredentials.username.length > 0 &&
-        this.userCredentials.userPassword.length > 0 &&
-        !this.errors.username &&
-        !this.errors.userPassword
-      )
+      if (this.currentMode === 'login') {
+        return (
+          this.userCredentials.username.length > 0 &&
+          this.userCredentials.userPassword.length > 0 &&
+          !this.errors.username &&
+          !this.errors.userPassword
+        )
+      } else {
+        return (
+          this.registerData.nome.length > 0 &&
+          this.registerData.email.length > 0 &&
+          this.registerData.senha.length > 0 &&
+          this.registerData.confirmSenha.length > 0 &&
+          !this.errors.nome &&
+          !this.errors.email &&
+          !this.errors.senha &&
+          !this.errors.confirmSenha
+        )
+      }
+    }
+  },
+
+  watch: {
+    'authStore.error'(newError) {
+      if (newError) {
+        this.generalError = newError
+      }
     },
+
+    isAuthenticated(newValue) {
+      if (newValue) {
+        this.showSuccessToast = true
+        this.successMessage = 'Login realizado com sucesso!'
+        
+        setTimeout(() => {
+          this.$router.push('/main')
+        }, 1500)
+      }
+    },
+
+    microsoftAuthInProgress(newValue) {
+      this.microsoftLoading = newValue
+      if (newValue) {
+        this.loadingMessage = 'Autenticando com Microsoft...'
+      }
+    }
   },
 
   methods: {
+    // VALIDAÇÕES LOGIN
     validateEmail() {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
       if (!this.userCredentials.username) {
         this.errors.username = 'Email é obrigatório'
       } else if (!emailRegex.test(this.userCredentials.username)) {
         this.errors.username = 'Email inválido'
-      } else if (!this.userCredentials.username.includes('@jotanunes')) {
-        this.errors.username = 'Use o email corporativo @jotanunes'
       } else {
         this.errors.username = ''
       }
@@ -192,12 +400,65 @@ export default {
       }
     },
 
+    validateName() {
+      if (!this.registerData.nome) {
+        this.errors.nome = 'Nome é obrigatório'
+      } else if (this.registerData.nome.length < 2) {
+        this.errors.nome = 'Nome deve ter pelo menos 2 caracteres'
+      } else {
+        this.errors.nome = ''
+      }
+    },
+
+    validateRegisterEmail() {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+      if (!this.registerData.email) {
+        this.errors.email = 'Email é obrigatório'
+      } else if (!emailRegex.test(this.registerData.email)) {
+        this.errors.email = 'Email inválido'
+      } else {
+        this.errors.email = ''
+      }
+    },
+
+    validateRegisterPassword() {
+      const password = this.registerData.senha
+      if (!password) {
+        this.errors.senha = 'Senha é obrigatória'
+      } else if (password.length < 8) {
+        this.errors.senha = 'Senha deve ter pelo menos 8 caracteres'
+      } else if (!/(?=.*[a-z])/.test(password)) {
+        this.errors.senha = 'Senha deve ter pelo menos 1 letra minúscula'
+      } else if (!/(?=.*[A-Z])/.test(password)) {
+        this.errors.senha = 'Senha deve ter pelo menos 1 letra maiúscula'
+      } else if (!/(?=.*\d)/.test(password)) {
+        this.errors.senha = 'Senha deve ter pelo menos 1 número'
+      } else {
+        this.errors.senha = ''
+        if (this.registerData.confirmSenha) {
+          this.validateConfirmPassword()
+        }
+      }
+    },
+
+    validateConfirmPassword() {
+      if (!this.registerData.confirmSenha) {
+        this.errors.confirmSenha = 'Confirmação de senha é obrigatória'
+      } else if (this.registerData.senha !== this.registerData.confirmSenha) {
+        this.errors.confirmSenha = 'Senhas não coincidem'
+      } else {
+        this.errors.confirmSenha = ''
+      }
+    },
+
+    // UTILITÁRIOS
     clearError(field) {
       if (this.errors[field]) {
         this.errors[field] = ''
       }
       if (this.generalError) {
         this.generalError = ''
+        this.authStore.clearError()
       }
     },
 
@@ -205,14 +466,181 @@ export default {
       this.showPassword = !this.showPassword
     },
 
+    switchMode(mode) {
+      this.currentMode = mode
+      this.clearAllErrors()
+      this.resetForms()
+    },
+
+    clearAllErrors() {
+      Object.keys(this.errors).forEach(key => {
+        this.errors[key] = ''
+      })
+      this.generalError = ''
+      this.authStore.clearError()
+    },
+
+    resetForms() {
+      this.userCredentials = {
+        username: '',
+        userPassword: ''
+      }
+      this.registerData = {
+        nome: '',
+        email: '',
+        senha: '',
+        confirmSenha: ''
+      }
+    },
+
+    // AUTENTICAÇÃO - AQUI ESTÁ O FIX PRINCIPAL
     async handleLogin() {
-      this.$router.push('/main')
+      console.log('🚀 Login iniciado!')
+      
+      // Validar campos
+      this.validateEmail()
+      this.validatePassword()
+      
+      if (!this.isFormValid) {
+        console.log('❌ Formulário inválido')
+        return
+      }
+
+      console.log('📤 Enviando credenciais:', {
+        username: this.userCredentials.username,
+        password: '***'
+      })
+
+      this.loadingMessage = 'Fazendo login...'
+      
+      try {
+        // Chamar diretamente o método do store
+        const result = await this.authStore.loginCredentials(
+          this.userCredentials.username,
+          this.userCredentials.userPassword,
+          this.rememberMe
+        )
+
+        console.log('📥 Resultado:', result)
+
+        if (result.success) {
+          console.log('✅ Login bem-sucedido!')
+          // Salvar preferências se lembrar
+          if (this.rememberMe) {
+            localStorage.setItem('rememberMe', 'true')
+            localStorage.setItem('lastUsername', this.userCredentials.username)
+          }
+        } else {
+          console.log('❌ Login falhou:', result.error)
+          // Tratar diferentes tipos de erro
+          if (result.status === 403) {
+            this.generalError = 'Usuário aguardando aprovação do administrador'
+          } else if (result.status === 401) {
+            this.generalError = 'Email ou senha incorretos'
+          } else {
+            this.generalError = result.error || 'Erro ao fazer login'
+          }
+        }
+      } catch (error) {
+        console.error('💥 Erro no login:', error)
+        this.generalError = 'Erro interno no login'
+      }
     },
 
-    requestAccess() {
-      alert('Funcionalidade de solicitação de acesso será implementada')
+    async handleMicrosoftLogin() {
+      this.clearAllErrors()
+      this.loadingMessage = 'Conectando com Microsoft...'
+      
+      try {
+        const result = await this.authStore.startMicrosoftAuth()
+        
+        if (result.success) {
+          // Login bem-sucedido será tratado pelo watcher do isAuthenticated
+        } else {
+          if (result.error.includes('pendente')) {
+            this.generalError = 'Usuário aguardando aprovação do administrador'
+          } else {
+            this.generalError = result.error || 'Erro na autenticação Microsoft'
+          }
+        }
+      } catch (error) {
+        this.generalError = 'Erro ao conectar com Microsoft'
+        console.error('Erro Microsoft:', error)
+      }
     },
 
+    async handleRegister() {
+      // Validar todos os campos
+      this.validateName()
+      this.validateRegisterEmail()
+      this.validateRegisterPassword()
+      this.validateConfirmPassword()
+      
+      if (!this.isFormValid) {
+        return
+      }
+
+      this.loadingMessage = 'Criando conta...'
+      
+      const result = await this.authStore.register({
+        nome: this.registerData.nome,
+        email: this.registerData.email,
+        senha: this.registerData.senha
+      })
+
+      if (result.success) {
+        this.showPendingModal = true
+        this.resetForms()
+        this.currentMode = 'login'
+      } else {
+        if (result.error.includes('já cadastrado')) {
+          this.errors.email = 'Este email já está cadastrado'
+        } else {
+          this.generalError = result.error || 'Erro ao criar conta'
+        }
+      }
+    },
+
+    // MICROSOFT CALLBACK
+    handleMicrosoftCallback() {
+      const urlParams = new URLSearchParams(window.location.search)
+      const code = urlParams.get('code')
+      const error = urlParams.get('error')
+      
+      if (error) {
+        this.generalError = 'Erro na autenticação Microsoft'
+        window.history.replaceState({}, document.title, window.location.pathname)
+        return
+      }
+      
+      if (code) {
+        this.completeMicrosoftLogin(code)
+        window.history.replaceState({}, document.title, window.location.pathname)
+      }
+    },
+
+    async completeMicrosoftLogin(code) {
+      this.loadingMessage = 'Finalizando autenticação Microsoft...'
+      
+      try {
+        const result = await this.authStore.completeMicrosoftAuth(code)
+        
+        if (result.success) {
+          // Sucesso será tratado pelo watcher
+        } else {
+          if (result.error.includes('pendente')) {
+            this.showPendingModal = true
+          } else {
+            this.generalError = result.error || 'Erro na autenticação Microsoft'
+          }
+        }
+      } catch (error) {
+        this.generalError = 'Erro ao finalizar autenticação Microsoft'
+        console.error('Erro no callback Microsoft:', error)
+      }
+    },
+
+    // LIFECYCLE
     loadSavedCredentials() {
       if (localStorage.getItem('rememberMe') === 'true') {
         this.rememberMe = true
@@ -222,13 +650,32 @@ export default {
 
     handleKeyboard(event) {
       if (event.ctrlKey && event.key === 'Enter') {
-        this.handleLogin()
+        if (this.currentMode === 'login') {
+          this.handleLogin()
+        } else {
+          this.handleRegister()
+        }
       }
     },
+
+    setupMessageListener() {
+      window.addEventListener('message', (event) => {
+        if (event.origin !== window.location.origin) return
+        
+        if (event.data.type === 'MICROSOFT_AUTH_SUCCESS') {
+          this.completeMicrosoftLogin(event.data.code)
+        } else if (event.data.type === 'MICROSOFT_AUTH_ERROR') {
+          this.generalError = event.data.error || 'Erro na autenticação Microsoft'
+          this.microsoftLoading = false
+        }
+      })
+    }
   },
 
   mounted() {
     this.loadSavedCredentials()
+    this.handleMicrosoftCallback()
+    this.setupMessageListener()
     document.addEventListener('keydown', this.handleKeyboard)
 
     // Auto-hide success toast
@@ -508,6 +955,14 @@ export default {
   animation-delay: 0.5s;
 }
 
+.input-group:nth-child(3) {
+  animation-delay: 0.6s;
+}
+
+.input-group:nth-child(4) {
+  animation-delay: 0.7s;
+}
+
 .password-toggle {
   background: none;
   border: none;
@@ -576,6 +1031,48 @@ export default {
   animation: slideInUp 0.6s ease 0.7s forwards;
 }
 
+.divider {
+  position: relative;
+  text-align: center;
+  margin: 1rem 0;
+  opacity: 0;
+  animation: slideInUp 0.6s ease 0.8s forwards;
+}
+
+.divider::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: #ddd;
+  z-index: 1;
+}
+
+.divider span {
+  background: white;
+  padding: 0 1rem;
+  color: #6c757d;
+  font-size: 0.9rem;
+  position: relative;
+  z-index: 2;
+}
+
+.microsoft-button {
+  opacity: 0;
+  animation: slideInUp 0.6s ease 0.9s forwards;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.microsoft-icon {
+  width: 20px;
+  height: 20px;
+}
+
 .error-message {
   display: flex;
   align-items: center;
@@ -596,7 +1093,7 @@ export default {
   padding-top: 1.5rem;
   border-top: 1px solid rgba(0, 0, 0, 0.06);
   opacity: 0;
-  animation: slideInUp 0.6s ease 0.8s forwards;
+  animation: slideInUp 0.6s ease 1s forwards;
 }
 
 .form-container-footer p {
@@ -610,6 +1107,7 @@ export default {
   text-decoration: none;
   font-weight: 500;
   transition: color 0.3s ease;
+  cursor: pointer;
 }
 
 .access-link:hover {
@@ -652,6 +1150,26 @@ export default {
 .toast-leave-to {
   opacity: 0;
   transform: translateX(100%);
+}
+
+.pending-content {
+  text-align: center;
+  padding: 1rem;
+}
+
+.pending-content h3 {
+  color: var(--theme-color);
+  margin-bottom: 1rem;
+}
+
+.pending-content p {
+  margin-bottom: 1rem;
+  color: #6c757d;
+  line-height: 1.5;
+}
+
+.pending-actions {
+  margin-top: 1.5rem;
 }
 
 /* Responsive Design */

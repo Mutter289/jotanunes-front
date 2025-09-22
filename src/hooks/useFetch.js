@@ -2,9 +2,16 @@ export async function useFetch(
   endpoint,
   { method = 'GET', body = null, headers = {}, isFormData = false } = {},
 ) {
+  const token = localStorage.getItem('access_token') || sessionStorage.getItem('access_token')
+  console.log('Token encontrado:', token ? 'Sim' : 'Não')
+  console.log('Token (primeiros 20 chars):', token ? token.substring(0, 20) + '...' : 'Nenhum')
+  
   const options = {
     method,
-    headers: { ...headers },
+    headers: { 
+      ...headers,
+      ...(token && { 'Authorization': `Bearer ${token}` })
+    },
   }
 
   if (body) {

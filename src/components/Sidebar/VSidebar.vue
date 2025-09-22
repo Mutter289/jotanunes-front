@@ -41,7 +41,7 @@ export default {
         {
           name: 'Usuários',
           description: 'Informações de Usuários',
-          link: '',
+          link: '/users',
           icon: ['fas', 'users'],
         },
         {
