@@ -155,7 +155,7 @@ const notificationStore = {
         const backendId = notification.notificationId
         console.log(`Tentando marcar notificação ${backendId} como lida...`)
 
-        const response = await fetch(`http://192.168.0.7:8000/notifications/read/${backendId}`, {
+        const response = await fetch(`http://192.168.195.162:8000/notifications/read/${backendId}`, {
           method: 'POST',
         })
 
@@ -186,7 +186,7 @@ const notificationStore = {
       // Marca todas no backend usando fetch
       const promises = unreadNotifications.map((notification) => {
         const notificationId = notification.notificationId || notification.id
-        return fetch(`http://192.168.0.7:8000/notifications/read/${notificationId}`, {
+        return fetch(`http://192.168.195.162:8000/notifications/read/${notificationId}`, {
           method: 'POST',
         })
       })
@@ -232,7 +232,7 @@ const notificationStore = {
     try {
       console.log('Carregando notificações não lidas...')
 
-      const response = await fetch('http://192.168.0.7:8000/notifications/unread', {
+      const response = await fetch('http://192.168.195.162:8000/notifications/unread', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',

@@ -4,17 +4,34 @@ import authService from '@/services/authService'
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
+    // Estado principal
     user: null,
     token: null,
     isLoading: false,
     error: null,
     isAuthenticated: false,
+    
+    // Notificações
     notifications: [],
     unreadNotificationsCount: 0,
-    microsoftAuthInProgress: false
+    
+    // OAuth Microsoft
+    microsoftAuthInProgress: false,
+    
+    // Dados administrativos
+    users: [],
+    pendingUsers: [],
+    statistics: {},
+    systemConfig: {},
+    authLogs: [],
+    
+    // Cache e controle
+    lastDataLoad: null,
+    refreshInterval: null
   }),
 
   getters: {
+    // ==================== GETTERS BÁSICOS ====================
     isAdmin: (state) => {
       if (!state.user) return false
       const adminEmails = ['admin@empresa.com', 'suporte@empresa.com', 'gestor@empresa.com']
@@ -36,11 +53,71 @@ export const useAuthStore = defineStore('auth', {
     },
 
     isUserActive: (state) => {
-      return state.user?.status === 'ativo'
+      return state.user?.status === 'ATIVO'
     },
 
     lastLogin: (state) => {
       return state.user?.ultimo_login || null
+    },
+
+    // ==================== GETTERS AVANÇADOS ====================
+    canAccessAdminPanel: (state) => {
+      return state.isAuthenticated && 
+             state.user?.status === 'ATIVO' && 
+             state.isAdmin
+    },
+
+    getUserDisplayData: (state) => {
+      if (!state.user) return null
+      
+      return {
+        nome: state.user.nome,
+        email: state.user.email,
+        status: state.user.status,
+        iniciais: state.userInitials,
+        ultimoLogin: state.lastLogin,
+        tipoLogin: state.user.tipo_login,
+        criadoEm: state.user.criado_em
+      }
+    },
+
+    // ==================== GETTERS ESTATÍSTICAS ====================
+    pendingUsersCount: (state) => {
+      return state.pendingUsers.length
+    },
+
+    activeUsersCount: (state) => {
+      return state.users.filter(u => u.status === 'ATIVO').length
+    },
+
+    blockedUsersCount: (state) => {
+      return state.users.filter(u => u.status === 'BLOQUEADO').length
+    },
+
+    totalUsersCount: (state) => {
+      return state.users.length
+    },
+
+    // ==================== GETTERS NOTIFICAÇÕES ====================
+    unreadNotifications: (state) => {
+      return state.notifications.filter(n => !n.lida)
+    },
+
+    notificationsByType: (state) => {
+      return (type) => state.notifications.filter(n => n.tipo === type)
+    },
+
+    // ==================== GETTERS STATUS ====================
+    needsApproval: (state) => {
+      return state.user?.status === 'PENDENTE'
+    },
+
+    isBlocked: (state) => {
+      return state.user?.status === 'BLOQUEADO'
+    },
+
+    hasAdminPrivileges: (state) => {
+      return state.isAuthenticated && state.isAdmin && state.isUserActive
     }
   },
 
@@ -64,8 +141,14 @@ export const useAuthStore = defineStore('auth', {
             // Tentar renovar dados do perfil
             try {
               await this.refreshProfile()
+              await this.loadNotifications()
+              
+              // Se for admin, carregar dados administrativos
+              if (this.canAccessAdminPanel) {
+                await this.initializeAdminData()
+              }
             } catch (error) {
-              console.warn('Erro ao renovar perfil:', error)
+              console.warn('Erro ao renovar dados:', error)
               // Manter dados locais se não conseguir renovar
             }
           } else {
@@ -103,13 +186,18 @@ export const useAuthStore = defineStore('auth', {
             localStorage.removeItem('lastUsername')
           }
           
-          // Carregar notificações
+          // Carregar dados adicionais
           await this.loadNotifications()
+          
+          // Se for admin, carregar dados administrativos
+          if (this.canAccessAdminPanel) {
+            await this.initializeAdminData()
+          }
           
           return { success: true }
         } else {
           this.error = result.error
-          return { success: false, error: result.error, status: result.status }
+          return { success: false, error: result.error }
         }
       } catch (error) {
         this.error = 'Erro interno de autenticação'
@@ -161,6 +249,11 @@ export const useAuthStore = defineStore('auth', {
                   this.isAuthenticated = true
                   
                   await this.loadNotifications()
+                  
+                  if (this.canAccessAdminPanel) {
+                    await this.initializeAdminData()
+                  }
+                  
                   resolve({ success: true })
                 } else {
                   this.error = result.error
@@ -205,10 +298,14 @@ export const useAuthStore = defineStore('auth', {
           
           await this.loadNotifications()
           
+          if (this.canAccessAdminPanel) {
+            await this.initializeAdminData()
+          }
+          
           return { success: true }
         } else {
           this.error = result.error
-          return { success: false, error: result.error, status: result.status }
+          return { success: false, error: result.error }
         }
       } catch (error) {
         this.error = 'Erro na autenticação Microsoft'
@@ -234,7 +331,7 @@ export const useAuthStore = defineStore('auth', {
           }
         } else {
           this.error = result.error
-          return { success: false, error: result.error, status: result.status }
+          return { success: false, error: result.error }
         }
       } catch (error) {
         this.error = 'Erro interno no cadastro'
@@ -248,6 +345,13 @@ export const useAuthStore = defineStore('auth', {
     async logout() {
       try {
         this.isLoading = true
+        
+        // Limpar interval de refresh se existir
+        if (this.refreshInterval) {
+          clearInterval(this.refreshInterval)
+          this.refreshInterval = null
+        }
+        
         await authService.logout()
       } catch (error) {
         console.error('Erro no logout:', error)
@@ -258,8 +362,15 @@ export const useAuthStore = defineStore('auth', {
         this.isAuthenticated = false
         this.notifications = []
         this.unreadNotificationsCount = 0
+        this.users = []
+        this.pendingUsers = []
+        this.statistics = {}
+        this.systemConfig = {}
+        this.authLogs = []
+        this.lastDataLoad = null
         this.error = null
         this.isLoading = false
+        this.microsoftAuthInProgress = false
       }
     },
 
@@ -306,19 +417,70 @@ export const useAuthStore = defineStore('auth', {
       }
     },
 
-    // ==================== ADMIN ACTIONS ====================
-    async getUsers(status = null) {
+    // ==================== ADMIN ACTIONS - USUÁRIOS ====================
+    async getUsers(status = null, forceRefresh = false) {
       try {
-        return await authService.getUsers(status)
+        if (forceRefresh || this.users.length === 0) {
+          this.users = await authService.getUsers(status)
+          this.lastDataLoad = new Date()
+        }
+        return this.users
       } catch (error) {
         this.error = error.message
         throw error
       }
     },
 
-    async getPendingUsers() {
+    async getUserById(userId) {
       try {
-        return await authService.getPendingUsers()
+        return await authService.getUserById(userId)
+      } catch (error) {
+        this.error = error.message
+        throw error
+      }
+    },
+
+    async updateUser(userId, userData) {
+      try {
+        const updatedUser = await authService.updateUser(userId, userData)
+        
+        // Atualizar cache local
+        const index = this.users.findIndex(u => u.id === userId)
+        if (index !== -1) {
+          this.users[index] = { ...this.users[index], ...updatedUser }
+        }
+        
+        return updatedUser
+      } catch (error) {
+        this.error = error.message
+        throw error
+      }
+    },
+
+    async deleteUser(userId) {
+      try {
+        await authService.deleteUser(userId)
+        
+        // Remover do cache local
+        this.users = this.users.filter(u => u.id !== userId)
+        this.pendingUsers = this.pendingUsers.filter(u => u.id !== userId)
+        
+        // Atualizar estatísticas
+        await this.getStatistics(true)
+        
+        return true
+      } catch (error) {
+        this.error = error.message
+        throw error
+      }
+    },
+
+    async getPendingUsers(forceRefresh = false) {
+      try {
+        if (forceRefresh || this.pendingUsers.length === 0) {
+          this.pendingUsers = await authService.getPendingUsers()
+        }
+        return this.pendingUsers
       } catch (error) {
         this.error = error.message
         throw error
@@ -327,11 +489,20 @@ export const useAuthStore = defineStore('auth', {
 
     async approveUser(userId) {
       try {
-        const success = await authService.approveUser(userId, this.user.email)
-        if (success) {
-          // Refresh admin data if needed
+        await authService.approveUser(userId, this.user.email)
+        
+        // Atualizar caches locais
+        const userIndex = this.users.findIndex(u => u.id === userId)
+        if (userIndex !== -1) {
+          this.users[userIndex].status = 'ATIVO'
         }
-        return success
+        
+        this.pendingUsers = this.pendingUsers.filter(u => u.id !== userId)
+        
+        // Atualizar estatísticas
+        await this.getStatistics(true)
+        
+        return true
       } catch (error) {
         this.error = error.message
         throw error
@@ -340,20 +511,119 @@ export const useAuthStore = defineStore('auth', {
 
     async blockUser(userId, reason) {
       try {
-        const success = await authService.blockUser(userId, this.user.email, reason)
-        if (success) {
-          // Refresh admin data if needed
+        await authService.blockUser(userId, reason, this.user.email)
+        
+        // Atualizar cache local
+        const userIndex = this.users.findIndex(u => u.id === userId)
+        if (userIndex !== -1) {
+          this.users[userIndex].status = 'BLOQUEADO'
         }
-        return success
+        
+        // Atualizar estatísticas
+        await this.getStatistics(true)
+        
+        return true
       } catch (error) {
         this.error = error.message
         throw error
       }
     },
 
-    async getStatistics() {
+    // ==================== ADMIN ACTIONS - BULK OPERATIONS ====================
+    async bulkApproveUsers(userIds) {
       try {
-        return await authService.getStatistics()
+        const result = await authService.bulkApproveUsers(userIds, this.user.email)
+        
+        // Atualizar caches locais
+        userIds.forEach(userId => {
+          const userIndex = this.users.findIndex(u => u.id === userId)
+          if (userIndex !== -1) {
+            this.users[userIndex].status = 'ATIVO'
+          }
+        })
+        
+        this.pendingUsers = this.pendingUsers.filter(u => !userIds.includes(u.id))
+        
+        // Atualizar estatísticas
+        await this.getStatistics(true)
+        
+        return result
+      } catch (error) {
+        this.error = error.message
+        throw error
+      }
+    },
+
+    async bulkBlockUsers(userIds, reason) {
+      try {
+        const result = await authService.bulkBlockUsers(userIds, reason, this.user.email)
+        
+        // Atualizar cache local
+        userIds.forEach(userId => {
+          const userIndex = this.users.findIndex(u => u.id === userId)
+          if (userIndex !== -1) {
+            this.users[userIndex].status = 'BLOQUEADO'
+          }
+        })
+        
+        // Atualizar estatísticas
+        await this.getStatistics(true)
+        
+        return result
+      } catch (error) {
+        this.error = error.message
+        throw error
+      }
+    },
+
+    // ==================== ADMIN ACTIONS - ESTATÍSTICAS ====================
+    async getStatistics(forceRefresh = false) {
+      try {
+        if (forceRefresh || Object.keys(this.statistics).length === 0) {
+          this.statistics = await authService.getStatistics()
+        }
+        return this.statistics
+      } catch (error) {
+        this.error = error.message
+        throw error
+      }
+    },
+
+    async getAuthLogs(filters = {}) {
+      try {
+        this.authLogs = await authService.getAuthLogs(filters)
+        return this.authLogs
+      } catch (error) {
+        this.error = error.message
+        throw error
+      }
+    },
+
+    // ==================== ADMIN ACTIONS - CONFIGURAÇÕES ====================
+    async getSystemConfig(forceRefresh = false) {
+      try {
+        if (forceRefresh || Object.keys(this.systemConfig).length === 0) {
+          this.systemConfig = await authService.getSystemConfig()
+        }
+        return this.systemConfig
+      } catch (error) {
+        this.error = error.message
+        throw error
+      }
+    },
+
+    async testEmail(email = null) {
+      try {
+        return await authService.testEmail(email)
+      } catch (error) {
+        this.error = error.message
+        throw error
+      }
+    },
+
+    async sendManualEmail(userId, emailData) {
+      try {
+        return await authService.sendManualEmail(userId, emailData)
       } catch (error) {
         this.error = error.message
         throw error
@@ -374,9 +644,9 @@ export const useAuthStore = defineStore('auth', {
       if (!this.isAuthenticated) return false
       
       // Rotas que requerem admin
-      const adminRoutes = ['admin', 'users', 'statistics']
+      const adminRoutes = ['admin', 'users', 'statistics', 'user-management']
       if (adminRoutes.includes(routeName)) {
-        return this.isAdmin
+        return this.canAccessAdminPanel
       }
       
       // Rotas que requerem usuário ativo
@@ -388,18 +658,135 @@ export const useAuthStore = defineStore('auth', {
       return true
     },
 
-    // Formatar dados do usuário para exibição
-    getUserDisplayData() {
-      if (!this.user) return null
+    // Limpar caches admin
+    clearAdminCaches() {
+      this.users = []
+      this.pendingUsers = []
+      this.statistics = {}
+      this.systemConfig = {}
+      this.authLogs = []
+      this.lastDataLoad = null
+    },
+
+    // Refresh completo dos dados admin
+    async refreshAdminData() {
+      if (!this.canAccessAdminPanel) return
       
-      return {
-        nome: this.user.nome,
-        email: this.user.email,
-        status: this.user.status,
-        iniciais: this.userInitials,
-        ultimoLogin: this.lastLogin,
-        tipoLogin: this.user.tipo_login,
-        criadoEm: this.user.criado_em
+      try {
+        await Promise.all([
+          this.getUsers(null, true),
+          this.getPendingUsers(true),
+          this.getStatistics(true),
+          this.getSystemConfig(true)
+        ])
+        this.lastDataLoad = new Date()
+      } catch (error) {
+        console.error('Erro ao atualizar dados admin:', error)
+      }
+    },
+
+    // Validar sessão
+    async validateSession() {
+      try {
+        const validation = await authService.validateToken()
+        
+        if (validation.valid) {
+          this.user = validation.user
+          this.isAuthenticated = true
+          return true
+        } else {
+          await this.logout()
+          return false
+        }
+      } catch (error) {
+        await this.logout()
+        return false
+      }
+    },
+
+    // ==================== FILTROS E PESQUISAS ====================
+    
+    // Filtros de usuários
+    getUsersByStatus(status) {
+      return this.users.filter(u => u.status === status)
+    },
+
+    getUsersByLoginType(type) {
+      return this.users.filter(u => u.tipo_login === type)
+    },
+
+    // Pesquisa de usuários
+    searchUsers(query) {
+      if (!query) return this.users
+      
+      const searchTerm = query.toLowerCase()
+      return this.users.filter(user => 
+        user.nome.toLowerCase().includes(searchTerm) ||
+        user.email.toLowerCase().includes(searchTerm)
+      )
+    },
+
+    // ==================== FORMATADORES ====================
+    
+    formatDate(dateStr) {
+      return authService.formatDate(dateStr)
+    },
+
+    formatStatus(status) {
+      return authService.formatStatus(status)
+    },
+
+    formatLoginType(type) {
+      return authService.formatLoginType(type)
+    },
+
+    getUserDisplayName() {
+      return authService.getUserDisplayName()
+    },
+
+    // ==================== CONFIGURAÇÃO INICIAL PARA ADMIN ====================
+    async initializeAdminData() {
+      if (!this.canAccessAdminPanel) return
+
+      try {
+        this.setLoading(true)
+        
+        // Carregar dados básicos em paralelo
+        await Promise.all([
+          this.getUsers(),
+          this.getPendingUsers(),
+          this.getStatistics(),
+          this.getSystemConfig()
+        ])
+        
+        // Configurar refresh automático a cada 5 minutos
+        if (this.refreshInterval) {
+          clearInterval(this.refreshInterval)
+        }
+        
+        this.refreshInterval = setInterval(async () => {
+          if (this.canAccessAdminPanel) {
+            try {
+              await this.refreshAdminData()
+            } catch (error) {
+              console.error('Erro no refresh automático:', error)
+            }
+          }
+        }, 5 * 60 * 1000) // 5 minutos
+        
+      } catch (error) {
+        console.error('Erro ao inicializar dados admin:', error)
+        this.error = 'Erro ao carregar dados administrativos'
+      } finally {
+        this.setLoading(false)
+      }
+    },
+
+    // ==================== CLEANUP ====================
+    destroy() {
+      if (this.refreshInterval) {
+        clearInterval(this.refreshInterval)
+        this.refreshInterval = null
       }
     }
   }

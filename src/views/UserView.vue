@@ -27,9 +27,9 @@
         <label>Filtrar por Status:</label>
         <select v-model="statusFilter" @change="applyFilters" class="filter-select">
           <option value="">Todos</option>
-          <option value="ativo">Ativo</option>
-          <option value="pendente">Pendente</option>
-          <option value="bloqueado">Bloqueado</option>
+          <option value="ATIVO">Ativo</option>
+          <option value="PENDENTE">Pendente</option>
+          <option value="BLOQUEADO">Bloqueado</option>
         </select>
       </div>
       
@@ -37,8 +37,8 @@
         <label>Tipo de Login:</label>
         <select v-model="tipoFilter" @change="applyFilters" class="filter-select">
           <option value="">Todos</option>
-          <option value="credenciais">Email/Senha</option>
-          <option value="microsoft">Microsoft OAuth</option>
+          <option value="CREDENCIAIS">Email/Senha</option>
+          <option value="MICROSOFT">Microsoft OAuth</option>
         </select>
       </div>
 
@@ -79,14 +79,14 @@
     >
       <!-- Slot customizado para status -->
       <template #cell-status="{ value }">
-        <span :class="['status-badge', `status-${value}`]">
+        <span :class="['status-badge', `status-${value.toLowerCase()}`]">
           {{ formatStatus(value) }}
         </span>
       </template>
 
       <!-- Slot customizado para tipo de login -->
       <template #cell-tipo_login="{ value }">
-        <span :class="['login-type', `type-${value}`]">
+        <span :class="['login-type', `type-${value.toLowerCase()}`]">
           <FontAwesomeIcon :icon="getLoginTypeIcon(value)" />
           {{ formatLoginType(value) }}
         </span>
@@ -153,9 +153,9 @@
         <div class="form-group">
           <label>Status</label>
           <select v-model="userForm.status" class="form-select">
-            <option value="pendente">Pendente</option>
-            <option value="ativo">Ativo</option>
-            <option value="bloqueado">Bloqueado</option>
+            <option value="PENDENTE">Pendente</option>
+            <option value="ATIVO">Ativo</option>
+            <option value="BLOQUEADO">Bloqueado</option>
           </select>
         </div>
 
@@ -258,8 +258,9 @@
 import VTable from '@/components/Table/VTable.vue'
 import VButton from '@/components/Button/VButton.vue'
 import VPopup from '@/components/Popup/VPopup.vue'
-import { useAuthStore } from '@/store/auth'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { useAuthStore } from '@/store/auth'
+import { useFetch } from '@/hooks/useFetch'
 
 export default {
   name: 'UserView',
@@ -286,7 +287,7 @@ export default {
         nome: '',
         email: '',
         senha: '',
-        status: 'pendente'
+        status: 'PENDENTE'
       },
       formError: '',
       
@@ -362,14 +363,14 @@ export default {
           label: 'Aprovar',
           icon: 'check',
           variant: 'success',
-          disabled: (row) => row.status !== 'pendente'
+          disabled: (row) => row.status !== 'PENDENTE'
         },
         {
           key: 'block',
           label: 'Bloquear',
           icon: 'ban',
           variant: 'danger',
-          disabled: (row) => row.status === 'bloqueado'
+          disabled: (row) => row.status === 'BLOQUEADO'
         },
         {
           key: 'delete',
@@ -381,7 +382,7 @@ export default {
     },
 
     canBatchApprove() {
-      return this.selectedUsers.some(user => user.status === 'pendente')
+      return this.selectedUsers.some(user => user.status === 'PENDENTE')
     }
   },
 
@@ -392,10 +393,11 @@ export default {
 
   methods: {
     // ==================== CARREGAMENTO DE DADOS ====================
+    
     async loadUsers() {
       this.isLoading = true
       try {
-        this.users = await this.authStore.getUsers()
+        this.users = await useFetch('/api/auth/admin/usuarios')
         this.applyFilters()
       } catch (error) {
         console.error('Erro ao carregar usuários:', error)
@@ -407,7 +409,7 @@ export default {
 
     async loadStatistics() {
       try {
-        this.statistics = await this.authStore.getStatistics()
+        this.statistics = await useFetch('/api/auth/admin/estatisticas')
       } catch (error) {
         console.error('Erro ao carregar estatísticas:', error)
       }
@@ -428,6 +430,7 @@ export default {
     },
 
     // ==================== AÇÕES DA TABELA ====================
+    
     handleTableAction({ action, row }) {
       this.currentUser = row
       
@@ -459,13 +462,14 @@ export default {
     },
 
     // ==================== CRUD OPERATIONS ====================
+    
     openCreateModal() {
       this.isEditing = false
       this.userForm = {
         nome: '',
         email: '',
         senha: '',
-        status: 'pendente'
+        status: 'PENDENTE'
       }
       this.formError = ''
       this.showUserModal = true
@@ -474,6 +478,7 @@ export default {
     editUser(user) {
       this.isEditing = true
       this.userForm = {
+        id: user.id,
         nome: user.nome,
         email: user.email,
         senha: '',
@@ -489,27 +494,38 @@ export default {
       
       try {
         if (this.isEditing) {
-          // Atualizar usuário (endpoint não disponível na API atual)
-          this.showToast('warning', 'Aviso', 'Edição de usuário não implementada na API')
+          // Atualizar usuário
+          const updateData = {
+            nome: this.userForm.nome,
+            status: this.userForm.status
+          }
+          
+          await useFetch(`/api/auth/admin/usuarios/${this.userForm.id}`, {
+            method: 'PUT',
+            body: updateData
+          })
+          
+          this.showToast('success', 'Sucesso', 'Usuário atualizado com sucesso')
         } else {
           // Criar novo usuário
-          const result = await this.authStore.register({
-            nome: this.userForm.nome,
-            email: this.userForm.email,
-            senha: this.userForm.senha
+          await useFetch('/api/auth/cadastro', {
+            method: 'POST',
+            body: {
+              nome: this.userForm.nome,
+              email: this.userForm.email,
+              senha: this.userForm.senha
+            }
           })
 
-          if (result.success) {
-            this.showToast('success', 'Sucesso', 'Usuário criado com sucesso')
-            this.closeUserModal()
-            await this.loadUsers()
-            await this.loadStatistics()
-          } else {
-            this.formError = result.error
-          }
+          this.showToast('success', 'Sucesso', 'Usuário criado com sucesso')
         }
+        
+        this.closeUserModal()
+        await this.loadUsers()
+        await this.loadStatistics()
+        
       } catch (error) {
-        this.formError = 'Erro ao salvar usuário'
+        this.formError = error.message || 'Erro ao salvar usuário'
         console.error('Erro ao salvar usuário:', error)
       } finally {
         this.isSaving = false
@@ -518,12 +534,13 @@ export default {
 
     closeUserModal() {
       this.showUserModal = false
-      this.userForm = { nome: '', email: '', senha: '', status: 'pendente' }
+      this.userForm = { nome: '', email: '', senha: '', status: 'PENDENTE' }
       this.formError = ''
       this.isEditing = false
     },
 
     // ==================== CONFIRMAÇÕES ====================
+    
     confirmApprove(user) {
       this.confirmData = {
         title: 'Aprovar Usuário',
@@ -564,7 +581,10 @@ export default {
       try {
         switch (this.confirmData.type) {
           case 'approve':
-            await this.authStore.approveUser(this.currentUser.id)
+            await useFetch(`/api/auth/admin/usuarios/${this.currentUser.id}/aprovar`, {
+              method: 'POST',
+              body: { aprovado_por: this.authStore.user.email }
+            })
             this.showToast('success', 'Sucesso', 'Usuário aprovado com sucesso')
             break
             
@@ -573,13 +593,22 @@ export default {
               this.showToast('warning', 'Aviso', 'Informe o motivo do bloqueio')
               return
             }
-            await this.authStore.blockUser(this.currentUser.id, this.blockReason)
+            
+            await useFetch(`/api/auth/admin/usuarios/${this.currentUser.id}/bloquear`, {
+              method: 'POST',
+              body: {
+                bloqueado_por: this.authStore.user.email,
+                motivo: this.blockReason
+              }
+            })
             this.showToast('success', 'Sucesso', 'Usuário bloqueado com sucesso')
             break
             
           case 'delete':
-            // Endpoint de delete não disponível na API atual
-            this.showToast('warning', 'Aviso', 'Exclusão de usuário não implementada na API')
+            await useFetch(`/api/auth/admin/usuarios/${this.currentUser.id}`, {
+              method: 'DELETE'
+            })
+            this.showToast('success', 'Sucesso', 'Usuário excluído com sucesso')
             break
         }
         
@@ -589,7 +618,7 @@ export default {
         
       } catch (error) {
         console.error('Erro ao executar ação:', error)
-        this.showToast('error', 'Erro', 'Falha ao executar ação')
+        this.showToast('error', 'Erro', error.message || 'Falha ao executar ação')
       } finally {
         this.isExecuting = false
       }
@@ -603,14 +632,19 @@ export default {
     },
 
     // ==================== AÇÕES EM LOTE ====================
+    
     async batchApprove() {
-      const pendingUsers = this.selectedUsers.filter(user => user.status === 'pendente')
+      const pendingUsers = this.selectedUsers.filter(user => user.status === 'PENDENTE')
       
       this.isExecuting = true
       try {
-        for (const user of pendingUsers) {
-          await this.authStore.approveUser(user.id)
-        }
+        await useFetch('/api/auth/admin/usuarios/bulk/aprovar', {
+          method: 'POST',
+          body: {
+            usuario_ids: pendingUsers.map(u => u.id),
+            aprovado_por: this.authStore.user.email
+          }
+        })
         
         this.showToast('success', 'Sucesso', `${pendingUsers.length} usuário(s) aprovado(s)`)
         this.showBatchModal = false
@@ -619,7 +653,7 @@ export default {
         await this.loadStatistics()
         
       } catch (error) {
-        this.showToast('error', 'Erro', 'Falha na aprovação em lote')
+        this.showToast('error', 'Erro', error.message || 'Falha na aprovação em lote')
       } finally {
         this.isExecuting = false
       }
@@ -631,11 +665,14 @@ export default {
 
       this.isExecuting = true
       try {
-        for (const user of this.selectedUsers) {
-          if (user.status !== 'bloqueado') {
-            await this.authStore.blockUser(user.id, reason)
+        await useFetch('/api/auth/admin/usuarios/bulk/bloquear', {
+          method: 'POST',
+          body: {
+            usuario_ids: this.selectedUsers.map(u => u.id),
+            motivo: reason,
+            bloqueado_por: this.authStore.user.email
           }
-        }
+        })
         
         this.showToast('success', 'Sucesso', `${this.selectedUsers.length} usuário(s) bloqueado(s)`)
         this.showBatchModal = false
@@ -644,32 +681,33 @@ export default {
         await this.loadStatistics()
         
       } catch (error) {
-        this.showToast('error', 'Erro', 'Falha no bloqueio em lote')
+        this.showToast('error', 'Erro', error.message || 'Falha no bloqueio em lote')
       } finally {
         this.isExecuting = false
       }
     },
 
     // ==================== FORMATADORES ====================
+    
     formatStatus(status) {
       const statusMap = {
-        ativo: 'Ativo',
-        pendente: 'Pendente',
-        bloqueado: 'Bloqueado'
+        ATIVO: 'Ativo',
+        PENDENTE: 'Pendente',
+        BLOQUEADO: 'Bloqueado'
       }
       return statusMap[status] || status
     },
 
     formatLoginType(type) {
       const typeMap = {
-        credenciais: 'Email/Senha',
-        microsoft: 'Microsoft'
+        CREDENCIAIS: 'Email/Senha',
+        MICROSOFT: 'Microsoft'
       }
       return typeMap[type] || type
     },
 
     getLoginTypeIcon(type) {
-      return type === 'microsoft' ? 'key' : 'envelope'
+      return type === 'MICROSOFT' ? 'key' : 'envelope'
     },
 
     formatDate(dateStr) {
@@ -686,6 +724,7 @@ export default {
     },
 
     // ==================== UTILITÁRIOS ====================
+    
     showToast(type, title, message) {
       // Utilizar o sistema de toast global do App.vue
       if (window.showToast) {
