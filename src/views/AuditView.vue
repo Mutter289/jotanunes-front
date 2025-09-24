@@ -46,6 +46,31 @@
           <p class="detail-id">ID: {{ getRowId(selectedRow) }}</p>
         </div>
 
+        <!-- Seção de Análise Gemini (apenas para audsql) -->
+        <div v-if="tableActive === 'audsql'" class="detail-section">
+          <h3 class="section-title">Análise de Alteração (Gemini)</h3>
+          
+          <div v-if="isLoadingAnalysis" class="loading-analysis">
+            <div class="spinner"></div>
+            <p>Buscando análise do Gemini...</p>
+          </div>
+          
+          <div v-else-if="geminiAnalysis">
+            <SqlDiffViewer 
+              :old-sql="geminiAnalysis.sentenca_anterior" 
+              :new-sql="geminiAnalysis.sentenca_nova"
+            />
+            <div class="gemini-result-offcanvas">
+              <h4 class="gemini-title-offcanvas">Descrição da Mudança</h4>
+              <p>{{ geminiAnalysis.resultado_analise }}</p>
+            </div>
+          </div>
+
+          <div v-else class="no-analysis">
+            <p>Nenhuma análise de alteração encontrada para este registro.</p>
+          </div>
+        </div>
+
         <!-- Seção de Informações Gerais -->
         <div class="detail-section">
           <h3 class="section-title">Informações Gerais</h3>
@@ -213,10 +238,11 @@ import VOffcanvas from '@/components/Offcanvas/VOffcanvas.vue'
 import VButton from '@/components/Button/VButton.vue'
 import VSelect from '@/components/Select/VSelect.vue'
 import VModal from '@/components/Modal/VModal.vue'
+import SqlDiffViewer from '@/components/Diff/SqlDiffViewer.vue'
 import { useFetch } from '@/hooks/useFetch.js'
 
 export default {
-  components: { VSelect, VTable, VOffcanvas, VModal, VButton },
+  components: { VSelect, VTable, VOffcanvas, VModal, VButton, SqlDiffViewer },
   data() {
     return {
       tableActive: 'audfv',
@@ -230,6 +256,10 @@ export default {
       selectedRow: null,
       selectedRowId: null,
       tableData: [],
+      
+      // Novos dados para análise do Gemini
+      geminiAnalysis: null,
+      isLoadingAnalysis: false,
 
       // Configurações das colunas para cada tabela
       tableColumns: {
@@ -445,10 +475,41 @@ export default {
       this.selectedRowId = this.getRowId(row)
       this.showOffcanvas = true
 
+      // Limpa a análise anterior
+      this.geminiAnalysis = null
+
+      // Se a tabela for SQL, busca a análise do Gemini
+      if (this.tableActive === 'audsql') {
+        await this.loadGeminiAnalysis(this.selectedRowId)
+      }
+
       // Carregar detalhes específicos se necessário
       const rowId = this.getRowId(row)
       if (rowId) {
         await this.loadRowDetails(rowId)
+      }
+    },
+
+    // ===============================================
+    // NOVO MÉTODO: para carregar a análise do Gemini
+    // ===============================================
+    async loadGeminiAnalysis(codSentenca) {
+      if (!codSentenca) return
+      this.isLoadingAnalysis = true
+      try {
+        const data = await this.useFetch(`/analises/aud-sqls/${codSentenca}`)
+        if (data && data.length > 0) {
+          // A API retorna um array ordenado pela data mais recente.
+          // Pegamos o primeiro item que é a análise mais recente.
+          this.geminiAnalysis = data[0]
+        } else {
+          this.geminiAnalysis = null // Garante que não há análise se a API não retornar nada
+        }
+      } catch (error) {
+        console.error('Erro ao carregar análise do Gemini:', error)
+        this.geminiAnalysis = null
+      } finally {
+        this.isLoadingAnalysis = false
       }
     },
 
@@ -774,6 +835,44 @@ export default {
   padding: 16px 0 0 0;
   margin-top: 16px;
   border-top: 1px solid #e2e8f0;
+}
+
+/* Estilos para a nova seção de análise no Offcanvas */
+.loading-analysis {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 20px;
+  color: #64748b;
+}
+
+.no-analysis {
+  text-align: center;
+  padding: 20px;
+  background: #f8fafc;
+  border-radius: 8px;
+  color: #64748b;
+}
+
+.gemini-result-offcanvas {
+  margin-top: 16px;
+  background: #f0fdf4;
+  border-left: 4px solid #22c55e;
+  padding: 16px;
+  border-radius: 8px;
+}
+
+.gemini-title-offcanvas {
+  margin: 0 0 8px 0;
+  color: #166534;
+  font-size: 16px;
+}
+
+.gemini-result-offcanvas p {
+  margin: 0;
+  line-height: 1.6;
+  color: #15803d;
 }
 
 /* Loading State */

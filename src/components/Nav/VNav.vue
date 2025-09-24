@@ -28,11 +28,15 @@
             class="action-btn notifications"
             v-if="showNotifications"
             @click="toggleNotifications"
+            :disabled="isLoadingNotifications"
           >
-            <FontAwesomeIcon icon="bell" />
+            <FontAwesomeIcon 
+              :icon="isLoadingNotifications ? 'spinner' : 'bell'" 
+              :spin="isLoadingNotifications"
+            />
             <span
               class="notification-badge"
-              v-if="unreadCount > 0"
+              v-if="unreadCount > 0 && !isLoadingNotifications"
               :class="{ pulse: hasNewNotification }"
             >
               {{ unreadCount > 99 ? '99+' : unreadCount }}
@@ -52,22 +56,29 @@
         <div class="dropdown-actions">
           <button
             class="mark-all-read"
-            @click="markAllAsRead"
+            @click="confirmMarkAllAsRead"
             v-if="notifications.length > 0"
-            :disabled="unreadCount === 0"
+            :disabled="unreadCount === 0 || isProcessing"
             title="Marcar todas como lidas"
           >
-            <FontAwesomeIcon icon="check-double" />
-            Marcar todas como lidas
+            <FontAwesomeIcon 
+              :icon="isProcessing ? 'spinner' : 'check-double'" 
+              :spin="isProcessing"
+            />
+            {{ isProcessing ? 'Processando...' : 'Marcar todas como lidas' }}
           </button>
           <button
             class="clear-read"
-            @click="clearReadNotifications"
+            @click="confirmClearReadNotifications"
             v-if="notifications.length > 0"
+            :disabled="isProcessing"
             title="Limpar notificações lidas"
           >
-            <FontAwesomeIcon icon="broom" />
-            Limpar lidas
+            <FontAwesomeIcon 
+              :icon="isProcessing ? 'spinner' : 'broom'" 
+              :spin="isProcessing"
+            />
+            {{ isProcessing ? 'Limpando...' : 'Limpar lidas' }}
           </button>
           <button class="close-dropdown" @click="showNotificationsDropdown = false">
             <FontAwesomeIcon icon="times" />
@@ -76,78 +87,100 @@
       </div>
 
       <div class="dropdown-content">
-        <div class="connection-info" v-if="!isConnected">
+        <!-- Loading state para notificações -->
+        <div v-if="isLoadingNotifications" class="loading-notifications">
+          <div class="spinner-small"></div>
+          <p>Carregando notificações...</p>
+        </div>
+
+        <div v-else-if="!isConnected" class="connection-info">
           <div class="connection-warning">
             <FontAwesomeIcon icon="wifi-slash" />
             <span>Desconectado - Notificações podem não estar atualizadas</span>
-            <button @click="reconnectWebSocket" class="reconnect-btn">
-              <FontAwesomeIcon icon="sync-alt" />
+            <button @click="reconnectWebSocket" class="reconnect-btn" :disabled="isReconnecting">
+              <FontAwesomeIcon 
+                :icon="isReconnecting ? 'spinner' : 'sync-alt'" 
+                :spin="isReconnecting"
+              />
+              {{ isReconnecting ? 'Conectando...' : 'Reconectar' }}
             </button>
           </div>
         </div>
-        <div
-          class="notification-item"
-          v-for="notification in notifications"
-          :key="notification.id"
-          :class="{
-            unread: !notification.read,
-            'notification-processing': notification.processing,
-          }"
-          @click="onNotificationClick(notification)"
-        >
-          <div class="notification-icon" :class="`icon-${notification.icon}`">
-            <FontAwesomeIcon :icon="notification.icon" />
+
+        <div v-else>
+          <div
+            class="notification-item"
+            v-for="notification in notifications"
+            :key="notification.id"
+            :class="{
+              unread: !notification.read,
+              'notification-processing': notification.processing,
+            }"
+            @click="onNotificationClick(notification)"
+          >
+            <div class="notification-icon" :class="`icon-${notification.icon}`">
+              <FontAwesomeIcon :icon="notification.icon" />
+            </div>
+
+            <div class="notification-text">
+              <p class="notification-title">{{ notification.title }}</p>
+              <p class="notification-message">{{ notification.message }}</p>
+              <span class="notification-time">{{ notification.time }}</span>
+            </div>
+
+            <div class="notification-actions">
+              <button
+                v-if="!notification.read"
+                class="mark-as-read"
+                @click.stop="markSingleAsRead(notification)"
+                title="Marcar como lida"
+                :disabled="notification.processing"
+              >
+                <FontAwesomeIcon
+                  :icon="notification.processing ? 'spinner' : 'check'"
+                  :spin="notification.processing"
+                />
+              </button>
+
+              <button
+                class="remove-notification"
+                @click.stop="confirmRemoveNotification(notification)"
+                title="Remover notificação"
+                :disabled="notification.processing"
+              >
+                <FontAwesomeIcon icon="times" />
+              </button>
+            </div>
+
+            <div class="notification-status" v-if="!notification.read">
+              <span class="unread-dot"></span>
+            </div>
           </div>
 
-          <div class="notification-text">
-            <p class="notification-title">{{ notification.title }}</p>
-            <p class="notification-message">{{ notification.message }}</p>
-            <span class="notification-time">{{ notification.time }}</span>
+          <div class="no-notifications" v-if="notifications.length === 0">
+            <FontAwesomeIcon icon="inbox" />
+            <p>Nenhuma notificação não lida</p>
+            <small v-if="isConnected">Você está em dia! 🎉</small>
+            <small v-else>Verifique sua conexão</small>
           </div>
 
-          <div class="notification-actions">
-            <button
-              v-if="!notification.read"
-              class="mark-as-read"
-              @click.stop="markSingleAsRead(notification)"
-              title="Marcar como lida"
-              :disabled="notification.processing"
+          <div class="notifications-footer" v-if="notifications.length > 0">
+            <div class="notification-count">
+              <span>{{ unreadCount }} não lida{{ unreadCount !== 1 ? 's' : '' }}</span>
+              <span class="total-count">de {{ notifications.length }} total</span>
+            </div>
+            <button 
+              class="sync-notifications" 
+              @click="syncNotifications" 
+              title="Sincronizar"
+              :disabled="isSyncing"
             >
-              <FontAwesomeIcon
-                :icon="notification.processing ? 'spinner' : 'check'"
-                :spin="notification.processing"
+              <FontAwesomeIcon 
+                :icon="isSyncing ? 'spinner' : 'sync-alt'" 
+                :spin="isSyncing"
               />
             </button>
-
-            <button
-              class="remove-notification"
-              @click.stop="removeNotification(notification.id)"
-              title="Remover notificação"
-            >
-              <FontAwesomeIcon icon="times" />
-            </button>
           </div>
-
-          <div class="notification-status" v-if="!notification.read">
-            <span class="unread-dot"></span>
-          </div>
-        </div>
-
-        <div class="no-notifications" v-if="notifications.length === 0">
-          <FontAwesomeIcon icon="inbox" />
-          <p>Nenhuma notificação não lida</p>
-          <small v-if="isConnected">Você está em dia! 🎉</small>
-          <small v-else>Verifique sua conexão</small>
-        </div>
-
-        <div class="notifications-footer" v-if="notifications.length > 0">
-          <div class="notification-count">
-            <span>{{ unreadCount }} não lida{{ unreadCount !== 1 ? 's' : '' }}</span>
-            <span class="total-count">de {{ notifications.length }} total</span>
-          </div>
-          <button class="sync-notifications" @click="syncNotifications" title="Sincronizar">
-            <FontAwesomeIcon icon="sync-alt" />
-          </button>
         </div>
       </div>
     </div>
@@ -162,11 +195,16 @@
       <div class="dropdown-content">
         <div class="profile-info">
           <div class="profile-avatar">
-            <FontAwesomeIcon icon="user-circle" />
+            <div class="avatar-circle">
+              <span class="avatar-initials">{{ getUserInitials() }}</span>
+            </div>
           </div>
           <div class="profile-details">
-            <p class="profile-name">{{ userName }}</p>
-            <p class="profile-email">{{ userEmail }}</p>
+            <p class="profile-name">{{ currentUserName }}</p>
+            <p class="profile-email">{{ currentUserEmail }}</p>
+            <span class="profile-status" :class="`status-${currentUserStatus}`">
+              {{ formatUserStatus(currentUserStatus) }}
+            </span>
           </div>
         </div>
         <div class="profile-actions">
@@ -174,7 +212,7 @@
             <FontAwesomeIcon icon="edit" />
             Editar Perfil
           </button>
-          <button class="profile-action" @click="logout">
+          <button class="profile-action logout-btn" @click="confirmLogout">
             <FontAwesomeIcon icon="sign-out-alt" />
             Sair
           </button>
@@ -182,13 +220,14 @@
       </div>
     </div>
 
+    <!-- Resto do componente permanece igual -->
     <VOffcanvas
       v-model="showNotificationOffcanvas"
       side="right"
       width="900px"
       :title="`Detalhes - ${selectedNotificationData?.NOME || 'Notificação'}`"
     >
-      <!-- Conteúdo do Offcanvas -->
+      <!-- Conteúdo do Offcanvas permanece igual -->
       <div v-if="selectedNotificationData" class="offcanvas-content">
         <!-- Header com informações principais -->
         <div class="detail-header">
@@ -204,7 +243,7 @@
           <p class="detail-id">ID: {{ selectedNotificationData.RECID }}</p>
         </div>
 
-        <!-- Seção de Informações da Notificação -->
+        <!-- Seções de Informações -->
         <div class="detail-section notification-info">
           <h3 class="section-title">Informações da Notificação</h3>
           <div class="detail-grid">
@@ -232,7 +271,7 @@
           </div>
         </div>
 
-        <!-- Seção de Informações Gerais -->
+        <!-- Outras seções permanecem iguais -->
         <div class="detail-section">
           <h3 class="section-title">Informações do Registro</h3>
           <div class="detail-grid">
@@ -261,7 +300,6 @@
           </div>
         </div>
 
-        <!-- Seção de Descrição -->
         <div class="detail-section">
           <h3 class="section-title">Descrição</h3>
           <div class="detail-description">
@@ -269,13 +307,11 @@
           </div>
         </div>
 
-        <!-- Seção de Código SQL (se existir) -->
         <div v-if="selectedNotificationData.SQL_CODE" class="detail-section">
           <h3 class="section-title">Código SQL</h3>
           <pre class="sql-code">{{ selectedNotificationData.SQL_CODE }}</pre>
         </div>
 
-        <!-- Seção de Metadados -->
         <div class="detail-section">
           <h3 class="section-title">Metadados</h3>
           <div class="detail-grid">
@@ -311,6 +347,8 @@ import './VNav.css'
 import websocketService from '@/services/websocketService'
 import notificationStore from '@/store/notificationStore'
 import VOffcanvas from '@/components/Offcanvas/VOffcanvas.vue'
+import { useSuccess, useQuestion, useError } from '@/hooks/useAlerts.js'
+import { useAuthStore } from '@/store/auth.js'
 
 export default {
   name: 'VNavbar',
@@ -339,15 +377,7 @@ export default {
     customBreadcrumbs: {
       type: Array,
       default: () => [],
-    },
-    userName: {
-      type: String,
-      default: 'Gustavo Trindade',
-    },
-    userEmail: {
-      type: String,
-      default: 'gustavo@exemplo.com',
-    },
+    }
   },
 
   emits: ['search', 'profile-action', 'notification-click', 'notification-remove'],
@@ -362,6 +392,15 @@ export default {
       isConnected: false,
       hasNewNotification: false,
       notificationStore: notificationStore,
+      
+      // Estados de loading
+      isLoadingNotifications: false,
+      isProcessing: false,
+      isReconnecting: false,
+      isSyncing: false,
+
+      // Auth store
+      authStore: useAuthStore(),
     }
   },
 
@@ -372,6 +411,19 @@ export default {
 
     unreadCount() {
       return this.notificationStore.unreadCount
+    },
+
+    // Dados do usuário atual do token
+    currentUserName() {
+      return this.authStore.user?.nome || 'Usuário'
+    },
+
+    currentUserEmail() {
+      return this.authStore.user?.email || 'email@exemplo.com'
+    },
+
+    currentUserStatus() {
+      return this.authStore.user?.status?.toLowerCase() || 'ativo'
     },
 
     breadcrumbs() {
@@ -434,6 +486,10 @@ export default {
     toggleNotifications() {
       this.showNotificationsDropdown = !this.showNotificationsDropdown
       this.showProfileDropdown = false
+      
+      if (this.showNotificationsDropdown && this.notifications.length === 0) {
+        this.loadNotifications()
+      }
     },
 
     toggleProfile() {
@@ -446,46 +502,65 @@ export default {
       this.showProfileDropdown = false
     },
 
-    logout() {
-      this.$emit('profile-action', 'logout')
-      this.showProfileDropdown = false
+    async confirmLogout() {
+      const confirmed = await useQuestion({
+        title: 'Confirmar Logout',
+        text: 'Tem certeza que deseja sair do sistema?',
+        icon: 'warning',
+        confirmButtonText: 'Sim, sair',
+        cancelButtonText: 'Cancelar',
+      })
+
+      if (confirmed) {
+        this.isProcessing = true
+        try {
+          await this.authStore.logout()
+          await useSuccess({ title: 'Logout realizado com sucesso!' })
+          this.$router.push('/login')
+        } catch (error) {
+          await useError({
+            title: 'Erro no logout',
+            text: error.message || 'Erro ao fazer logout'
+          })
+        } finally {
+          this.isProcessing = false
+        }
+      }
     },
 
     // Método principal para clique em notificação
     async onNotificationClick(notification) {
-      if (notification.processing) return // Evita cliques duplos
+      if (notification.processing) return
 
       try {
-        // Marca como processando
         notification.processing = true
 
-        // Marca como lida no backend e localmente
         const success = await this.notificationStore.markAsRead(notification.id)
 
         if (success) {
-          // Abre os detalhes da notificação
           this.selectedNotificationData = notification.rowData
           this.showNotificationOffcanvas = true
-
-          // Fecha o dropdown de notificações
           this.showNotificationsDropdown = false
-
           this.$emit('notification-click', notification)
-
-          // Feedback visual opcional
-          this.showToast(`Notificação marcada como lida`, 'success')
+          
+          await useSuccess({ title: 'Notificação marcada como lida' })
         } else {
-          this.showToast('Erro ao marcar notificação como lida', 'error')
+          await useError({ 
+            title: 'Erro', 
+            text: 'Erro ao marcar notificação como lida' 
+          })
         }
       } catch (error) {
         console.error('Erro ao processar clique na notificação:', error)
-        this.showToast('Erro ao processar notificação', 'error')
+        await useError({ 
+          title: 'Erro', 
+          text: 'Erro ao processar notificação' 
+        })
       } finally {
         notification.processing = false
       }
     },
 
-    // Marca uma notificação individual como lida sem abrir detalhes
     async markSingleAsRead(notification) {
       if (notification.processing) return
 
@@ -494,135 +569,180 @@ export default {
         const success = await this.notificationStore.markAsRead(notification.id)
 
         if (success) {
-          this.showToast(`Notificação marcada como lida`, 'success')
+          await useSuccess({ title: 'Notificação marcada como lida' })
         } else {
-          this.showToast('Erro ao marcar notificação como lida', 'error')
+          await useError({ 
+            title: 'Erro', 
+            text: 'Erro ao marcar notificação como lida' 
+          })
         }
       } catch (error) {
         console.error('Erro ao marcar notificação como lida:', error)
-        this.showToast('Erro ao processar notificação', 'error')
+        await useError({ 
+          title: 'Erro', 
+          text: 'Erro ao processar notificação' 
+        })
       } finally {
         notification.processing = false
       }
     },
 
-    // Carrega detalhes adicionais se necessário
-    async loadNotificationDetails(id) {
-      try {
-        // Opcional: buscar mais detalhes do backend se necessário
-        // const response = await axios.get(`http://localhost:8000/audfv/${id}`)
-        // if (response.data) {
-        //   this.selectedNotificationData = {
-        //     ...this.selectedNotificationData,
-        //     ...response.data,
-        //   }
-        // }
-      } catch (e) {
-        console.error('Erro ao carregar detalhes da notificação:', e)
+    async confirmRemoveNotification(notification) {
+      const confirmed = await useQuestion({
+        title: 'Remover Notificação',
+        text: `Tem certeza que deseja remover a notificação "${notification.title}"?`,
+        icon: 'warning',
+        confirmButtonText: 'Sim, remover',
+        cancelButtonText: 'Cancelar',
+      })
+
+      if (confirmed) {
+        this.removeNotification(notification.id)
+        await useSuccess({ title: 'Notificação removida' })
       }
     },
 
-    // Remove uma notificação específica (apenas do array local)
     removeNotification(id) {
       this.notificationStore.removeNotification(id)
       this.$emit('notification-remove', id)
 
-      // Se a notificação removida estava sendo visualizada, fecha o offcanvas
       if (this.selectedNotificationData && this.selectedNotificationData.RECID === id) {
         this.showNotificationOffcanvas = false
         this.selectedNotificationData = null
       }
-
-      this.showToast('Notificação removida', 'info')
     },
 
-    // Marca todas as notificações como lidas
-    async markAllAsRead() {
+    async confirmMarkAllAsRead() {
       if (this.unreadCount === 0) {
-        this.showToast('Nenhuma notificação não lida encontrada', 'info')
+        await useError({ 
+          title: 'Aviso', 
+          text: 'Nenhuma notificação não lida encontrada' 
+        })
         return
       }
 
+      const confirmed = await useQuestion({
+        title: 'Marcar Todas Como Lidas',
+        text: `Tem certeza que deseja marcar todas as ${this.unreadCount} notificações como lidas?`,
+        icon: 'question',
+        confirmButtonText: 'Sim, marcar todas',
+        cancelButtonText: 'Cancelar',
+      })
+
+      if (confirmed) {
+        await this.markAllAsRead()
+      }
+    },
+
+    async markAllAsRead() {
+      this.isProcessing = true
       try {
         const previousCount = this.unreadCount
         await this.notificationStore.markAllAsRead()
-
-        // Fecha o dropdown após marcar todas
         this.showNotificationsDropdown = false
 
-        this.showToast(
-          `${previousCount} notificação${previousCount > 1 ? 'ões' : ''} marcada${previousCount > 1 ? 's' : ''} como lida${previousCount > 1 ? 's' : ''}`,
-          'success',
-        )
+        await useSuccess({
+          title: `${previousCount} notificação${previousCount > 1 ? 'ões' : ''} marcada${previousCount > 1 ? 's' : ''} como lida${previousCount > 1 ? 's' : ''}`
+        })
       } catch (error) {
         console.error('Erro ao marcar todas as notificações como lidas:', error)
-        this.showToast('Erro ao marcar notificações como lidas', 'error')
+        await useError({ 
+          title: 'Erro', 
+          text: 'Erro ao marcar notificações como lidas' 
+        })
+      } finally {
+        this.isProcessing = false
       }
     },
 
-    // Limpa notificações lidas do array local
-    clearReadNotifications() {
+    async confirmClearReadNotifications() {
       const readCount = this.notificationStore.allNotifications.filter((n) => n.read).length
 
       if (readCount === 0) {
-        this.showToast('Nenhuma notificação lida para limpar', 'info')
+        await useError({ 
+          title: 'Aviso', 
+          text: 'Nenhuma notificação lida para limpar' 
+        })
         return
       }
 
+      const confirmed = await useQuestion({
+        title: 'Limpar Notificações Lidas',
+        text: `Tem certeza que deseja remover todas as ${readCount} notificações lidas?`,
+        icon: 'warning',
+        confirmButtonText: 'Sim, limpar',
+        cancelButtonText: 'Cancelar',
+      })
+
+      if (confirmed) {
+        this.clearReadNotifications(readCount)
+      }
+    },
+
+    clearReadNotifications(readCount) {
       this.notificationStore.clearReadNotifications()
 
-      // Se não há mais notificações não lidas, fecha o offcanvas
       if (this.notificationStore.unreadCount === 0) {
         this.showNotificationOffcanvas = false
         this.selectedNotificationData = null
       }
 
-      this.showToast(
-        `${readCount} notificação${readCount > 1 ? 'ões' : ''} lida${readCount > 1 ? 's' : ''} removida${readCount > 1 ? 's' : ''}`,
-        'info',
-      )
+      useSuccess({
+        title: `${readCount} notificação${readCount > 1 ? 'ões' : ''} lida${readCount > 1 ? 's' : ''} removida${readCount > 1 ? 's' : ''}`
+      })
     },
 
-    // Limpa todas as notificações (lidas e não lidas)
-    clearAllNotifications() {
-      const totalCount = this.notificationStore.allNotifications.length
-
-      if (totalCount === 0) {
-        this.showToast('Nenhuma notificação para limpar', 'info')
-        return
-      }
-
-      this.notificationStore.clearAll()
-
-      // Fecha o offcanvas e dropdown
-      this.showNotificationOffcanvas = false
-      this.selectedNotificationData = null
-      this.showNotificationsDropdown = false
-
-      this.showToast(
-        `${totalCount} notificação${totalCount > 1 ? 'ões' : ''} removida${totalCount > 1 ? 's' : ''}`,
-        'info',
-      )
-    },
-
-    // Sincroniza notificações com o backend
     async syncNotifications() {
+      this.isSyncing = true
       try {
         await this.notificationStore.loadUnreadNotifications()
-        this.showToast('Notificações sincronizadas', 'success')
+        await useSuccess({ title: 'Notificações sincronizadas' })
       } catch (error) {
         console.error('Erro ao sincronizar notificações:', error)
-        this.showToast('Erro ao sincronizar notificações', 'error')
+        await useError({ 
+          title: 'Erro', 
+          text: 'Erro ao sincronizar notificações' 
+        })
+      } finally {
+        this.isSyncing = false
       }
     },
 
-    // Reconecta o WebSocket
-    reconnectWebSocket() {
-      websocketService.reconnect()
-      this.showToast('Tentando reconectar...', 'info')
+    async reconnectWebSocket() {
+      this.isReconnecting = true
+      try {
+        websocketService.reconnect()
+        // Aguarda um pouco para dar tempo da conexão
+        setTimeout(() => {
+          this.isReconnecting = false
+          if (this.isConnected) {
+            useSuccess({ title: 'Reconectado com sucesso!' })
+          }
+        }, 2000)
+      } catch (error) {
+        this.isReconnecting = false
+        await useError({ 
+          title: 'Erro', 
+          text: 'Erro ao reconectar' 
+        })
+      }
     },
 
-    // Manipula cliques fora dos dropdowns
+    async loadNotifications() {
+      this.isLoadingNotifications = true
+      try {
+        await this.notificationStore.loadUnreadNotifications()
+      } catch (error) {
+        console.error('Erro ao carregar notificações:', error)
+        await useError({ 
+          title: 'Erro', 
+          text: 'Erro ao carregar notificações' 
+        })
+      } finally {
+        this.isLoadingNotifications = false
+      }
+    },
+
     handleClickOutside(event) {
       if (
         !event.target.closest('.notifications-dropdown') &&
@@ -636,7 +756,6 @@ export default {
       }
     },
 
-    // Formatação de datas
     formatDate(dateString) {
       if (!dateString) return 'N/A'
 
@@ -648,20 +767,16 @@ export default {
       }
     },
 
-    // WebSocket handlers
     handleNotification(data) {
-      // Adiciona apenas se não foi lida (Readed = false ou undefined)
       if (data.Readed === false || data.Readed === undefined) {
         this.notificationStore.addNotification(data)
 
-        // Animação de nova notificação
         this.hasNewNotification = true
         setTimeout(() => {
           this.hasNewNotification = false
         }, 1000)
 
-        // Mostrar toast para nova notificação
-        this.showToast(`Nova notificação: ${data.tabela || 'Registro'}`, 'info')
+        useSuccess({ title: `Nova notificação: ${data.tabela || 'Registro'}` })
       }
     },
 
@@ -669,39 +784,39 @@ export default {
       this.isConnected = status
 
       if (status) {
-        this.showToast('Conectado ao servidor de notificações', 'success')
+        useSuccess({ title: 'Conectado ao servidor de notificações' })
       } else {
-        this.showToast('Desconectado do servidor de notificações', 'warning')
+        useError({ 
+          title: 'Desconectado', 
+          text: 'Desconectado do servidor de notificações' 
+        })
       }
     },
 
-    // Solicita sincronização quando conecta
-    handleSyncNotifications() {
-      this.syncNotifications()
+    getUserInitials() {
+      return this.authStore.userInitials || 'U'
     },
 
-    // Exibe toast/notificação
-    showToast(message, type = 'info') {
-      console.log(`[${type.toUpperCase()}] ${message}`)
-
-      // Implementar toast library se desejar
-      // Exemplo com vue-toastification:
-      // this.$toast[type](message)
-
-      // Ou implementar sistema próprio de toast
-      // this.$emit('show-toast', { message, type })
+    formatUserStatus(status) {
+      const statusMap = {
+        ativo: 'Ativo',
+        pendente: 'Pendente',
+        bloqueado: 'Bloqueado'
+      }
+      return statusMap[status] || 'Ativo'
     },
 
-    // Método de debug para verificar status
     debugNotifications() {
       console.log('=== DEBUG NOTIFICAÇÕES ===')
       console.log('Total de notificações:', this.notificationStore.allNotifications.length)
       console.log('Notificações não lidas:', this.unreadCount)
       console.log('Notificações visíveis:', this.notifications.length)
       console.log('WebSocket conectado:', this.isConnected)
+      console.log('Usuário atual:', this.currentUserName)
       console.log('===========================')
     },
   },
+
   watch: {
     $route() {
       this.showNotificationsDropdown = false
@@ -714,7 +829,9 @@ export default {
     websocketService.on('notification', this.handleNotification)
     websocketService.on('connected', this.handleConnectionStatus)
     document.addEventListener('click', this.handleClickOutside)
-    this.notificationStore.loadUnreadNotifications()
+    
+    // Carrega notificações iniciais
+    this.loadNotifications()
   },
 
   unmounted() {
@@ -724,3 +841,168 @@ export default {
   },
 }
 </script>
+
+<style scoped>
+/* Estilos para loading */
+.loading-notifications {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem;
+  gap: 1rem;
+}
+
+.spinner-small {
+  width: 24px;
+  height: 24px;
+  border: 2px solid #e2e8f0;
+  border-top: 2px solid #6366f1;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #e2e8f0;
+  border-top: 4px solid #6366f1;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  gap: 16px;
+}
+
+/* Estilos para o avatar do usuário */
+.avatar-circle {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 700;
+  font-size: 1.2rem;
+}
+
+.avatar-initials {
+  text-transform: uppercase;
+}
+
+/* Estilos para status do usuário */
+.profile-status {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 0.5rem;
+}
+
+.status-ativo {
+  background: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.status-pendente {
+  background: #fff3cd;
+  color: #856404;
+  border: 1px solid #ffeaa7;
+}
+
+.status-bloqueado {
+  background: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+/* Estilos melhorados para botões com loading */
+.action-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.mark-all-read:disabled,
+.clear-read:disabled,
+.reconnect-btn:disabled,
+.sync-notifications:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.logout-btn:hover {
+  background-color: #dc3545;
+  color: white;
+}
+
+/* Animações melhoradas */
+.pulse {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Transições suaves */
+.notification-item {
+  transition: all 0.3s ease;
+}
+
+.notification-item:hover {
+  background-color: #f8fafc;
+  transform: translateX(4px);
+}
+
+.notification-processing {
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+/* Melhorias para responsividade */
+@media (max-width: 768px) {
+  .dropdown-actions {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .mark-all-read,
+  .clear-read {
+    font-size: 0.8rem;
+    padding: 0.5rem;
+  }
+  
+  .avatar-circle {
+    width: 40px;
+    height: 40px;
+    font-size: 1rem;
+  }
+}
+</style>

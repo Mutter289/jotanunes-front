@@ -103,20 +103,17 @@
 import { RouterView, useRoute } from 'vue-router'
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useAuthStore } from '@/store/auth'
-import { useAuth, useNotifications } from '@/hooks/useAuth.js'
+import { useAuth, useNotifications } from '@/hooks/useAuth'
 import VSidebar from './components/Sidebar/VSidebar.vue'
 import VNav from './components/Nav/VNav.vue'
 import VButton from './components/Button/VButton.vue'
 
-// Stores e composables
 const authStore = useAuthStore()
 const { isAuthenticated, user: currentUser, logout } = useAuth()
 const { notifications, unreadCount: unreadNotificationsCount, loadNotifications } = useNotifications()
 
-// Router
 const route = useRoute()
 
-// Estados locais
 const sidebarWidth = ref(250)
 const isCollapsed = ref(false)
 const isInitializing = ref(true)
@@ -126,7 +123,6 @@ const confirmData = ref({})
 const confirmCallback = ref(null)
 const showOfflineMessage = ref(false)
 
-// Computed
 const showSidebar = computed(() => {
   return isAuthenticated.value && route.name !== 'home' && route.name !== 'microsoft-callback'
 })

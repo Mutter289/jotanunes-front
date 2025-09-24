@@ -23,6 +23,15 @@ const routes = [
     }
   },
   {
+    path: '/gemini-analyses',
+    name: 'GeminiAnalyses',
+    component: () => import('../views/GeminiAnalysesView.vue'),
+    meta: {
+      requiresAuth: true,
+      title: 'Análises'
+    }
+  },
+  {
     path: '/login',
     name: 'login',
     redirect: '/'
