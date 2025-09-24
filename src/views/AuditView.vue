@@ -213,7 +213,7 @@ import VOffcanvas from '@/components/Offcanvas/VOffcanvas.vue'
 import VButton from '@/components/Button/VButton.vue'
 import VSelect from '@/components/Select/VSelect.vue'
 import VModal from '@/components/Modal/VModal.vue'
-import { useFetch } from '@/hooks/useFetch'
+import { useFetch } from '@/hooks/useFetch.js'
 
 export default {
   components: { VSelect, VTable, VOffcanvas, VModal, VButton },

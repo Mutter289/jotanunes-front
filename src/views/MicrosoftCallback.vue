@@ -65,7 +65,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { useAuthStore } from '@/stores/auth'
+import { useAuthStore } from '@/store/auth.js'
 import VButton from '@/components/Button/VButton.vue'
 
 // Router e store

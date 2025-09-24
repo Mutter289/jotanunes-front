@@ -265,7 +265,7 @@
 import VInput from '@/components/Input/VInput.vue'
 import VButton from '@/components/Button/VButton.vue'
 import VPopup from '@/components/Popup/VPopup.vue'
-import { useAuthStore } from '@/store/auth'
+import { useAuthStore } from '@/store/auth.js'
 
 export default {
   name: 'LoginPage',

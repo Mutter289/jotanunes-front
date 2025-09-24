@@ -103,7 +103,7 @@
 import { RouterView, useRoute } from 'vue-router'
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useAuthStore } from '@/store/auth'
-import { useAuth, useNotifications } from '@/hooks/useAuth'
+import { useAuth, useNotifications } from '@/hooks/useAuth.js'
 import VSidebar from './components/Sidebar/VSidebar.vue'
 import VNav from './components/Nav/VNav.vue'
 import VButton from './components/Button/VButton.vue'

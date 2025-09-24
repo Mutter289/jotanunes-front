@@ -259,8 +259,8 @@ import VTable from '@/components/Table/VTable.vue'
 import VButton from '@/components/Button/VButton.vue'
 import VPopup from '@/components/Popup/VPopup.vue'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { useAuthStore } from '@/store/auth'
-import { useFetch } from '@/hooks/useFetch'
+import { useAuthStore } from '@/store/auth.js'
+import { useFetch } from '@/hooks/useFetch.js'
 
 export default {
   name: 'UserView',

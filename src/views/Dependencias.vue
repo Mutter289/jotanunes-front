@@ -486,7 +486,7 @@
 </template>
 
 <script>
-import { useFetch } from '@/hooks/useFetch';
+import { useFetch } from '@/hooks/useFetch.js';
 export default {
   data() {
     return {
