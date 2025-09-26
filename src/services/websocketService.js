@@ -17,7 +17,6 @@ class WebSocketService {
         this.isConnected = true
         this.emit('connected', true)
 
-        // Envia ping para manter conexão ativa
         this.pingInterval = setInterval(() => {
           if (this.ws.readyState === WebSocket.OPEN) {
             this.ws.send('ping')
