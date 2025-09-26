@@ -33,7 +33,7 @@
               <path d="M21 12a9 9 0 0 1-15 6.7L3 16"/>
             </svg>
           </button>
-          <button class="btn-primary" @click="showAddModal = true">
+          <button class="btn-primary" @click="openCreateModal">
             <svg class="btn-icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <line x1="12" y1="5" x2="12" y2="19"/>
               <line x1="5" y1="12" x2="19" y2="12"/>
@@ -217,6 +217,16 @@
               <span class="tag">{{ dep.criador }}</span>
             </div>
             <div class="dep-actions">
+              <button class="action-btn" @click.stop="openDiagram(dep)" title="Abrir Diagrama">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="3" width="7" height="7"/>
+                  <path d="M10 6h4"/>
+                  <rect x="14" y="5" width="7" height="9"/>
+                  <path d="M14 10h-4"/>
+                  <rect x="3" y="14" width="7" height="7"/>
+                  <path d="M10 18h4M18 14v7"/>
+                </svg>
+              </button>
               <button class="action-btn" @click.stop="editDependency(dep)" title="Editar">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
@@ -360,11 +370,14 @@
           </div>
           <div class="form-group">
             <label>Tabela de Origem</label>
-            <select v-model="newDependency.tabela_origem" class="form-select">
-              <option value="AUD_FV">AUD_FV</option>
-              <option value="AUD_SQL">AUD_SQL</option>
-              <option value="AUD_REPORTS">AUD_REPORTS</option>
-              <option value="OUTRAS">Outras</option>
+            <select v-model="newDependency.tabela_origem" class="form-select" @change="loadOrigemItens">
+              <option v-for="t in tabelasDisponiveis" :key="t" :value="t">{{ t }}</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Item de Origem</label>
+            <select v-model="newDependency.id_origem" class="form-select">
+              <option v-for="it in itensOrigem" :key="it.id" :value="it.id">{{ it.nome }}</option>
             </select>
           </div>
           <div class="form-group">
@@ -384,12 +397,74 @@
               class="form-textarea"
             ></textarea>
           </div>
+
+          <div class="form-group">
+            <label>Dependências (Forma Visual → SQL → Relatório)</label>
+            <div class="dep-chooser">
+              <div class="dep-chooser-col">
+                <small>Forma Visual</small>
+                <select v-model="depSelecionada.fv" class="form-select" @focus="ensureItens('AUD_FV')">
+                  <option v-for="fv in itensPorTabela.AUD_FV" :key="fv.id" :value="fv.id">{{ fv.nome }}</option>
+                </select>
+              </div>
+              <div class="dep-chooser-col">
+                <small>SQL</small>
+                <select v-model="depSelecionada.sql" class="form-select" @focus="ensureItens('AUD_SQL')">
+                  <option v-for="s in itensPorTabela.AUD_SQL" :key="s.id" :value="s.id">{{ s.nome }}</option>
+                </select>
+              </div>
+              <div class="dep-chooser-col">
+                <small>Relatório</small>
+                <select v-model="depSelecionada.report" class="form-select" @focus="ensureItens('AUD_REPORT')">
+                  <option v-for="r in itensPorTabela.AUD_REPORT" :key="r.id" :value="r.id">{{ r.nome }}</option>
+                </select>
+              </div>
+              <button class="btn-secondary" @click="adicionarSequencia">Adicionar Sequência</button>
+            </div>
+            <div v-if="newDependency.dependencias.length" class="sequencias-list">
+              <div v-for="(d,i) in newDependency.dependencias" :key="i" class="sequencia-item">
+                <span>{{ d.tabela_dependente }} → {{ d.id_dependente }}</span>
+              </div>
+            </div>
+          </div>
         </div>
         <div class="modal-footer">
           <button class="btn-secondary" @click="closeModal">Cancelar</button>
           <button class="btn-primary" @click="saveDependency" :disabled="isSaving">
             {{ isSaving ? 'Salvando...' : (editingDependency ? 'Atualizar' : 'Criar') }}
           </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Diagram Modal -->
+    <div v-if="showDiagram" class="modal-overlay" @click.self="showDiagram = false">
+      <div class="modal">
+        <div class="modal-header">
+          <h2>Fluxo do Modelo: {{ diagramData?.nome }}</h2>
+          <button class="modal-close" @click="showDiagram = false">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18"/>
+              <line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="diagram">
+            <div class="node">Forma Visual</div>
+            <div class="arrow">→</div>
+            <div class="node">SQL</div>
+            <div class="arrow">→</div>
+            <div class="node">Relatório</div>
+          </div>
+          <ul class="diagram-list">
+            <li v-for="d in diagramData?.dependencias || []" :key="d.id">
+              {{ d.tabela_dependente }}: {{ d.nome_dependente || d.id_dependente }}
+            </li>
+          </ul>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secondary" @click="showDiagram = false">Fechar</button>
         </div>
       </div>
     </div>
@@ -502,6 +577,8 @@ export default {
       editingDependency: null,
       unreadNotifications: 0,
       websocket: null,
+      showDiagram: false,
+      diagramData: null,
       
       filters: [
         { id: 'all', label: 'Todos', count: 0, active: true },
@@ -551,10 +628,16 @@ export default {
         nome: '',
         versao: '',
         tabela_origem: 'AUD_FV',
+        id_origem: null,
         criador: '',
         descricao: '',
         dependencias: []
       },
+
+      tabelasDisponiveis: ['AUD_FV','AUD_SQL','AUD_REPORT'],
+      itensOrigem: [],
+      itensPorTabela: { AUD_FV: [], AUD_SQL: [], AUD_REPORT: [] },
+      depSelecionada: { fv: null, sql: null, report: null },
 
       toasts: []
     }
@@ -627,7 +710,7 @@ export default {
     async loadDependencies() {
       try {
         this.isLoading = true;
-        const response = await this.useFetch(`/dependencias/alteracoes`);
+        const response = await this.useFetch(`/api/v2/dependencias/itens`);
         this.dependencies = response;
         this.updateFilterCounts();
         this.organizeDependencyTree();
@@ -641,7 +724,7 @@ export default {
 
     async loadStatistics() {
       try {
-        const response = await this.useFetch(`/dependencias/estatisticas`);
+        const response = await this.useFetch(`/api/v2/dependencias/estatisticas`);
         this.stats = response;
       } catch (error) {
         console.error('Load statistics error:', error);
@@ -727,7 +810,7 @@ export default {
 
     async loadDependencyDetails(id) {
       try {
-        const response = await this.useFetch(`/dependencias/alteracoes/${id}`);
+        const response = await this.useFetch(`/api/v2/dependencias/itens/${id}`);
         this.selectedDep = response;
       } catch (error) {
         this.showToast('Erro ao carregar detalhes da alteração', 'error');
@@ -753,7 +836,7 @@ export default {
             const usuario = prompt('Digite seu nome de usuário:');
             if (!usuario) return;
 
-            await useFetch(`/dependencias/alteracoes/${dep.id}?usuario=${encodeURIComponent(usuario)}`, {
+            await useFetch(`/api/v2/dependencias/itens/${dep.id}?usuario=${encodeURIComponent(usuario)}`, {
                 method: 'DELETE'
             });
             
@@ -779,7 +862,7 @@ export default {
             // Update existing dependency
             const usuario = this.newDependency.criador;
             await useFetch(
-                `/dependencias/alteracoes/${this.editingDependency.id}?usuario=${encodeURIComponent(usuario)}`,
+                `/api/v2/dependencias/itens/${this.editingDependency.id}?usuario=${encodeURIComponent(usuario)}`,
                 {
                 method: 'PUT',
                 body: {
@@ -793,9 +876,18 @@ export default {
             this.showToast('Alteração atualizada com sucesso', 'success');
             } else {
             // Create new dependency
-            await useFetch('/dependencias/alteracoes', {
+            const body = {
+                tabela_origem: this.newDependency.tabela_origem,
+                id_origem: this.newDependency.id_origem,
+                nome: this.newDependency.nome,
+                descricao: this.newDependency.descricao,
+                versao: this.newDependency.versao,
+                criador: this.newDependency.criador,
+                dependencias: this.newDependency.dependencias
+            };
+            await useFetch('/api/v2/dependencias/itens', {
                 method: 'POST',
-                body: this.newDependency
+                body
             });
             this.showToast('Alteração criada com sucesso', 'success');
             }
@@ -811,6 +903,66 @@ export default {
         }
     },
 
+    async openCreateModal() {
+      this.showAddModal = true;
+      await this.loadTabelas();
+      await this.loadOrigemItens();
+      await this.ensureItens('AUD_FV');
+      await this.ensureItens('AUD_SQL');
+      await this.ensureItens('AUD_REPORT');
+    },
+
+    async loadTabelas() {
+      try {
+        const tabs = await this.useFetch('/api/v2/dependencias/tabelas');
+        if (Array.isArray(tabs) && tabs.length) this.tabelasDisponiveis = tabs;
+      } catch {}
+    },
+
+    async loadOrigemItens() {
+      try {
+        const t = this.newDependency.tabela_origem;
+        const itens = await this.useFetch(`/api/v2/dependencias/tabelas/${encodeURIComponent(t)}/itens`);
+        this.itensOrigem = itens;
+        if (!this.newDependency.id_origem && itens.length) this.newDependency.id_origem = itens[0].id;
+      } catch (e) {
+        this.itensOrigem = [];
+      }
+    },
+
+    async ensureItens(tabela) {
+      if (this.itensPorTabela[tabela] && this.itensPorTabela[tabela].length) return;
+      try {
+        const itens = await this.useFetch(`/api/v2/dependencias/tabelas/${encodeURIComponent(tabela)}/itens`);
+        this.itensPorTabela[tabela] = itens;
+      } catch {}
+    },
+
+    adicionarSequencia() {
+      this.newDependency.dependencias = [];
+      if (this.depSelecionada.fv) {
+        this.newDependency.dependencias.push({ tabela_dependente: 'AUD_FV', id_dependente: this.depSelecionada.fv });
+      }
+      if (this.depSelecionada.sql) {
+        this.newDependency.dependencias.push({ tabela_dependente: 'AUD_SQL', id_dependente: this.depSelecionada.sql });
+      }
+      if (this.depSelecionada.report) {
+        this.newDependency.dependencias.push({ tabela_dependente: 'AUD_REPORT', id_dependente: this.depSelecionada.report });
+      }
+    },
+
+    openDiagram(dep) {
+      this.diagramData = dep;
+      if (!dep.dependencias) {
+        this.loadDependencyDetails(dep.id).then(() => {
+          this.diagramData = this.selectedDep;
+          this.showDiagram = true;
+        });
+      } else {
+        this.showDiagram = true;
+      }
+    },
+
 
     closeModal() {
       this.showAddModal = false;
@@ -819,10 +971,12 @@ export default {
         nome: '',
         versao: '',
         tabela_origem: 'AUD_FV',
+        id_origem: null,
         criador: '',
         descricao: '',
         dependencias: []
       };
+      this.depSelecionada = { fv: null, sql: null, report: null };
     },
 
     async viewHistory(dep) {
