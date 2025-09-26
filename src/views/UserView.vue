@@ -181,7 +181,6 @@
       </template>
     </VPopup>
 
-    <!-- Modal de Confirmação -->
     <VPopup
       v-model:visible="showConfirmModal"
       :msg="confirmData.title"
@@ -218,7 +217,6 @@
       </template>
     </VPopup>
 
-    <!-- Modal de Ações em Lote -->
     <VPopup
       v-model:visible="showBatchModal"
       msg="Ações em Lote"
@@ -263,9 +261,7 @@ import { useAuthStore } from '@/store/auth.js'
 import { useFetch } from '@/hooks/useFetch.js'
 
 export default {
-  name: 'UserView',
   components: { VTable, VButton, VPopup, FontAwesomeIcon },
-
   data() {
     return {
       users: [],
@@ -275,12 +271,8 @@ export default {
       isLoading: false,
       isSaving: false,
       isExecuting: false,
-      
-      // Filtros
       statusFilter: '',
       tipoFilter: '',
-      
-      // Modal de usuário
       showUserModal: false,
       isEditing: false,
       userForm: {
@@ -290,18 +282,12 @@ export default {
         status: 'PENDENTE'
       },
       formError: '',
-      
-      // Modal de confirmação
       showConfirmModal: false,
       confirmData: {},
       blockReason: '',
       currentAction: null,
       currentUser: null,
-      
-      // Modal de ações em lote
       showBatchModal: false,
-      
-      // Configuração da tabela
       tableColumns: [
         {
           key: 'nome',
@@ -494,7 +480,6 @@ export default {
       
       try {
         if (this.isEditing) {
-          // Atualizar usuário
           const updateData = {
             nome: this.userForm.nome,
             status: this.userForm.status
@@ -507,7 +492,6 @@ export default {
           
           this.showToast('success', 'Sucesso', 'Usuário atualizado com sucesso')
         } else {
-          // Criar novo usuário
           await useFetch('/api/auth/cadastro', {
             method: 'POST',
             body: {
@@ -726,7 +710,6 @@ export default {
     // ==================== UTILITÁRIOS ====================
     
     showToast(type, title, message) {
-      // Utilizar o sistema de toast global do App.vue
       if (window.showToast) {
         window.showToast(type, title, message)
       } else {
@@ -744,7 +727,6 @@ export default {
   padding: 2rem;
 }
 
-/* Header */
 .page-header {
   display: flex;
   justify-content: space-between;
@@ -759,7 +741,7 @@ export default {
   font-size: 2.5rem;
   font-weight: 700;
   color: #2c3e50;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--badge-gradient);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;

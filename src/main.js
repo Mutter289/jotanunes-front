@@ -14,26 +14,27 @@ import {
   faUsers,
   faMagnifyingGlass,
   faUser,
-  faArrowRightFromBracket, // Antigo faSignOutAlt
+  faArrowRightFromBracket,
   faHome,
   faChevronRight,
   faBell,
   faUserCircle,
-  faXmark, // Antigo faTimes
+  faXmark,
   faEdit,
   faInfoCircle,
   faExclamationTriangle,
   faCheckCircle,
   faPuzzlePiece,
-  // Ícones adicionais para autenticação
   faEye,
   faEyeSlash,
   faLock,
   faUnlock,
-  faShieldHalved, // Antigo faShieldAlt
+  faShieldHalved,
   faCrown,
   faUserShield,
-  faRightToBracket, // Antigo faSignInAlt
+  faHammer,
+  faRuler,
+  faRightToBracket,
   faUserPlus,
   faUserCheck,
   faUserTimes,
@@ -54,10 +55,8 @@ import {
   faBan,
   faHourglassHalf,
   faUserClock,
-  faDatabase // 👈 ADICIONADO AQUI
+  faDatabase,
 } from '@fortawesome/free-solid-svg-icons'
-
-// Adicionar ícones à biblioteca
 library.add(
   faCaretLeft,
   faChartPie,
@@ -67,6 +66,8 @@ library.add(
   faArrowRightFromBracket,
   faHome,
   faChevronRight,
+  faHammer,
+  faRuler,
   faBell,
   faUserCircle,
   faXmark,
@@ -75,7 +76,6 @@ library.add(
   faExclamationTriangle,
   faCheckCircle,
   faPuzzlePiece,
-  // Ícones de autenticação
   faEye,
   faEyeSlash,
   faLock,
@@ -104,17 +104,15 @@ library.add(
   faBan,
   faHourglassHalf,
   faUserClock,
-  faDatabase 
+  faDatabase,
 )
 
 const pinia = createPinia()
 
 const app = createApp(App)
 
-
 app.component('FontAwesome', FontAwesomeIcon)
-app.component('FontAwesomeIcon', FontAwesomeIcon) 
-
+app.component('FontAwesomeIcon', FontAwesomeIcon)
 
 app.use(pinia)
 app.use(router)
@@ -130,14 +128,14 @@ app.config.globalProperties.$showConfirm = window.showConfirm || (() => Promise.
 if (typeof window !== 'undefined') {
   const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://192.168.0.7:8000'
   window.API_BASE_URL = API_BASE_URL
-  
+
   if (import.meta.env.DEV) {
-    console.log('🔗 API Base URL:', API_BASE_URL)
+    console.log('API Base URL:', API_BASE_URL)
   }
 }
 app.config.errorHandler = (err, vm, info) => {
   console.error('Erro global capturado:', err, info)
-  
+
   if (import.meta.env.PROD && window.showToast) {
     window.showToast('error', 'Erro', 'Ocorreu um erro inesperado')
   }
@@ -147,24 +145,23 @@ app.mount('#app')
 
 if ('serviceWorker' in navigator && import.meta.env.PROD) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js')
-      .then(registration => {
+    navigator.serviceWorker
+      .register('/sw.js')
+      .then((registration) => {
         console.log('SW registered: ', registration)
       })
-      .catch(registrationError => {
+      .catch((registrationError) => {
         console.log('SW registration failed: ', registrationError)
       })
   })
 }
 
-// Configurações de performance
 if (import.meta.env.DEV) {
-  // Performance observer para desenvolvimento
   if ('PerformanceObserver' in window) {
     const observer = new PerformanceObserver((list) => {
       list.getEntries().forEach((entry) => {
         if (entry.entryType === 'navigation') {
-          console.log('📈 Navigation timing:', entry.loadEventEnd - entry.fetchStart, 'ms')
+          console.log('Navigation timing:', entry.loadEventEnd - entry.fetchStart, 'ms')
         }
       })
     })
@@ -172,7 +169,6 @@ if (import.meta.env.DEV) {
   }
 }
 
-// Tratamento de eventos de conectividade
 window.addEventListener('online', () => {
   if (window.showToast) {
     window.showToast('success', 'Online', 'Conexão restaurada')
@@ -185,5 +181,4 @@ window.addEventListener('offline', () => {
   }
 })
 
-// Exportar algumas configurações para uso em outros módulos
 export { pinia, router }

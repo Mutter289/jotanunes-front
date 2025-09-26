@@ -409,8 +409,8 @@
               </div>
               <div class="dep-chooser-col">
                 <small>SQL</small>
-                <select v-model="depSelecionada.sql" class="form-select" @focus="ensureItens('AUD_SQL')">
-                  <option v-for="s in itensPorTabela.AUD_SQL" :key="s.id" :value="s.id">{{ s.nome }}</option>
+                <select v-model="depSelecionada.sql" class="form-select" @focus="ensureItens('AUD_SQLS')">
+                  <option v-for="s in itensPorTabela.AUD_SQLS" :key="s.id" :value="s.id">{{ s.nome }}</option>
                 </select>
               </div>
               <div class="dep-chooser-col">
@@ -634,9 +634,9 @@ export default {
         dependencias: []
       },
 
-      tabelasDisponiveis: ['AUD_FV','AUD_SQL','AUD_REPORT'],
+      tabelasDisponiveis: ['AUD_FV','AUD_SQLS','AUD_REPORT'],
       itensOrigem: [],
-      itensPorTabela: { AUD_FV: [], AUD_SQL: [], AUD_REPORT: [] },
+      itensPorTabela: { AUD_FV: [], AUD_SQLS: [], AUD_REPORT: [] },
       depSelecionada: { fv: null, sql: null, report: null },
 
       toasts: []
@@ -908,7 +908,7 @@ export default {
       await this.loadTabelas();
       await this.loadOrigemItens();
       await this.ensureItens('AUD_FV');
-      await this.ensureItens('AUD_SQL');
+      await this.ensureItens('AUD_SQLS');
       await this.ensureItens('AUD_REPORT');
     },
 
@@ -935,7 +935,10 @@ export default {
       try {
         const itens = await this.useFetch(`/api/v2/dependencias/tabelas/${encodeURIComponent(tabela)}/itens`);
         this.itensPorTabela[tabela] = itens;
-      } catch {}
+      } catch (error) {
+        console.error(`Erro ao carregar itens da tabela ${tabela}:`, error);
+        this.showToast(`Não foi possível carregar itens de ${tabela}`, 'error');
+      }
     },
 
     adicionarSequencia() {

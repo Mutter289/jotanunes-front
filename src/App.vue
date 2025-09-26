@@ -1,15 +1,31 @@
 <template>
   <div id="app" :style="{ gridTemplateColumns: gridColumns, gridTemplateAreas: gridAreas }">
-    <!-- Loading inicial da aplicação -->
+    
     <div v-if="isInitializing" class="app-loading">
       <div class="loading-container">
-        <div class="loading-spinner"></div>
-        <h2>Sistema de Auditoria</h2>
-        <p>Carregando aplicação...</p>
+        <div class="logo-animation">
+          <img src="/icon/favicon.png" alt="logo">
+        </div>
+        <div class="loading-progress">
+          <div class="progress-bar">
+            <div class="progress-fill"></div>
+          </div>
+          <p class="loading-text">Carregando sistema...</p>
+        </div>
+        <div class="construction-icons">
+          <div class="icon-float icon-1">
+            <FontAwesomeIcon icon="house" />
+          </div>
+          <div class="icon-float icon-2">
+            <FontAwesomeIcon icon="hammer" />
+          </div>
+          <div class="icon-float icon-3">
+            <FontAwesomeIcon icon="ruler" />
+          </div>
+        </div>
       </div>
     </div>
 
-    <!-- Aplicação principal -->
     <template v-else>
       <VSidebar 
         v-if="showSidebar" 
@@ -390,42 +406,274 @@ window.showConfirm = showConfirm
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #2b2522 0%, #1a1614 50%, #2b2522 100%);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 9999;
+  overflow: hidden;
 }
 
 .loading-container {
   text-align: center;
   color: white;
+  position: relative;
+  z-index: 2;
 }
 
-.loading-spinner {
-  width: 60px;
+/* Animação do Logo */
+.logo-animation {
+  margin-bottom: 3rem;
+  position: relative;
+  animation: logo 1s infinite;
+}
+
+@keyframes logo {
+  0% {transform: scale(1); opacity: 1;}
+  50% {transform: scale(1.1); opacity: 0.9;}
+  100% {transform: scale(1); opacity: 1;}
+}
+
+
+.logo-parts {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  margin-bottom: 2rem;
+  height: 80px;
+  position: relative;
+}
+
+.beam {
+  width: 12px;
+  background: linear-gradient(180deg, #bc1f1b 0%, #d63031 50%, #bc1f1b 100%);
+  margin: 0 3px;
+  border-radius: 2px;
+  transform-origin: bottom;
+  box-shadow: 0 0 20px rgba(188, 31, 27, 0.5);
+}
+
+.beam-1 {
+  height: 40px;
+  animation: beamGrow1 2s ease-in-out infinite;
+}
+
+.beam-2 {
   height: 60px;
-  border: 4px solid rgba(255, 255, 255, 0.3);
-  border-top: 4px solid white;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin: 0 auto 2rem;
+  animation: beamGrow2 2s ease-in-out infinite 0.3s;
 }
 
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+.beam-3 {
+  height: 80px;
+  animation: beamGrow3 2s ease-in-out infinite 0.6s;
 }
 
-.loading-container h2 {
-  margin: 0 0 1rem 0;
-  font-size: 2rem;
-  font-weight: 700;
+@keyframes beamGrow1 {
+  0%, 100% { transform: scaleY(0.6); opacity: 0.7; }
+  50% { transform: scaleY(1); opacity: 1; }
 }
 
-.loading-container p {
+@keyframes beamGrow2 {
+  0%, 100% { transform: scaleY(0.7); opacity: 0.8; }
+  50% { transform: scaleY(1); opacity: 1; }
+}
+
+@keyframes beamGrow3 {
+  0%, 100% { transform: scaleY(0.8); opacity: 0.9; }
+  50% { transform: scaleY(1); opacity: 1; }
+}
+
+.logo-text h1 {
+  font-size: 3.5rem;
+  font-weight: 800;
   margin: 0;
-  opacity: 0.8;
+  background: linear-gradient(135deg, #bc1f1b 0%, #d63031 50%, #bc1f1b 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: titleGlow 3s ease-in-out infinite;
+  letter-spacing: -2px;
+}
+
+.subtitle {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #ffffff;
+  letter-spacing: 8px;
+  opacity: 0.9;
+  animation: subtitleFade 2s ease-in-out infinite alternate;
+}
+
+@keyframes titleGlow {
+  0%, 100% { filter: drop-shadow(0 0 10px rgba(188, 31, 27, 0.3)); }
+  50% { filter: drop-shadow(0 0 20px rgba(188, 31, 27, 0.6)); }
+}
+
+@keyframes subtitleFade {
+  0% { opacity: 0.7; }
+  100% { opacity: 1; }
+}
+
+/* Barra de progresso */
+.loading-progress {
+  margin: 3rem 0;
+  width: 300px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  overflow: hidden;
+  position: relative;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #bc1f1b 0%, #d63031 50%, #e74c3c 100%);
+  border-radius: 10px;
+  width: 0%;
+  animation: progressLoad 3s ease-in-out infinite;
+  box-shadow: 0 0 15px rgba(188, 31, 27, 0.6);
+}
+
+@keyframes progressLoad {
+  0% { width: 0%; }
+  70% { width: 100%; }
+  100% { width: 100%; }
+}
+
+.loading-text {
+  margin: 1.5rem 0 0 0;
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.8);
+  font-weight: 400;
+  animation: textPulse 2s ease-in-out infinite;
+}
+
+@keyframes textPulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+/* Ícones flutuantes de construção */
+.construction-icons {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.icon-float {
+  position: absolute;
+  font-size: 2rem;
+  opacity: 0.1;
+  animation: iconFloat 8s ease-in-out infinite;
+}
+
+.icon-1 {
+  top: 20%;
+  left: 15%;
+  animation-delay: 0s;
+}
+
+.icon-2 {
+  top: 60%;
+  right: 20%;
+  animation-delay: 2s;
+}
+
+.icon-3 {
+  bottom: 25%;
+  left: 20%;
+  animation-delay: 4s;
+}
+
+@keyframes iconFloat {
+  0%, 100% { 
+    transform: translateY(0px) rotate(0deg);
+    opacity: 0.1;
+  }
+  25% { 
+    transform: translateY(-20px) rotate(5deg);
+    opacity: 0.2;
+  }
+  50% { 
+    transform: translateY(-10px) rotate(0deg);
+    opacity: 0.15;
+  }
+  75% { 
+    transform: translateY(-30px) rotate(-5deg);
+    opacity: 0.25;
+  }
+}
+
+/* Efeito de partículas no fundo */
+.app-loading::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+    radial-gradient(2px 2px at 20px 30px, rgba(188, 31, 27, 0.3), transparent),
+    radial-gradient(2px 2px at 40px 70px, rgba(188, 31, 27, 0.2), transparent),
+    radial-gradient(1px 1px at 90px 40px, rgba(255, 255, 255, 0.1), transparent),
+    radial-gradient(1px 1px at 130px 80px, rgba(255, 255, 255, 0.05), transparent);
+  background-size: 200px 200px;
+  animation: particleMove 20s linear infinite;
+  z-index: 1;
+}
+
+@keyframes particleMove {
+  0% { transform: translate(0, 0); }
+  100% { transform: translate(-200px, -200px); }
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .logo-text h1 {
+    font-size: 2.5rem;
+  }
+  
+  .subtitle {
+    font-size: 1rem;
+    letter-spacing: 4px;
+  }
+  
+  .loading-progress {
+    width: 250px;
+  }
+  
+  .beam {
+    width: 10px;
+    margin: 0 2px;
+  }
+  
+  .beam-1 { height: 30px; }
+  .beam-2 { height: 45px; }
+  .beam-3 { height: 60px; }
+}
+
+@media (max-width: 480px) {
+  .logo-text h1 {
+    font-size: 2rem;
+  }
+  
+  .loading-progress {
+    width: 200px;
+  }
+  
+  .icon-float {
+    font-size: 1.5rem;
+  }
 }
 
 /* Toast notifications */
