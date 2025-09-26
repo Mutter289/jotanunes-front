@@ -5,12 +5,12 @@ export async function useFetch(
   const token = localStorage.getItem('access_token') || sessionStorage.getItem('access_token')
   console.log('Token encontrado:', token ? 'Sim' : 'Não')
   console.log('Token (primeiros 20 chars):', token ? token.substring(0, 20) + '...' : 'Nenhum')
-  
+
   const options = {
     method,
-    headers: { 
+    headers: {
       ...headers,
-      ...(token && { 'Authorization': `Bearer ${token}` })
+      ...(token && { Authorization: `Bearer ${token}` }),
     },
   }
 
@@ -33,7 +33,7 @@ export async function useFetch(
     }
   }
 
-  const res = await fetch(`http://192.168.195.162:8000${endpoint}`, options)
+  const res = await fetch(`http://192.168.0.2:8000${endpoint}`, options)
   let data
   try {
     data = await res.json()

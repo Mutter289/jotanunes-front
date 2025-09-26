@@ -17,12 +17,12 @@
       <div v-if="selectedAnalysis" class="analysis-modal">
         <h3>{{ selectedAnalysis.AudSqlCodSentenca }}</h3>
         <p class="analysis-date">Analisado em: {{ formatDate(selectedAnalysis.DataAnalise) }}</p>
-        
-        <SqlDiffViewer 
-          :old-sql="selectedAnalysis.SentencaAnterior" 
-          :new-sql="selectedAnalysis.SentencaNova" 
+
+        <SqlDiffViewer
+          :old-sql="selectedAnalysis.SentencaAnterior"
+          :new-sql="selectedAnalysis.SentencaNova"
         />
-        
+
         <div class="gemini-result">
           <h4 class="gemini-title">Análise do Gemini</h4>
           <p class="gemini-text">{{ selectedAnalysis.Analise }}</p>
@@ -48,40 +48,63 @@ export default {
       showModal: false,
       columns: [
         { key: 'AudSqlCodSentenca', label: 'Código da Sentença', sortable: true },
-        { 
-          key: 'DataAnalise', 
-          label: 'Data da Análise', 
-          sortable: true, 
-          formatter: (value) => this.formatDate(value) 
+        {
+          key: 'DataAnalise',
+          label: 'Data da Análise',
+          sortable: true,
+          formatter: (value) => this.formatDate(value),
         },
-        { key: 'Analise', label: 'Análise (Resumo)', sortable: false, truncate: true, showTooltip: true },
+        {
+          key: 'Analise',
+          label: 'Análise (Resumo)',
+          sortable: false,
+          truncate: true,
+          showTooltip: true,
+        },
       ],
     }
   },
   methods: {
     useFetch,
+
     async loadAnalyses() {
       try {
         const data = await this.useFetch('/analises/aud-sqls/')
-        const analysesWithDetails = await Promise.all(data.map(async (analysis) => {
-            const detail = await this.useFetch(`/analises/aud-sqls/${analysis.AudSqlCodSentenca}`);
-          
-            const matchingDetail = detail.find(d => d.id === analysis.ID);
-            return matchingDetail || analysis;
-        }));
-        this.analyses = analysesWithDetails;
+        this.analyses = data.map((item) => ({
+          ID: item.ID,
+          AudSqlCodSentenca: item.aud_sql_cod_sentenca,
+          Analise: item.analise,
+          DataAnalise: item.data_analise,
+        }))
       } catch (error) {
         console.error('Erro ao carregar análises:', error)
       }
     },
-    handleRowClick(row) {
-      this.selectedAnalysis = row
-      this.showModal = true
+
+    async handleRowClick(row) {
+      try {
+        const detail = await this.useFetch(`/analises/aud-sqls/${row.AudSqlCodSentenca}/comparacao`)
+
+        this.selectedAnalysis = {
+          ...row,
+          SentencaAnterior: detail.versao_anterior?.sentenca || '',
+          SentencaNova: detail.versao_atual?.sentenca || '',
+          Analise: detail.analise?.texto || row.Analise,
+          DataAnalise: detail.analise?.data_analise || row.DataAnalise,
+        }
+
+        this.showModal = true
+      } catch (error) {
+        console.error(`Erro ao carregar detalhes da sentença ${row.AudSqlCodSentenca}:`, error)
+        this.selectedAnalysis = row // fallback
+        this.showModal = true
+      }
     },
+
     formatDate(dateString) {
-      if (!dateString) return 'N/A';
-      const date = new Date(dateString);
-      return date.toLocaleDateString('pt-BR') + ' ' + date.toLocaleTimeString('pt-BR');
+      if (!dateString) return 'N/A'
+      const date = new Date(dateString)
+      return date.toLocaleDateString('pt-BR') + ' ' + date.toLocaleTimeString('pt-BR')
     },
   },
   created() {
@@ -105,14 +128,14 @@ export default {
   margin-top: -15px;
 }
 .gemini-result {
-  background: #f0fdf4; 
-  border-left: 4px solid #22c55e; 
+  background: #f0fdf4;
+  border-left: 4px solid #22c55e;
   padding: 16px;
   border-radius: 8px;
 }
 .gemini-title {
   margin: 0 0 8px 0;
-  color: #166534; 
+  color: #166534;
 }
 .gemini-text {
   margin: 0;

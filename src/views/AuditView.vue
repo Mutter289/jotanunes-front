@@ -49,15 +49,15 @@
         <!-- Seção de Análise Gemini (apenas para audsql) -->
         <div v-if="tableActive === 'audsql'" class="detail-section">
           <h3 class="section-title">Análise de Alteração (Gemini)</h3>
-          
+
           <div v-if="isLoadingAnalysis" class="loading-analysis">
             <div class="spinner"></div>
             <p>Buscando análise do Gemini...</p>
           </div>
-          
+
           <div v-else-if="geminiAnalysis">
-            <SqlDiffViewer 
-              :old-sql="geminiAnalysis.sentenca_anterior" 
+            <SqlDiffViewer
+              :old-sql="geminiAnalysis.sentenca_anterior"
               :new-sql="geminiAnalysis.sentenca_nova"
             />
             <div class="gemini-result-offcanvas">
@@ -256,7 +256,7 @@ export default {
       selectedRow: null,
       selectedRowId: null,
       tableData: [],
-      
+
       // Novos dados para análise do Gemini
       geminiAnalysis: null,
       isLoadingAnalysis: false,
@@ -490,23 +490,22 @@ export default {
       }
     },
 
-    // ===============================================
-    // NOVO MÉTODO: para carregar a análise do Gemini
-    // ===============================================
     async loadGeminiAnalysis(codSentenca) {
       if (!codSentenca) return
       this.isLoadingAnalysis = true
       try {
-        const data = await this.useFetch(`/analises/aud-sqls/${codSentenca}`)
-        if (data && data.length > 0) {
-          // A API retorna um array ordenado pela data mais recente.
-          // Pegamos o primeiro item que é a análise mais recente.
-          this.geminiAnalysis = data[0]
+        const data = await this.useFetch(`/analises/aud-sqls/${codSentenca}/comparacao`)
+        if (data) {
+          this.geminiAnalysis = {
+            sentenca_anterior: data.versao_anterior?.sentenca || '',
+            sentenca_nova: data.versao_atual?.sentenca || '',
+            resultado_analise: data.analise?.texto || 'Nenhuma análise disponível',
+          }
         } else {
-          this.geminiAnalysis = null // Garante que não há análise se a API não retornar nada
+          this.geminiAnalysis = null
         }
       } catch (error) {
-        console.error('Erro ao carregar análise do Gemini:', error)
+        console.error('Erro ao carregar comparação do Gemini:', error)
         this.geminiAnalysis = null
       } finally {
         this.isLoadingAnalysis = false
