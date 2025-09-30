@@ -30,8 +30,8 @@
             @click="toggleNotifications"
             :disabled="isLoadingNotifications"
           >
-            <FontAwesomeIcon 
-              :icon="isLoadingNotifications ? 'spinner' : 'bell'" 
+            <FontAwesomeIcon
+              :icon="isLoadingNotifications ? 'spinner' : 'bell'"
               :spin="isLoadingNotifications"
             />
             <span
@@ -61,8 +61,8 @@
             :disabled="unreadCount === 0 || isProcessing"
             title="Marcar todas como lidas"
           >
-            <FontAwesomeIcon 
-              :icon="isProcessing ? 'spinner' : 'check-double'" 
+            <FontAwesomeIcon
+              :icon="isProcessing ? 'spinner' : 'check-double'"
               :spin="isProcessing"
             />
             {{ isProcessing ? 'Processando...' : 'Marcar todas como lidas' }}
@@ -74,10 +74,7 @@
             :disabled="isProcessing"
             title="Limpar notificações lidas"
           >
-            <FontAwesomeIcon 
-              :icon="isProcessing ? 'spinner' : 'broom'" 
-              :spin="isProcessing"
-            />
+            <FontAwesomeIcon :icon="isProcessing ? 'spinner' : 'broom'" :spin="isProcessing" />
             {{ isProcessing ? 'Limpando...' : 'Limpar lidas' }}
           </button>
           <button class="close-dropdown" @click="showNotificationsDropdown = false">
@@ -98,8 +95,8 @@
             <FontAwesomeIcon icon="wifi-slash" />
             <span>Desconectado - Notificações podem não estar atualizadas</span>
             <button @click="reconnectWebSocket" class="reconnect-btn" :disabled="isReconnecting">
-              <FontAwesomeIcon 
-                :icon="isReconnecting ? 'spinner' : 'sync-alt'" 
+              <FontAwesomeIcon
+                :icon="isReconnecting ? 'spinner' : 'sync-alt'"
                 :spin="isReconnecting"
               />
               {{ isReconnecting ? 'Conectando...' : 'Reconectar' }}
@@ -169,16 +166,13 @@
               <span>{{ unreadCount }} não lida{{ unreadCount !== 1 ? 's' : '' }}</span>
               <span class="total-count">de {{ notifications.length }} total</span>
             </div>
-            <button 
-              class="sync-notifications" 
-              @click="syncNotifications" 
+            <button
+              class="sync-notifications"
+              @click="syncNotifications"
               title="Sincronizar"
               :disabled="isSyncing"
             >
-              <FontAwesomeIcon 
-                :icon="isSyncing ? 'spinner' : 'sync-alt'" 
-                :spin="isSyncing"
-              />
+              <FontAwesomeIcon :icon="isSyncing ? 'spinner' : 'sync-alt'" :spin="isSyncing" />
             </button>
           </div>
         </div>
@@ -377,7 +371,7 @@ export default {
     customBreadcrumbs: {
       type: Array,
       default: () => [],
-    }
+    },
   },
 
   emits: ['search', 'profile-action', 'notification-click', 'notification-remove'],
@@ -392,7 +386,7 @@ export default {
       isConnected: false,
       hasNewNotification: false,
       notificationStore: notificationStore,
-      
+
       // Estados de loading
       isLoadingNotifications: false,
       isProcessing: false,
@@ -486,7 +480,7 @@ export default {
     toggleNotifications() {
       this.showNotificationsDropdown = !this.showNotificationsDropdown
       this.showProfileDropdown = false
-      
+
       if (this.showNotificationsDropdown && this.notifications.length === 0) {
         this.loadNotifications()
       }
@@ -520,7 +514,7 @@ export default {
         } catch (error) {
           await useError({
             title: 'Erro no logout',
-            text: error.message || 'Erro ao fazer logout'
+            text: error.message || 'Erro ao fazer logout',
           })
         } finally {
           this.isProcessing = false
@@ -542,19 +536,19 @@ export default {
           this.showNotificationOffcanvas = true
           this.showNotificationsDropdown = false
           this.$emit('notification-click', notification)
-          
+
           await useSuccess({ title: 'Notificação marcada como lida' })
         } else {
-          await useError({ 
-            title: 'Erro', 
-            text: 'Erro ao marcar notificação como lida' 
+          await useError({
+            title: 'Erro',
+            text: 'Erro ao marcar notificação como lida',
           })
         }
       } catch (error) {
         console.error('Erro ao processar clique na notificação:', error)
-        await useError({ 
-          title: 'Erro', 
-          text: 'Erro ao processar notificação' 
+        await useError({
+          title: 'Erro',
+          text: 'Erro ao processar notificação',
         })
       } finally {
         notification.processing = false
@@ -571,16 +565,16 @@ export default {
         if (success) {
           await useSuccess({ title: 'Notificação marcada como lida' })
         } else {
-          await useError({ 
-            title: 'Erro', 
-            text: 'Erro ao marcar notificação como lida' 
+          await useError({
+            title: 'Erro',
+            text: 'Erro ao marcar notificação como lida',
           })
         }
       } catch (error) {
         console.error('Erro ao marcar notificação como lida:', error)
-        await useError({ 
-          title: 'Erro', 
-          text: 'Erro ao processar notificação' 
+        await useError({
+          title: 'Erro',
+          text: 'Erro ao processar notificação',
         })
       } finally {
         notification.processing = false
@@ -614,9 +608,9 @@ export default {
 
     async confirmMarkAllAsRead() {
       if (this.unreadCount === 0) {
-        await useError({ 
-          title: 'Aviso', 
-          text: 'Nenhuma notificação não lida encontrada' 
+        await useError({
+          title: 'Aviso',
+          text: 'Nenhuma notificação não lida encontrada',
         })
         return
       }
@@ -642,13 +636,13 @@ export default {
         this.showNotificationsDropdown = false
 
         await useSuccess({
-          title: `${previousCount} notificação${previousCount > 1 ? 'ões' : ''} marcada${previousCount > 1 ? 's' : ''} como lida${previousCount > 1 ? 's' : ''}`
+          title: `${previousCount} notificação${previousCount > 1 ? 'ões' : ''} marcada${previousCount > 1 ? 's' : ''} como lida${previousCount > 1 ? 's' : ''}`,
         })
       } catch (error) {
         console.error('Erro ao marcar todas as notificações como lidas:', error)
-        await useError({ 
-          title: 'Erro', 
-          text: 'Erro ao marcar notificações como lidas' 
+        await useError({
+          title: 'Erro',
+          text: 'Erro ao marcar notificações como lidas',
         })
       } finally {
         this.isProcessing = false
@@ -659,9 +653,9 @@ export default {
       const readCount = this.notificationStore.allNotifications.filter((n) => n.read).length
 
       if (readCount === 0) {
-        await useError({ 
-          title: 'Aviso', 
-          text: 'Nenhuma notificação lida para limpar' 
+        await useError({
+          title: 'Aviso',
+          text: 'Nenhuma notificação lida para limpar',
         })
         return
       }
@@ -688,7 +682,7 @@ export default {
       }
 
       useSuccess({
-        title: `${readCount} notificação${readCount > 1 ? 'ões' : ''} lida${readCount > 1 ? 's' : ''} removida${readCount > 1 ? 's' : ''}`
+        title: `${readCount} notificação${readCount > 1 ? 'ões' : ''} lida${readCount > 1 ? 's' : ''} removida${readCount > 1 ? 's' : ''}`,
       })
     },
 
@@ -699,9 +693,9 @@ export default {
         await useSuccess({ title: 'Notificações sincronizadas' })
       } catch (error) {
         console.error('Erro ao sincronizar notificações:', error)
-        await useError({ 
-          title: 'Erro', 
-          text: 'Erro ao sincronizar notificações' 
+        await useError({
+          title: 'Erro',
+          text: 'Erro ao sincronizar notificações',
         })
       } finally {
         this.isSyncing = false
@@ -721,9 +715,9 @@ export default {
         }, 2000)
       } catch (error) {
         this.isReconnecting = false
-        await useError({ 
-          title: 'Erro', 
-          text: 'Erro ao reconectar' 
+        await useError({
+          title: 'Erro',
+          text: 'Erro ao reconectar',
         })
       }
     },
@@ -734,9 +728,9 @@ export default {
         await this.notificationStore.loadUnreadNotifications()
       } catch (error) {
         console.error('Erro ao carregar notificações:', error)
-        await useError({ 
-          title: 'Erro', 
-          text: 'Erro ao carregar notificações' 
+        await useError({
+          title: 'Erro',
+          text: 'Erro ao carregar notificações',
         })
       } finally {
         this.isLoadingNotifications = false
@@ -786,9 +780,9 @@ export default {
       if (status) {
         useSuccess({ title: 'Conectado ao servidor de notificações' })
       } else {
-        useError({ 
-          title: 'Desconectado', 
-          text: 'Desconectado do servidor de notificações' 
+        useError({
+          title: 'Desconectado',
+          text: 'Desconectado do servidor de notificações',
         })
       }
     },
@@ -801,7 +795,7 @@ export default {
       const statusMap = {
         ativo: 'Ativo',
         pendente: 'Pendente',
-        bloqueado: 'Bloqueado'
+        bloqueado: 'Bloqueado',
       }
       return statusMap[status] || 'Ativo'
     },
@@ -829,7 +823,7 @@ export default {
     websocketService.on('notification', this.handleNotification)
     websocketService.on('connected', this.handleConnectionStatus)
     document.addEventListener('click', this.handleClickOutside)
-    
+
     // Carrega notificações iniciais
     this.loadNotifications()
   },
@@ -871,8 +865,12 @@ export default {
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .loading-state {
@@ -992,13 +990,13 @@ export default {
     flex-direction: column;
     gap: 0.5rem;
   }
-  
+
   .mark-all-read,
   .clear-read {
     font-size: 0.8rem;
     padding: 0.5rem;
   }
-  
+
   .avatar-circle {
     width: 40px;
     height: 40px;

@@ -6,12 +6,8 @@ class AuthService {
     this.user = this.getStoredUser()
   }
 
-  /**
-   * Retorna os cabeçalhos de autenticação se um token existir.
-   * @returns {object} Objeto de cabeçalhos.
-   */
   _getAuthHeaders() {
-    return this.token ? { 'Authorization': `Bearer ${this.token}` } : {}
+    return this.token ? { Authorization: `Bearer ${this.token}` } : {}
   }
 
   // ==================== LOGIN CREDENCIAIS ====================
@@ -25,7 +21,7 @@ class AuthService {
       const { access_token, usuario } = data
       this.setToken(access_token)
       this.setUser(usuario)
-      
+
       return { success: true, user: usuario, token: access_token }
     } catch (error) {
       return {
@@ -93,9 +89,9 @@ class AuthService {
   async logout() {
     try {
       if (this.token) {
-        await useFetch('/api/auth/logout', { 
-            method: 'POST', 
-            headers: this._getAuthHeaders() 
+        await useFetch('/api/auth/logout', {
+          method: 'POST',
+          headers: this._getAuthHeaders(),
         })
       }
     } catch (error) {
@@ -118,8 +114,8 @@ class AuthService {
 
   async getNotifications(onlyUnread = false) {
     try {
-        const endpoint = `/api/auth/notificacoes?apenas_nao_lidas=${onlyUnread}`
-        return await useFetch(endpoint, { headers: this._getAuthHeaders() })
+      const endpoint = `/api/auth/notificacoes?apenas_nao_lidas=${onlyUnread}`
+      return await useFetch(endpoint, { headers: this._getAuthHeaders() })
     } catch (error) {
       throw new Error(`Erro ao obter notificações: ${error.message}`)
     }
@@ -127,9 +123,9 @@ class AuthService {
 
   async markNotificationAsRead(notificationId) {
     try {
-      await useFetch(`/api/auth/notificacoes/${notificationId}/marcar-lida`, { 
+      await useFetch(`/api/auth/notificacoes/${notificationId}/marcar-lida`, {
         method: 'POST',
-        headers: this._getAuthHeaders()
+        headers: this._getAuthHeaders(),
       })
       return true
     } catch (error) {
@@ -141,11 +137,11 @@ class AuthService {
   // ==================== ADMIN ENDPOINTS - USUÁRIOS ====================
   async getUsers(status = null) {
     try {
-        let endpoint = '/api/auth/admin/usuarios'
-        if (status) {
-            endpoint += `?status=${status}`
-        }
-        return await useFetch(endpoint, { headers: this._getAuthHeaders() })
+      let endpoint = '/api/auth/admin/usuarios'
+      if (status) {
+        endpoint += `?status=${status}`
+      }
+      return await useFetch(endpoint, { headers: this._getAuthHeaders() })
     } catch (error) {
       throw new Error(`Erro ao obter usuários: ${error.message}`)
     }
@@ -153,8 +149,8 @@ class AuthService {
 
   async getUserById(userId) {
     try {
-      return await useFetch(`/api/auth/admin/usuarios/${userId}`, { 
-        headers: this._getAuthHeaders() 
+      return await useFetch(`/api/auth/admin/usuarios/${userId}`, {
+        headers: this._getAuthHeaders(),
       })
     } catch (error) {
       throw new Error(`Erro ao obter usuário: ${error.message}`)
@@ -166,7 +162,7 @@ class AuthService {
       return await useFetch(`/api/auth/admin/usuarios/${userId}`, {
         method: 'PUT',
         body: userData,
-        headers: this._getAuthHeaders()
+        headers: this._getAuthHeaders(),
       })
     } catch (error) {
       throw new Error(`Erro ao atualizar usuário: ${error.message}`)
@@ -177,7 +173,7 @@ class AuthService {
     try {
       return await useFetch(`/api/auth/admin/usuarios/${userId}`, {
         method: 'DELETE',
-        headers: this._getAuthHeaders()
+        headers: this._getAuthHeaders(),
       })
     } catch (error) {
       throw new Error(`Erro ao excluir usuário: ${error.message}`)
@@ -186,8 +182,8 @@ class AuthService {
 
   async getPendingUsers() {
     try {
-      return await useFetch('/api/auth/admin/usuarios/pendentes', { 
-        headers: this._getAuthHeaders() 
+      return await useFetch('/api/auth/admin/usuarios/pendentes', {
+        headers: this._getAuthHeaders(),
       })
     } catch (error) {
       throw new Error(`Erro ao obter usuários pendentes: ${error.message}`)
@@ -199,7 +195,7 @@ class AuthService {
       await useFetch(`/api/auth/admin/usuarios/${userId}/aprovar`, {
         method: 'POST',
         body: { aprovado_por: approvedBy || this.user?.email || 'admin' },
-        headers: this._getAuthHeaders()
+        headers: this._getAuthHeaders(),
       })
       return true
     } catch (error) {
@@ -211,11 +207,11 @@ class AuthService {
     try {
       await useFetch(`/api/auth/admin/usuarios/${userId}/bloquear`, {
         method: 'POST',
-        body: { 
-          bloqueado_por: blockedBy || this.user?.email || 'admin', 
-          motivo: reason 
+        body: {
+          bloqueado_por: blockedBy || this.user?.email || 'admin',
+          motivo: reason,
         },
-        headers: this._getAuthHeaders()
+        headers: this._getAuthHeaders(),
       })
       return true
     } catch (error) {
@@ -228,11 +224,11 @@ class AuthService {
     try {
       return await useFetch('/api/auth/admin/usuarios/bulk/aprovar', {
         method: 'POST',
-        body: { 
+        body: {
           usuario_ids: userIds,
-          aprovado_por: approvedBy || this.user?.email || 'admin'
+          aprovado_por: approvedBy || this.user?.email || 'admin',
         },
-        headers: this._getAuthHeaders()
+        headers: this._getAuthHeaders(),
       })
     } catch (error) {
       throw new Error(`Erro na aprovação em lote: ${error.message}`)
@@ -243,12 +239,12 @@ class AuthService {
     try {
       return await useFetch('/api/auth/admin/usuarios/bulk/bloquear', {
         method: 'POST',
-        body: { 
+        body: {
           usuario_ids: userIds,
           motivo: reason,
-          bloqueado_por: blockedBy || this.user?.email || 'admin'
+          bloqueado_por: blockedBy || this.user?.email || 'admin',
         },
-        headers: this._getAuthHeaders()
+        headers: this._getAuthHeaders(),
       })
     } catch (error) {
       throw new Error(`Erro no bloqueio em lote: ${error.message}`)
@@ -258,8 +254,8 @@ class AuthService {
   // ==================== ADMIN ENDPOINTS - ESTATÍSTICAS ====================
   async getStatistics() {
     try {
-      return await useFetch('/api/auth/admin/estatisticas', { 
-        headers: this._getAuthHeaders() 
+      return await useFetch('/api/auth/admin/estatisticas', {
+        headers: this._getAuthHeaders(),
       })
     } catch (error) {
       throw new Error(`Erro ao obter estatísticas: ${error.message}`)
@@ -269,13 +265,13 @@ class AuthService {
   async getAuthLogs(filters = {}) {
     try {
       const params = new URLSearchParams()
-      
+
       if (filters.email) params.append('email', filters.email)
       if (filters.tipo) params.append('tipo', filters.tipo)
       if (filters.sucesso !== undefined) params.append('sucesso', filters.sucesso)
       if (filters.limit) params.append('limit', filters.limit)
       if (filters.skip) params.append('skip', filters.skip)
-      
+
       const endpoint = `/api/auth/admin/logs/autenticacao?${params.toString()}`
       return await useFetch(endpoint, { headers: this._getAuthHeaders() })
     } catch (error) {
@@ -286,8 +282,8 @@ class AuthService {
   // ==================== ADMIN ENDPOINTS - CONFIGURAÇÕES ====================
   async getSystemConfig() {
     try {
-      return await useFetch('/api/auth/admin/configuracoes', { 
-        headers: this._getAuthHeaders() 
+      return await useFetch('/api/auth/admin/configuracoes', {
+        headers: this._getAuthHeaders(),
       })
     } catch (error) {
       throw new Error(`Erro ao obter configurações: ${error.message}`)
@@ -299,7 +295,7 @@ class AuthService {
       return await useFetch('/api/auth/admin/test-email', {
         method: 'POST',
         body: { email: email || this.user?.email },
-        headers: this._getAuthHeaders()
+        headers: this._getAuthHeaders(),
       })
     } catch (error) {
       throw new Error(`Erro no teste de email: ${error.message}`)
@@ -311,7 +307,7 @@ class AuthService {
       return await useFetch(`/api/auth/admin/usuarios/${userId}/enviar-email`, {
         method: 'POST',
         body: emailData,
-        headers: this._getAuthHeaders()
+        headers: this._getAuthHeaders(),
       })
     } catch (error) {
       throw new Error(`Erro ao enviar email: ${error.message}`)
@@ -333,7 +329,7 @@ class AuthService {
     try {
       // Tentar validar o token atual
       const validation = await this.validateToken()
-      
+
       if (validation.valid) {
         this.setUser(validation.user)
         return true
@@ -406,7 +402,7 @@ class AuthService {
   }
 
   // ==================== HELPERS PARA FRONTEND ====================
-  
+
   getUserDisplayName() {
     return this.user?.nome || 'Usuário'
   }
@@ -415,7 +411,7 @@ class AuthService {
     if (!this.user?.nome) return 'U'
     return this.user.nome
       .split(' ')
-      .map(name => name.charAt(0))
+      .map((name) => name.charAt(0))
       .join('')
       .toUpperCase()
       .substring(0, 2)
@@ -442,17 +438,17 @@ class AuthService {
   }
 
   // ==================== FORMATADORES ====================
-  
+
   formatDate(dateStr) {
     if (!dateStr) return 'N/A'
-    
+
     const date = new Date(dateStr)
     return date.toLocaleDateString('pt-BR', {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',
       hour: '2-digit',
-      minute: '2-digit'
+      minute: '2-digit',
     })
   }
 
@@ -460,7 +456,7 @@ class AuthService {
     const statusMap = {
       ATIVO: 'Ativo',
       PENDENTE: 'Pendente',
-      BLOQUEADO: 'Bloqueado'
+      BLOQUEADO: 'Bloqueado',
     }
     return statusMap[status] || status
   }
@@ -468,7 +464,7 @@ class AuthService {
   formatLoginType(type) {
     const typeMap = {
       CREDENCIAIS: 'Email/Senha',
-      MICROSOFT: 'Microsoft'
+      MICROSOFT: 'Microsoft',
     }
     return typeMap[type] || type
   }

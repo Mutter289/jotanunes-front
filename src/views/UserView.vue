@@ -7,17 +7,8 @@
         <p>Administre usuários, aprove cadastros e gerencie permissões</p>
       </div>
       <div class="header-actions">
-        <VButton
-          text="Novo Usuário"
-          variant="add"
-          @click="openCreateModal"
-        />
-        <VButton
-          text="Atualizar"
-          variant="secondary"
-          @click="loadUsers"
-          :loading="isLoading"
-        />
+        <VButton text="Novo Usuário" variant="add" @click="openCreateModal" />
+        <VButton text="Atualizar" variant="secondary" @click="loadUsers" :loading="isLoading" />
       </div>
     </div>
 
@@ -32,7 +23,7 @@
           <option value="BLOQUEADO">Bloqueado</option>
         </select>
       </div>
-      
+
       <div class="filter-group">
         <label>Tipo de Login:</label>
         <select v-model="tipoFilter" @change="applyFilters" class="filter-select">
@@ -166,11 +157,7 @@
 
       <template #footer>
         <div class="modal-actions">
-          <VButton
-            text="Cancelar"
-            variant="secondary"
-            @click="closeUserModal"
-          />
+          <VButton text="Cancelar" variant="secondary" @click="closeUserModal" />
           <VButton
             :text="isEditing ? 'Salvar' : 'Criar'"
             variant="add"
@@ -202,11 +189,7 @@
 
       <template #footer>
         <div class="modal-actions">
-          <VButton
-            text="Cancelar"
-            variant="secondary"
-            @click="closeConfirmModal"
-          />
+          <VButton text="Cancelar" variant="secondary" @click="closeConfirmModal" />
           <VButton
             :text="confirmData.confirmText"
             :variant="confirmData.variant"
@@ -217,12 +200,7 @@
       </template>
     </VPopup>
 
-    <VPopup
-      v-model:visible="showBatchModal"
-      msg="Ações em Lote"
-      mark="info"
-      :auto-close="0"
-    >
+    <VPopup v-model:visible="showBatchModal" msg="Ações em Lote" mark="info" :auto-close="0">
       <div class="batch-content">
         <p>{{ selectedUsers.length }} usuário(s) selecionado(s)</p>
         <div class="batch-actions">
@@ -242,11 +220,7 @@
       </div>
 
       <template #footer>
-        <VButton
-          text="Fechar"
-          variant="secondary"
-          @click="showBatchModal = false"
-        />
+        <VButton text="Fechar" variant="secondary" @click="showBatchModal = false" />
       </template>
     </VPopup>
   </div>
@@ -279,7 +253,7 @@ export default {
         nome: '',
         email: '',
         senha: '',
-        status: 'PENDENTE'
+        status: 'PENDENTE',
       },
       formError: '',
       showConfirmModal: false,
@@ -293,41 +267,41 @@ export default {
           key: 'nome',
           label: 'Nome',
           sortable: true,
-          width: '200px'
+          width: '200px',
         },
         {
           key: 'email',
           label: 'Email',
           sortable: true,
-          width: '250px'
+          width: '250px',
         },
         {
           key: 'status',
           label: 'Status',
           sortable: true,
           width: '120px',
-          align: 'center'
+          align: 'center',
         },
         {
           key: 'tipo_login',
           label: 'Tipo Login',
           sortable: true,
           width: '140px',
-          align: 'center'
+          align: 'center',
         },
         {
           key: 'ultimo_login',
           label: 'Último Login',
           sortable: true,
-          width: '160px'
+          width: '160px',
         },
         {
           key: 'criado_em',
           label: 'Criado em',
           sortable: true,
-          width: '160px'
-        }
-      ]
+          width: '160px',
+        },
+      ],
     }
   },
 
@@ -342,34 +316,34 @@ export default {
           key: 'edit',
           label: 'Editar',
           icon: 'edit',
-          variant: 'primary'
+          variant: 'primary',
         },
         {
           key: 'approve',
           label: 'Aprovar',
           icon: 'check',
           variant: 'success',
-          disabled: (row) => row.status !== 'PENDENTE'
+          disabled: (row) => row.status !== 'PENDENTE',
         },
         {
           key: 'block',
           label: 'Bloquear',
           icon: 'ban',
           variant: 'danger',
-          disabled: (row) => row.status === 'BLOQUEADO'
+          disabled: (row) => row.status === 'BLOQUEADO',
         },
         {
           key: 'delete',
           label: 'Excluir',
           icon: 'trash',
-          variant: 'danger'
-        }
+          variant: 'danger',
+        },
       ]
     },
 
     canBatchApprove() {
-      return this.selectedUsers.some(user => user.status === 'PENDENTE')
-    }
+      return this.selectedUsers.some((user) => user.status === 'PENDENTE')
+    },
   },
 
   async mounted() {
@@ -379,7 +353,7 @@ export default {
 
   methods: {
     // ==================== CARREGAMENTO DE DADOS ====================
-    
+
     async loadUsers() {
       this.isLoading = true
       try {
@@ -405,21 +379,21 @@ export default {
       let filtered = [...this.users]
 
       if (this.statusFilter) {
-        filtered = filtered.filter(user => user.status === this.statusFilter)
+        filtered = filtered.filter((user) => user.status === this.statusFilter)
       }
 
       if (this.tipoFilter) {
-        filtered = filtered.filter(user => user.tipo_login === this.tipoFilter)
+        filtered = filtered.filter((user) => user.tipo_login === this.tipoFilter)
       }
 
       this.filteredUsers = filtered
     },
 
     // ==================== AÇÕES DA TABELA ====================
-    
+
     handleTableAction({ action, row }) {
       this.currentUser = row
-      
+
       switch (action.key) {
         case 'edit':
           this.editUser(row)
@@ -448,14 +422,14 @@ export default {
     },
 
     // ==================== CRUD OPERATIONS ====================
-    
+
     openCreateModal() {
       this.isEditing = false
       this.userForm = {
         nome: '',
         email: '',
         senha: '',
-        status: 'PENDENTE'
+        status: 'PENDENTE',
       }
       this.formError = ''
       this.showUserModal = true
@@ -468,7 +442,7 @@ export default {
         nome: user.nome,
         email: user.email,
         senha: '',
-        status: user.status
+        status: user.status,
       }
       this.formError = ''
       this.showUserModal = true
@@ -477,19 +451,19 @@ export default {
     async saveUser() {
       this.isSaving = true
       this.formError = ''
-      
+
       try {
         if (this.isEditing) {
           const updateData = {
             nome: this.userForm.nome,
-            status: this.userForm.status
+            status: this.userForm.status,
           }
-          
+
           await useFetch(`/api/auth/admin/usuarios/${this.userForm.id}`, {
             method: 'PUT',
-            body: updateData
+            body: updateData,
           })
-          
+
           this.showToast('success', 'Sucesso', 'Usuário atualizado com sucesso')
         } else {
           await useFetch('/api/auth/cadastro', {
@@ -497,17 +471,16 @@ export default {
             body: {
               nome: this.userForm.nome,
               email: this.userForm.email,
-              senha: this.userForm.senha
-            }
+              senha: this.userForm.senha,
+            },
           })
 
           this.showToast('success', 'Sucesso', 'Usuário criado com sucesso')
         }
-        
+
         this.closeUserModal()
         await this.loadUsers()
         await this.loadStatistics()
-        
       } catch (error) {
         this.formError = error.message || 'Erro ao salvar usuário'
         console.error('Erro ao salvar usuário:', error)
@@ -524,14 +497,14 @@ export default {
     },
 
     // ==================== CONFIRMAÇÕES ====================
-    
+
     confirmApprove(user) {
       this.confirmData = {
         title: 'Aprovar Usuário',
         message: `Deseja aprovar o usuário "${user.nome}"?`,
         confirmText: 'Aprovar',
         variant: 'primary',
-        type: 'approve'
+        type: 'approve',
       }
       this.showConfirmModal = true
     },
@@ -543,7 +516,7 @@ export default {
         message: `Deseja bloquear o usuário "${user.nome}"?`,
         confirmText: 'Bloquear',
         variant: 'danger',
-        type: 'block'
+        type: 'block',
       }
       this.showConfirmModal = true
     },
@@ -554,52 +527,51 @@ export default {
         message: `Deseja excluir permanentemente o usuário "${user.nome}"? Esta ação não pode ser desfeita.`,
         confirmText: 'Excluir',
         variant: 'danger',
-        type: 'delete'
+        type: 'delete',
       }
       this.showConfirmModal = true
     },
 
     async executeAction() {
       this.isExecuting = true
-      
+
       try {
         switch (this.confirmData.type) {
           case 'approve':
             await useFetch(`/api/auth/admin/usuarios/${this.currentUser.id}/aprovar`, {
               method: 'POST',
-              body: { aprovado_por: this.authStore.user.email }
+              body: { aprovado_por: this.authStore.user.email },
             })
             this.showToast('success', 'Sucesso', 'Usuário aprovado com sucesso')
             break
-            
+
           case 'block':
             if (!this.blockReason.trim()) {
               this.showToast('warning', 'Aviso', 'Informe o motivo do bloqueio')
               return
             }
-            
+
             await useFetch(`/api/auth/admin/usuarios/${this.currentUser.id}/bloquear`, {
               method: 'POST',
               body: {
                 bloqueado_por: this.authStore.user.email,
-                motivo: this.blockReason
-              }
+                motivo: this.blockReason,
+              },
             })
             this.showToast('success', 'Sucesso', 'Usuário bloqueado com sucesso')
             break
-            
+
           case 'delete':
             await useFetch(`/api/auth/admin/usuarios/${this.currentUser.id}`, {
-              method: 'DELETE'
+              method: 'DELETE',
             })
             this.showToast('success', 'Sucesso', 'Usuário excluído com sucesso')
             break
         }
-        
+
         this.closeConfirmModal()
         await this.loadUsers()
         await this.loadStatistics()
-        
       } catch (error) {
         console.error('Erro ao executar ação:', error)
         this.showToast('error', 'Erro', error.message || 'Falha ao executar ação')
@@ -616,26 +588,25 @@ export default {
     },
 
     // ==================== AÇÕES EM LOTE ====================
-    
+
     async batchApprove() {
-      const pendingUsers = this.selectedUsers.filter(user => user.status === 'PENDENTE')
-      
+      const pendingUsers = this.selectedUsers.filter((user) => user.status === 'PENDENTE')
+
       this.isExecuting = true
       try {
         await useFetch('/api/auth/admin/usuarios/bulk/aprovar', {
           method: 'POST',
           body: {
-            usuario_ids: pendingUsers.map(u => u.id),
-            aprovado_por: this.authStore.user.email
-          }
+            usuario_ids: pendingUsers.map((u) => u.id),
+            aprovado_por: this.authStore.user.email,
+          },
         })
-        
+
         this.showToast('success', 'Sucesso', `${pendingUsers.length} usuário(s) aprovado(s)`)
         this.showBatchModal = false
         this.selectedUsers = []
         await this.loadUsers()
         await this.loadStatistics()
-        
       } catch (error) {
         this.showToast('error', 'Erro', error.message || 'Falha na aprovação em lote')
       } finally {
@@ -652,18 +623,17 @@ export default {
         await useFetch('/api/auth/admin/usuarios/bulk/bloquear', {
           method: 'POST',
           body: {
-            usuario_ids: this.selectedUsers.map(u => u.id),
+            usuario_ids: this.selectedUsers.map((u) => u.id),
             motivo: reason,
-            bloqueado_por: this.authStore.user.email
-          }
+            bloqueado_por: this.authStore.user.email,
+          },
         })
-        
+
         this.showToast('success', 'Sucesso', `${this.selectedUsers.length} usuário(s) bloqueado(s)`)
         this.showBatchModal = false
         this.selectedUsers = []
         await this.loadUsers()
         await this.loadStatistics()
-        
       } catch (error) {
         this.showToast('error', 'Erro', error.message || 'Falha no bloqueio em lote')
       } finally {
@@ -672,12 +642,12 @@ export default {
     },
 
     // ==================== FORMATADORES ====================
-    
+
     formatStatus(status) {
       const statusMap = {
         ATIVO: 'Ativo',
         PENDENTE: 'Pendente',
-        BLOQUEADO: 'Bloqueado'
+        BLOQUEADO: 'Bloqueado',
       }
       return statusMap[status] || status
     },
@@ -685,7 +655,7 @@ export default {
     formatLoginType(type) {
       const typeMap = {
         CREDENCIAIS: 'Email/Senha',
-        MICROSOFT: 'Microsoft'
+        MICROSOFT: 'Microsoft',
       }
       return typeMap[type] || type
     },
@@ -696,27 +666,27 @@ export default {
 
     formatDate(dateStr) {
       if (!dateStr) return 'N/A'
-      
+
       const date = new Date(dateStr)
       return date.toLocaleDateString('pt-BR', {
         day: '2-digit',
         month: '2-digit',
         year: 'numeric',
         hour: '2-digit',
-        minute: '2-digit'
+        minute: '2-digit',
       })
     },
 
     // ==================== UTILITÁRIOS ====================
-    
+
     showToast(type, title, message) {
       if (window.showToast) {
         window.showToast(type, title, message)
       } else {
         alert(`${title}: ${message}`)
       }
-    }
-  }
+    },
+  },
 }
 </script>
 

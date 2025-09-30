@@ -22,11 +22,18 @@
           <!-- Header -->
           <div class="form-header">
             <p class="welcome-text">{{ welcomeMessage }}</p>
-            <h1 class="main-title">{{ currentMode === 'login' ? 'Acesse o portal' : 'Criar conta' }}</h1>
+            <h1 class="main-title">
+              {{ currentMode === 'login' ? 'Acesse o portal' : 'Criar conta' }}
+            </h1>
           </div>
 
           <!-- Login Form -->
-          <form v-if="currentMode === 'login'" @submit.prevent="handleLogin" class="form-content" novalidate>
+          <form
+            v-if="currentMode === 'login'"
+            @submit.prevent="handleLogin"
+            class="form-content"
+            novalidate
+          >
             <!-- Email Input -->
             <div class="input-group">
               <VInput
@@ -215,13 +222,15 @@
           <div class="form-container-footer">
             <p v-if="currentMode === 'login'">
               Não tem uma conta?
-              <a href="#" @click.prevent="switchMode('register')" class="access-link">Criar conta</a>
+              <a href="#" @click.prevent="switchMode('register')" class="access-link"
+                >Criar conta</a
+              >
             </p>
             <p v-else>
               Já tem uma conta?
               <a href="#" @click.prevent="switchMode('login')" class="access-link">Fazer login</a>
             </p>
-            
+
             <div class="version-info">
               <span>v{{ appVersion }}</span>
             </div>
@@ -250,11 +259,7 @@
         <p>Sua conta foi criada e está aguardando aprovação do administrador.</p>
         <p>Você receberá um e-mail quando sua conta for aprovada.</p>
         <div class="pending-actions">
-          <VButton
-            text="Entendi"
-            variant="primary"
-            @click="showPendingModal = false"
-          />
+          <VButton text="Entendi" variant="primary" @click="showPendingModal = false" />
         </div>
       </div>
     </VPopup>
@@ -282,7 +287,7 @@ export default {
         nome: '',
         email: '',
         senha: '',
-        confirmSenha: ''
+        confirmSenha: '',
       },
       errors: {
         username: '',
@@ -290,7 +295,7 @@ export default {
         nome: '',
         email: '',
         senha: '',
-        confirmSenha: ''
+        confirmSenha: '',
       },
       showPassword: false,
       rememberMe: false,
@@ -300,7 +305,7 @@ export default {
       successMessage: '',
       appVersion: '1.0.0',
       microsoftLoading: false,
-      loadingMessage: 'Autenticando...'
+      loadingMessage: 'Autenticando...',
     }
   },
 
@@ -308,19 +313,19 @@ export default {
     authStore() {
       return useAuthStore()
     },
-    
+
     isLoading() {
       return this.authStore.isLoading
     },
-    
+
     isAuthenticated() {
       return this.authStore.isAuthenticated
     },
-    
+
     microsoftAuthInProgress() {
       return this.authStore.microsoftAuthInProgress
     },
-    
+
     welcomeMessage() {
       const hour = new Date().getHours()
       if (hour < 12) return 'Bom dia!'
@@ -348,7 +353,7 @@ export default {
           !this.errors.confirmSenha
         )
       }
-    }
+    },
   },
 
   watch: {
@@ -362,7 +367,7 @@ export default {
       if (newValue) {
         this.showSuccessToast = true
         this.successMessage = 'Login realizado com sucesso!'
-        
+
         setTimeout(() => {
           this.$router.push('/main')
         }, 1500)
@@ -374,7 +379,7 @@ export default {
       if (newValue) {
         this.loadingMessage = 'Autenticando com Microsoft...'
       }
-    }
+    },
   },
 
   methods: {
@@ -473,7 +478,7 @@ export default {
     },
 
     clearAllErrors() {
-      Object.keys(this.errors).forEach(key => {
+      Object.keys(this.errors).forEach((key) => {
         this.errors[key] = ''
       })
       this.generalError = ''
@@ -483,24 +488,24 @@ export default {
     resetForms() {
       this.userCredentials = {
         username: '',
-        userPassword: ''
+        userPassword: '',
       }
       this.registerData = {
         nome: '',
         email: '',
         senha: '',
-        confirmSenha: ''
+        confirmSenha: '',
       }
     },
 
     // AUTENTICAÇÃO - AQUI ESTÁ O FIX PRINCIPAL
     async handleLogin() {
       console.log('🚀 Login iniciado!')
-      
+
       // Validar campos
       this.validateEmail()
       this.validatePassword()
-      
+
       if (!this.isFormValid) {
         console.log('❌ Formulário inválido')
         return
@@ -508,17 +513,17 @@ export default {
 
       console.log('📤 Enviando credenciais:', {
         username: this.userCredentials.username,
-        password: '***'
+        password: '***',
       })
 
       this.loadingMessage = 'Fazendo login...'
-      
+
       try {
         // Chamar diretamente o método do store
         const result = await this.authStore.loginCredentials(
           this.userCredentials.username,
           this.userCredentials.userPassword,
-          this.rememberMe
+          this.rememberMe,
         )
 
         console.log('📥 Resultado:', result)
@@ -550,10 +555,10 @@ export default {
     async handleMicrosoftLogin() {
       this.clearAllErrors()
       this.loadingMessage = 'Conectando com Microsoft...'
-      
+
       try {
         const result = await this.authStore.startMicrosoftAuth()
-        
+
         if (result.success) {
           // Login bem-sucedido será tratado pelo watcher do isAuthenticated
         } else {
@@ -575,17 +580,17 @@ export default {
       this.validateRegisterEmail()
       this.validateRegisterPassword()
       this.validateConfirmPassword()
-      
+
       if (!this.isFormValid) {
         return
       }
 
       this.loadingMessage = 'Criando conta...'
-      
+
       const result = await this.authStore.register({
         nome: this.registerData.nome,
         email: this.registerData.email,
-        senha: this.registerData.senha
+        senha: this.registerData.senha,
       })
 
       if (result.success) {
@@ -606,13 +611,13 @@ export default {
       const urlParams = new URLSearchParams(window.location.search)
       const code = urlParams.get('code')
       const error = urlParams.get('error')
-      
+
       if (error) {
         this.generalError = 'Erro na autenticação Microsoft'
         window.history.replaceState({}, document.title, window.location.pathname)
         return
       }
-      
+
       if (code) {
         this.completeMicrosoftLogin(code)
         window.history.replaceState({}, document.title, window.location.pathname)
@@ -621,10 +626,10 @@ export default {
 
     async completeMicrosoftLogin(code) {
       this.loadingMessage = 'Finalizando autenticação Microsoft...'
-      
+
       try {
         const result = await this.authStore.completeMicrosoftAuth(code)
-        
+
         if (result.success) {
           // Sucesso será tratado pelo watcher
         } else {
@@ -661,7 +666,7 @@ export default {
     setupMessageListener() {
       window.addEventListener('message', (event) => {
         if (event.origin !== window.location.origin) return
-        
+
         if (event.data.type === 'MICROSOFT_AUTH_SUCCESS') {
           this.completeMicrosoftLogin(event.data.code)
         } else if (event.data.type === 'MICROSOFT_AUTH_ERROR') {
@@ -669,7 +674,7 @@ export default {
           this.microsoftLoading = false
         }
       })
-    }
+    },
   },
 
   mounted() {

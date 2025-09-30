@@ -1,10 +1,9 @@
 <template>
   <div id="app" :style="{ gridTemplateColumns: gridColumns, gridTemplateAreas: gridAreas }">
-    
     <div v-if="isInitializing" class="app-loading">
       <div class="loading-container">
         <div class="logo-animation">
-          <img src="/icon/favicon.png" alt="logo">
+          <img src="/icon/favicon.png" alt="logo" />
         </div>
         <div class="loading-progress">
           <div class="progress-bar">
@@ -27,12 +26,8 @@
     </div>
 
     <template v-else>
-      <VSidebar 
-        v-if="showSidebar" 
-        class="sidebar" 
-        @collapsed-changed="handleSidebarCollapsed" 
-      />
-      
+      <VSidebar v-if="showSidebar" class="sidebar" @collapsed-changed="handleSidebarCollapsed" />
+
       <div v-if="showSidebar" class="main-content">
         <VNav
           class="navbar"
@@ -47,18 +42,14 @@
         />
         <RouterView class="content" />
       </div>
-      
+
       <RouterView v-else class="content-full" />
     </template>
 
     <!-- Notificações Toast -->
     <div class="toast-container">
       <transition-group name="toast" tag="div">
-        <div
-          v-for="toast in toasts"
-          :key="toast.id"
-          :class="['toast', `toast-${toast.type}`]"
-        >
+        <div v-for="toast in toasts" :key="toast.id" :class="['toast', `toast-${toast.type}`]">
           <div class="toast-icon">
             <i :class="getToastIcon(toast.type)"></i>
           </div>
@@ -84,11 +75,7 @@
             <p>{{ confirmData.message }}</p>
           </div>
           <div class="confirm-actions">
-            <VButton
-              text="Cancelar"
-              variant="secondary"
-              @click="cancelConfirm"
-            />
+            <VButton text="Cancelar" variant="secondary" @click="cancelConfirm" />
             <VButton
               :text="confirmData.confirmText || 'Confirmar'"
               :variant="confirmData.variant || 'danger'"
@@ -105,11 +92,7 @@
         <i class="fas fa-wifi-slash"></i>
         <h3>Sem conexão</h3>
         <p>Verifique sua conexão com a internet</p>
-        <VButton
-          text="Tentar novamente"
-          variant="primary"
-          @click="checkConnection"
-        />
+        <VButton text="Tentar novamente" variant="primary" @click="checkConnection" />
       </div>
     </div>
   </div>
@@ -126,7 +109,11 @@ import VButton from './components/Button/VButton.vue'
 
 const authStore = useAuthStore()
 const { isAuthenticated, user: currentUser, logout } = useAuth()
-const { notifications, unreadCount: unreadNotificationsCount, loadNotifications } = useNotifications()
+const {
+  notifications,
+  unreadCount: unreadNotificationsCount,
+  loadNotifications,
+} = useNotifications()
 
 const route = useRoute()
 
@@ -179,7 +166,7 @@ function handleSearch(searchQuery) {
 
 async function handleProfileAction(action) {
   console.log('Ação do perfil:', action)
-  
+
   if (action === 'logout') {
     await handleLogout()
   } else if (action === 'edit') {
@@ -204,9 +191,9 @@ async function handleLogout() {
     'Confirmar Logout',
     'Tem certeza que deseja sair do sistema?',
     'Sair',
-    'danger'
+    'danger',
   )
-  
+
   if (confirmed) {
     try {
       await logout()
@@ -226,22 +213,22 @@ function showToast(type, title, message, duration = 5000) {
     type,
     title,
     message,
-    duration
+    duration,
   }
-  
+
   toasts.value.push(toast)
-  
+
   if (duration > 0) {
     setTimeout(() => {
       removeToast(toast.id)
     }, duration)
   }
-  
+
   return toast.id
 }
 
 function removeToast(id) {
-  const index = toasts.value.findIndex(toast => toast.id === id)
+  const index = toasts.value.findIndex((toast) => toast.id === id)
   if (index > -1) {
     toasts.value.splice(index, 1)
   }
@@ -252,7 +239,7 @@ function getToastIcon(type) {
     success: 'fas fa-check-circle',
     error: 'fas fa-exclamation-circle',
     warning: 'fas fa-exclamation-triangle',
-    info: 'fas fa-info-circle'
+    info: 'fas fa-info-circle',
   }
   return icons[type] || 'fas fa-bell'
 }
@@ -264,9 +251,9 @@ function showConfirm(title, message, confirmText = 'Confirmar', variant = 'prima
       title,
       message,
       confirmText,
-      variant
+      variant,
     }
-    
+
     confirmCallback.value = resolve
     showConfirmModal.value = true
   })
@@ -312,10 +299,10 @@ function handleOffline() {
 async function initializeApp() {
   try {
     isInitializing.value = true
-    
+
     // Inicializar autenticação
     await authStore.initializeAuth()
-    
+
     // Se está autenticado, carregar dados necessários
     if (isAuthenticated.value) {
       try {
@@ -324,7 +311,6 @@ async function initializeApp() {
         console.warn('Erro ao carregar notificações iniciais:', error)
       }
     }
-    
   } catch (error) {
     console.error('Erro na inicialização:', error)
     showToast('error', 'Erro', 'Erro ao inicializar aplicação')
@@ -336,11 +322,11 @@ async function initializeApp() {
 // Lifecycle
 onMounted(async () => {
   await initializeApp()
-  
+
   // Event listeners para conexão
   window.addEventListener('online', handleOnline)
   window.addEventListener('offline', handleOffline)
-  
+
   // Verificar conexão inicial
   if (!navigator.onLine) {
     showOfflineMessage.value = true
@@ -429,11 +415,19 @@ window.showConfirm = showConfirm
 }
 
 @keyframes logo {
-  0% {transform: scale(1); opacity: 1;}
-  50% {transform: scale(1.1); opacity: 0.9;}
-  100% {transform: scale(1); opacity: 1;}
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
-
 
 .logo-parts {
   display: flex;
@@ -469,18 +463,39 @@ window.showConfirm = showConfirm
 }
 
 @keyframes beamGrow1 {
-  0%, 100% { transform: scaleY(0.6); opacity: 0.7; }
-  50% { transform: scaleY(1); opacity: 1; }
+  0%,
+  100% {
+    transform: scaleY(0.6);
+    opacity: 0.7;
+  }
+  50% {
+    transform: scaleY(1);
+    opacity: 1;
+  }
 }
 
 @keyframes beamGrow2 {
-  0%, 100% { transform: scaleY(0.7); opacity: 0.8; }
-  50% { transform: scaleY(1); opacity: 1; }
+  0%,
+  100% {
+    transform: scaleY(0.7);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scaleY(1);
+    opacity: 1;
+  }
 }
 
 @keyframes beamGrow3 {
-  0%, 100% { transform: scaleY(0.8); opacity: 0.9; }
-  50% { transform: scaleY(1); opacity: 1; }
+  0%,
+  100% {
+    transform: scaleY(0.8);
+    opacity: 0.9;
+  }
+  50% {
+    transform: scaleY(1);
+    opacity: 1;
+  }
 }
 
 .logo-text h1 {
@@ -505,13 +520,22 @@ window.showConfirm = showConfirm
 }
 
 @keyframes titleGlow {
-  0%, 100% { filter: drop-shadow(0 0 10px rgba(188, 31, 27, 0.3)); }
-  50% { filter: drop-shadow(0 0 20px rgba(188, 31, 27, 0.6)); }
+  0%,
+  100% {
+    filter: drop-shadow(0 0 10px rgba(188, 31, 27, 0.3));
+  }
+  50% {
+    filter: drop-shadow(0 0 20px rgba(188, 31, 27, 0.6));
+  }
 }
 
 @keyframes subtitleFade {
-  0% { opacity: 0.7; }
-  100% { opacity: 1; }
+  0% {
+    opacity: 0.7;
+  }
+  100% {
+    opacity: 1;
+  }
 }
 
 /* Barra de progresso */
@@ -541,9 +565,15 @@ window.showConfirm = showConfirm
 }
 
 @keyframes progressLoad {
-  0% { width: 0%; }
-  70% { width: 100%; }
-  100% { width: 100%; }
+  0% {
+    width: 0%;
+  }
+  70% {
+    width: 100%;
+  }
+  100% {
+    width: 100%;
+  }
 }
 
 .loading-text {
@@ -555,8 +585,13 @@ window.showConfirm = showConfirm
 }
 
 @keyframes textPulse {
-  0%, 100% { opacity: 0.6; }
-  50% { opacity: 1; }
+  0%,
+  100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
 }
 
 /* Ícones flutuantes de construção */
@@ -596,19 +631,20 @@ window.showConfirm = showConfirm
 }
 
 @keyframes iconFloat {
-  0%, 100% { 
+  0%,
+  100% {
     transform: translateY(0px) rotate(0deg);
     opacity: 0.1;
   }
-  25% { 
+  25% {
     transform: translateY(-20px) rotate(5deg);
     opacity: 0.2;
   }
-  50% { 
+  50% {
     transform: translateY(-10px) rotate(0deg);
     opacity: 0.15;
   }
-  75% { 
+  75% {
     transform: translateY(-30px) rotate(-5deg);
     opacity: 0.25;
   }
@@ -622,7 +658,7 @@ window.showConfirm = showConfirm
   left: 0;
   right: 0;
   bottom: 0;
-  background-image: 
+  background-image:
     radial-gradient(2px 2px at 20px 30px, rgba(188, 31, 27, 0.3), transparent),
     radial-gradient(2px 2px at 40px 70px, rgba(188, 31, 27, 0.2), transparent),
     radial-gradient(1px 1px at 90px 40px, rgba(255, 255, 255, 0.1), transparent),
@@ -633,8 +669,12 @@ window.showConfirm = showConfirm
 }
 
 @keyframes particleMove {
-  0% { transform: translate(0, 0); }
-  100% { transform: translate(-200px, -200px); }
+  0% {
+    transform: translate(0, 0);
+  }
+  100% {
+    transform: translate(-200px, -200px);
+  }
 }
 
 /* Responsividade */
@@ -642,35 +682,41 @@ window.showConfirm = showConfirm
   .logo-text h1 {
     font-size: 2.5rem;
   }
-  
+
   .subtitle {
     font-size: 1rem;
     letter-spacing: 4px;
   }
-  
+
   .loading-progress {
     width: 250px;
   }
-  
+
   .beam {
     width: 10px;
     margin: 0 2px;
   }
-  
-  .beam-1 { height: 30px; }
-  .beam-2 { height: 45px; }
-  .beam-3 { height: 60px; }
+
+  .beam-1 {
+    height: 30px;
+  }
+  .beam-2 {
+    height: 45px;
+  }
+  .beam-3 {
+    height: 60px;
+  }
 }
 
 @media (max-width: 480px) {
   .logo-text h1 {
     font-size: 2rem;
   }
-  
+
   .loading-progress {
     width: 200px;
   }
-  
+
   .icon-float {
     font-size: 1.5rem;
   }
@@ -870,18 +916,18 @@ window.showConfirm = showConfirm
   .content {
     padding: 0.75rem;
   }
-  
+
   .toast-container {
     top: 1rem;
     right: 1rem;
     left: 1rem;
     max-width: none;
   }
-  
+
   .toast {
     min-width: auto;
   }
-  
+
   .offline-overlay {
     bottom: 1rem;
     left: 1rem;
@@ -894,7 +940,7 @@ window.showConfirm = showConfirm
     margin: 1rem;
     width: calc(100% - 2rem);
   }
-  
+
   .confirm-actions {
     flex-direction: column;
   }

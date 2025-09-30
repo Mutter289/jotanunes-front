@@ -29,16 +29,8 @@
         <h2>Erro na autenticação</h2>
         <p>{{ errorMessage }}</p>
         <div class="error-actions">
-          <VButton
-            text="Tentar novamente"
-            variant="primary"
-            @click="retryAuth"
-          />
-          <VButton
-            text="Voltar ao login"
-            variant="secondary"
-            @click="goToLogin"
-          />
+          <VButton text="Tentar novamente" variant="primary" @click="retryAuth" />
+          <VButton text="Voltar ao login" variant="secondary" @click="goToLogin" />
         </div>
       </div>
 
@@ -51,11 +43,7 @@
         <p>Sua conta via Microsoft foi criada e está aguardando aprovação do administrador.</p>
         <p>Você receberá um e-mail quando sua conta for aprovada.</p>
         <div class="pending-actions">
-          <VButton
-            text="Entendi"
-            variant="primary"
-            @click="goToLogin"
-          />
+          <VButton text="Entendi" variant="primary" @click="goToLogin" />
         </div>
       </div>
     </div>
@@ -119,7 +107,6 @@ async function processCallback() {
         handleAuthError(result.error || 'Erro na autenticação Microsoft')
       }
     }
-
   } catch (error) {
     console.error('Erro no callback:', error)
     handleAuthError('Erro interno na autenticação')
@@ -129,10 +116,10 @@ async function processCallback() {
 function handleAuthSuccess() {
   isProcessing.value = false
   authSuccess.value = true
-  
+
   // Iniciar barra de progresso
   startProgressBar()
-  
+
   // Redirecionar após 3 segundos
   redirectTimer = setTimeout(() => {
     router.push('/dashboard')
@@ -155,7 +142,7 @@ function startProgressBar() {
   progressTimer = setInterval(() => {
     progress += 2
     progressWidth.value = Math.min(progress, 100)
-    
+
     if (progress >= 100) {
       clearInterval(progressTimer)
     }
@@ -164,13 +151,13 @@ function startProgressBar() {
 
 function getErrorMessage(error, description) {
   const errorMessages = {
-    'access_denied': 'Acesso negado pelo usuário',
-    'invalid_request': 'Requisição inválida',
-    'unauthorized_client': 'Cliente não autorizado',
-    'server_error': 'Erro interno do servidor Microsoft',
-    'temporarily_unavailable': 'Serviço temporariamente indisponível'
+    access_denied: 'Acesso negado pelo usuário',
+    invalid_request: 'Requisição inválida',
+    unauthorized_client: 'Cliente não autorizado',
+    server_error: 'Erro interno do servidor Microsoft',
+    temporarily_unavailable: 'Serviço temporariamente indisponível',
   }
-  
+
   return errorMessages[error] || description || 'Erro desconhecido na autenticação Microsoft'
 }
 
@@ -181,7 +168,7 @@ function retryAuth() {
   authSuccess.value = false
   isPending.value = false
   errorMessage.value = ''
-  
+
   // Tentar novamente
   setTimeout(processCallback, 1000)
 }
@@ -196,7 +183,7 @@ function cleanup() {
     clearTimeout(redirectTimer)
     redirectTimer = null
   }
-  
+
   if (progressTimer) {
     clearInterval(progressTimer)
     progressTimer = null
@@ -252,8 +239,12 @@ onUnmounted(() => {
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .callback-loading h2 {
@@ -380,24 +371,24 @@ onUnmounted(() => {
   .callback-container {
     padding: 1rem;
   }
-  
+
   .callback-card {
     max-width: 100%;
   }
-  
+
   .callback-loading,
   .callback-success,
   .callback-error,
   .callback-pending {
     padding: 2rem 1.5rem;
   }
-  
+
   .success-icon,
   .error-icon,
   .pending-icon {
     font-size: 3rem;
   }
-  
+
   .error-actions {
     flex-direction: column;
     align-items: center;
@@ -411,7 +402,7 @@ onUnmounted(() => {
   .callback-pending h2 {
     font-size: 1.25rem;
   }
-  
+
   .callback-loading p,
   .callback-success p,
   .callback-error p,

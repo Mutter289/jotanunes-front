@@ -43,14 +43,10 @@
         <div class="menu-items">
           <div class="menu-item">
             <div class="menu-item-content" @click="$router.push('/gemini-analyses')">
-              
-              <div class="menu-icon-wrapper" >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 640 640"
-                >
+              <div class="menu-icon-wrapper">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640">
                   <path
-                  fill="#ffffff"
+                    fill="#ffffff"
                     d="M544 269.8C529.2 279.6 512.2 287.5 494.5 293.8C447.5 310.6 
                       385.8 320 320 320C254.2 320 192.4 310.5 145.5 293.8C127.9 
                       287.5 110.8 279.6 96 269.8L96 352C96 396.2 196.3 432 320 
@@ -70,12 +66,10 @@
                 <span class="menu-text">Análises</span>
                 <span class="menu-description">Análises de SQL's</span>
               </div>
-
             </div>
           </div>
         </div>
       </div>
-
     </div>
   </nav>
 </template>

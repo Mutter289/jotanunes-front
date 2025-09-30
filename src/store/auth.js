@@ -10,24 +10,24 @@ export const useAuthStore = defineStore('auth', {
     isLoading: false,
     error: null,
     isAuthenticated: false,
-    
+
     // Notificações
     notifications: [],
     unreadNotificationsCount: 0,
-    
+
     // OAuth Microsoft
     microsoftAuthInProgress: false,
-    
+
     // Dados administrativos
     users: [],
     pendingUsers: [],
     statistics: {},
     systemConfig: {},
     authLogs: [],
-    
+
     // Cache e controle
     lastDataLoad: null,
-    refreshInterval: null
+    refreshInterval: null,
   }),
 
   getters: {
@@ -42,7 +42,7 @@ export const useAuthStore = defineStore('auth', {
       if (!state.user?.nome) return 'U'
       return state.user.nome
         .split(' ')
-        .map(name => name.charAt(0))
+        .map((name) => name.charAt(0))
         .join('')
         .toUpperCase()
         .substring(0, 2)
@@ -62,14 +62,12 @@ export const useAuthStore = defineStore('auth', {
 
     // ==================== GETTERS AVANÇADOS ====================
     canAccessAdminPanel: (state) => {
-      return state.isAuthenticated && 
-             state.user?.status === 'ATIVO' && 
-             state.isAdmin
+      return state.isAuthenticated && state.user?.status === 'ATIVO' && state.isAdmin
     },
 
     getUserDisplayData: (state) => {
       if (!state.user) return null
-      
+
       return {
         nome: state.user.nome,
         email: state.user.email,
@@ -77,7 +75,7 @@ export const useAuthStore = defineStore('auth', {
         iniciais: state.userInitials,
         ultimoLogin: state.lastLogin,
         tipoLogin: state.user.tipo_login,
-        criadoEm: state.user.criado_em
+        criadoEm: state.user.criado_em,
       }
     },
 
@@ -87,11 +85,11 @@ export const useAuthStore = defineStore('auth', {
     },
 
     activeUsersCount: (state) => {
-      return state.users.filter(u => u.status === 'ATIVO').length
+      return state.users.filter((u) => u.status === 'ATIVO').length
     },
 
     blockedUsersCount: (state) => {
-      return state.users.filter(u => u.status === 'BLOQUEADO').length
+      return state.users.filter((u) => u.status === 'BLOQUEADO').length
     },
 
     totalUsersCount: (state) => {
@@ -100,11 +98,11 @@ export const useAuthStore = defineStore('auth', {
 
     // ==================== GETTERS NOTIFICAÇÕES ====================
     unreadNotifications: (state) => {
-      return state.notifications.filter(n => !n.lida)
+      return state.notifications.filter((n) => !n.lida)
     },
 
     notificationsByType: (state) => {
-      return (type) => state.notifications.filter(n => n.tipo === type)
+      return (type) => state.notifications.filter((n) => n.tipo === type)
     },
 
     // ==================== GETTERS STATUS ====================
@@ -118,7 +116,7 @@ export const useAuthStore = defineStore('auth', {
 
     hasAdminPrivileges: (state) => {
       return state.isAuthenticated && state.isAdmin && state.isUserActive
-    }
+    },
   },
 
   actions: {
@@ -126,23 +124,23 @@ export const useAuthStore = defineStore('auth', {
     async initializeAuth() {
       try {
         this.isLoading = true
-        
+
         // Verificar se há token armazenado
         const storedToken = localStorage.getItem('access_token')
         const storedUser = authService.getStoredUser()
-        
+
         if (storedToken && storedUser) {
           // Verificar se o token ainda é válido
           if (!authService.isTokenExpired()) {
             this.token = storedToken
             this.user = storedUser
             this.isAuthenticated = true
-            
+
             // Tentar renovar dados do perfil
             try {
               await this.refreshProfile()
               await this.loadNotifications()
-              
+
               // Se for admin, carregar dados administrativos
               if (this.canAccessAdminPanel) {
                 await this.initializeAdminData()
@@ -171,12 +169,12 @@ export const useAuthStore = defineStore('auth', {
         this.error = null
 
         const result = await authService.loginCredentials(email, password)
-        
+
         if (result.success) {
           this.token = result.token
           this.user = result.user
           this.isAuthenticated = true
-          
+
           // Salvar preferência de lembrar
           if (rememberMe) {
             localStorage.setItem('rememberMe', 'true')
@@ -185,15 +183,15 @@ export const useAuthStore = defineStore('auth', {
             localStorage.removeItem('rememberMe')
             localStorage.removeItem('lastUsername')
           }
-          
+
           // Carregar dados adicionais
           await this.loadNotifications()
-          
+
           // Se for admin, carregar dados administrativos
           if (this.canAccessAdminPanel) {
             await this.initializeAdminData()
           }
-          
+
           return { success: true }
         } else {
           this.error = result.error
@@ -212,16 +210,16 @@ export const useAuthStore = defineStore('auth', {
       try {
         this.microsoftAuthInProgress = true
         this.error = null
-        
+
         const authUrl = await authService.getMicrosoftAuthUrl()
-        
+
         // Abrir janela popup para autenticação
         const popup = window.open(
           authUrl,
           'microsoft-auth',
-          'width=500,height=600,scrollbars=yes,resizable=yes'
+          'width=500,height=600,scrollbars=yes,resizable=yes',
         )
-        
+
         return new Promise((resolve, reject) => {
           const checkClosed = setInterval(() => {
             if (popup.closed) {
@@ -230,30 +228,30 @@ export const useAuthStore = defineStore('auth', {
               reject(new Error('Autenticação cancelada pelo usuário'))
             }
           }, 1000)
-          
+
           // Escutar mensagem da janela popup
           const messageHandler = async (event) => {
             if (event.origin !== window.location.origin) return
-            
+
             if (event.data.type === 'MICROSOFT_AUTH_SUCCESS') {
               clearInterval(checkClosed)
               popup.close()
               window.removeEventListener('message', messageHandler)
-              
+
               try {
                 const result = await authService.loginMicrosoft(event.data.code)
-                
+
                 if (result.success) {
                   this.token = result.token
                   this.user = result.user
                   this.isAuthenticated = true
-                  
+
                   await this.loadNotifications()
-                  
+
                   if (this.canAccessAdminPanel) {
                     await this.initializeAdminData()
                   }
-                  
+
                   resolve({ success: true })
                 } else {
                   this.error = result.error
@@ -274,7 +272,7 @@ export const useAuthStore = defineStore('auth', {
               resolve({ success: false, error: this.error })
             }
           }
-          
+
           window.addEventListener('message', messageHandler)
         })
       } catch (error) {
@@ -288,20 +286,20 @@ export const useAuthStore = defineStore('auth', {
       try {
         this.isLoading = true
         this.error = null
-        
+
         const result = await authService.loginMicrosoft(code)
-        
+
         if (result.success) {
           this.token = result.token
           this.user = result.user
           this.isAuthenticated = true
-          
+
           await this.loadNotifications()
-          
+
           if (this.canAccessAdminPanel) {
             await this.initializeAdminData()
           }
-          
+
           return { success: true }
         } else {
           this.error = result.error
@@ -320,14 +318,14 @@ export const useAuthStore = defineStore('auth', {
       try {
         this.isLoading = true
         this.error = null
-        
+
         const result = await authService.register(userData)
-        
+
         if (result.success) {
-          return { 
-            success: true, 
+          return {
+            success: true,
             message: result.message,
-            user: result.user
+            user: result.user,
           }
         } else {
           this.error = result.error
@@ -345,13 +343,13 @@ export const useAuthStore = defineStore('auth', {
     async logout() {
       try {
         this.isLoading = true
-        
+
         // Limpar interval de refresh se existir
         if (this.refreshInterval) {
           clearInterval(this.refreshInterval)
           this.refreshInterval = null
         }
-        
+
         await authService.logout()
       } catch (error) {
         console.error('Erro no logout:', error)
@@ -390,7 +388,7 @@ export const useAuthStore = defineStore('auth', {
       try {
         const notifications = await authService.getNotifications(onlyUnread)
         this.notifications = notifications
-        this.unreadNotificationsCount = notifications.filter(n => !n.lida).length
+        this.unreadNotificationsCount = notifications.filter((n) => !n.lida).length
         return notifications
       } catch (error) {
         console.error('Erro ao carregar notificações:', error)
@@ -403,7 +401,7 @@ export const useAuthStore = defineStore('auth', {
         const success = await authService.markNotificationAsRead(notificationId)
         if (success) {
           // Atualizar estado local
-          const notification = this.notifications.find(n => n.id === notificationId)
+          const notification = this.notifications.find((n) => n.id === notificationId)
           if (notification && !notification.lida) {
             notification.lida = true
             notification.lida_em = new Date().toISOString()
@@ -443,13 +441,13 @@ export const useAuthStore = defineStore('auth', {
     async updateUser(userId, userData) {
       try {
         const updatedUser = await authService.updateUser(userId, userData)
-        
+
         // Atualizar cache local
-        const index = this.users.findIndex(u => u.id === userId)
+        const index = this.users.findIndex((u) => u.id === userId)
         if (index !== -1) {
           this.users[index] = { ...this.users[index], ...updatedUser }
         }
-        
+
         return updatedUser
       } catch (error) {
         this.error = error.message
@@ -460,14 +458,14 @@ export const useAuthStore = defineStore('auth', {
     async deleteUser(userId) {
       try {
         await authService.deleteUser(userId)
-        
+
         // Remover do cache local
-        this.users = this.users.filter(u => u.id !== userId)
-        this.pendingUsers = this.pendingUsers.filter(u => u.id !== userId)
-        
+        this.users = this.users.filter((u) => u.id !== userId)
+        this.pendingUsers = this.pendingUsers.filter((u) => u.id !== userId)
+
         // Atualizar estatísticas
         await this.getStatistics(true)
-        
+
         return true
       } catch (error) {
         this.error = error.message
@@ -490,18 +488,18 @@ export const useAuthStore = defineStore('auth', {
     async approveUser(userId) {
       try {
         await authService.approveUser(userId, this.user.email)
-        
+
         // Atualizar caches locais
-        const userIndex = this.users.findIndex(u => u.id === userId)
+        const userIndex = this.users.findIndex((u) => u.id === userId)
         if (userIndex !== -1) {
           this.users[userIndex].status = 'ATIVO'
         }
-        
-        this.pendingUsers = this.pendingUsers.filter(u => u.id !== userId)
-        
+
+        this.pendingUsers = this.pendingUsers.filter((u) => u.id !== userId)
+
         // Atualizar estatísticas
         await this.getStatistics(true)
-        
+
         return true
       } catch (error) {
         this.error = error.message
@@ -512,16 +510,16 @@ export const useAuthStore = defineStore('auth', {
     async blockUser(userId, reason) {
       try {
         await authService.blockUser(userId, reason, this.user.email)
-        
+
         // Atualizar cache local
-        const userIndex = this.users.findIndex(u => u.id === userId)
+        const userIndex = this.users.findIndex((u) => u.id === userId)
         if (userIndex !== -1) {
           this.users[userIndex].status = 'BLOQUEADO'
         }
-        
+
         // Atualizar estatísticas
         await this.getStatistics(true)
-        
+
         return true
       } catch (error) {
         this.error = error.message
@@ -533,20 +531,20 @@ export const useAuthStore = defineStore('auth', {
     async bulkApproveUsers(userIds) {
       try {
         const result = await authService.bulkApproveUsers(userIds, this.user.email)
-        
+
         // Atualizar caches locais
-        userIds.forEach(userId => {
-          const userIndex = this.users.findIndex(u => u.id === userId)
+        userIds.forEach((userId) => {
+          const userIndex = this.users.findIndex((u) => u.id === userId)
           if (userIndex !== -1) {
             this.users[userIndex].status = 'ATIVO'
           }
         })
-        
-        this.pendingUsers = this.pendingUsers.filter(u => !userIds.includes(u.id))
-        
+
+        this.pendingUsers = this.pendingUsers.filter((u) => !userIds.includes(u.id))
+
         // Atualizar estatísticas
         await this.getStatistics(true)
-        
+
         return result
       } catch (error) {
         this.error = error.message
@@ -557,18 +555,18 @@ export const useAuthStore = defineStore('auth', {
     async bulkBlockUsers(userIds, reason) {
       try {
         const result = await authService.bulkBlockUsers(userIds, reason, this.user.email)
-        
+
         // Atualizar cache local
-        userIds.forEach(userId => {
-          const userIndex = this.users.findIndex(u => u.id === userId)
+        userIds.forEach((userId) => {
+          const userIndex = this.users.findIndex((u) => u.id === userId)
           if (userIndex !== -1) {
             this.users[userIndex].status = 'BLOQUEADO'
           }
         })
-        
+
         // Atualizar estatísticas
         await this.getStatistics(true)
-        
+
         return result
       } catch (error) {
         this.error = error.message
@@ -642,19 +640,19 @@ export const useAuthStore = defineStore('auth', {
     // Verificar se usuário tem permissão para acessar rota
     canAccessRoute(routeName) {
       if (!this.isAuthenticated) return false
-      
+
       // Rotas que requerem admin
       const adminRoutes = ['admin', 'users', 'statistics', 'user-management']
       if (adminRoutes.includes(routeName)) {
         return this.canAccessAdminPanel
       }
-      
+
       // Rotas que requerem usuário ativo
       const activeUserRoutes = ['dashboard', 'profile', 'notifications']
       if (activeUserRoutes.includes(routeName)) {
         return this.isUserActive
       }
-      
+
       return true
     },
 
@@ -671,13 +669,13 @@ export const useAuthStore = defineStore('auth', {
     // Refresh completo dos dados admin
     async refreshAdminData() {
       if (!this.canAccessAdminPanel) return
-      
+
       try {
         await Promise.all([
           this.getUsers(null, true),
           this.getPendingUsers(true),
           this.getStatistics(true),
-          this.getSystemConfig(true)
+          this.getSystemConfig(true),
         ])
         this.lastDataLoad = new Date()
       } catch (error) {
@@ -689,7 +687,7 @@ export const useAuthStore = defineStore('auth', {
     async validateSession() {
       try {
         const validation = await authService.validateToken()
-        
+
         if (validation.valid) {
           this.user = validation.user
           this.isAuthenticated = true
@@ -705,29 +703,30 @@ export const useAuthStore = defineStore('auth', {
     },
 
     // ==================== FILTROS E PESQUISAS ====================
-    
+
     // Filtros de usuários
     getUsersByStatus(status) {
-      return this.users.filter(u => u.status === status)
+      return this.users.filter((u) => u.status === status)
     },
 
     getUsersByLoginType(type) {
-      return this.users.filter(u => u.tipo_login === type)
+      return this.users.filter((u) => u.tipo_login === type)
     },
 
     // Pesquisa de usuários
     searchUsers(query) {
       if (!query) return this.users
-      
+
       const searchTerm = query.toLowerCase()
-      return this.users.filter(user => 
-        user.nome.toLowerCase().includes(searchTerm) ||
-        user.email.toLowerCase().includes(searchTerm)
+      return this.users.filter(
+        (user) =>
+          user.nome.toLowerCase().includes(searchTerm) ||
+          user.email.toLowerCase().includes(searchTerm),
       )
     },
 
     // ==================== FORMATADORES ====================
-    
+
     formatDate(dateStr) {
       return authService.formatDate(dateStr)
     },
@@ -750,30 +749,32 @@ export const useAuthStore = defineStore('auth', {
 
       try {
         this.setLoading(true)
-        
+
         // Carregar dados básicos em paralelo
         await Promise.all([
           this.getUsers(),
           this.getPendingUsers(),
           this.getStatistics(),
-          this.getSystemConfig()
+          this.getSystemConfig(),
         ])
-        
+
         // Configurar refresh automático a cada 5 minutos
         if (this.refreshInterval) {
           clearInterval(this.refreshInterval)
         }
-        
-        this.refreshInterval = setInterval(async () => {
-          if (this.canAccessAdminPanel) {
-            try {
-              await this.refreshAdminData()
-            } catch (error) {
-              console.error('Erro no refresh automático:', error)
+
+        this.refreshInterval = setInterval(
+          async () => {
+            if (this.canAccessAdminPanel) {
+              try {
+                await this.refreshAdminData()
+              } catch (error) {
+                console.error('Erro no refresh automático:', error)
+              }
             }
-          }
-        }, 5 * 60 * 1000) // 5 minutos
-        
+          },
+          5 * 60 * 1000,
+        ) // 5 minutos
       } catch (error) {
         console.error('Erro ao inicializar dados admin:', error)
         this.error = 'Erro ao carregar dados administrativos'
@@ -788,6 +789,6 @@ export const useAuthStore = defineStore('auth', {
         clearInterval(this.refreshInterval)
         this.refreshInterval = null
       }
-    }
-  }
+    },
+  },
 })

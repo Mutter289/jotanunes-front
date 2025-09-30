@@ -5,38 +5,53 @@
       <div class="header-content">
         <div class="header-left">
           <h1 class="app-title">
-            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="12" cy="12" r="3"/>
-              <circle cx="12" cy="4" r="2"/>
-              <circle cx="12" cy="20" r="2"/>
-              <circle cx="4" cy="12" r="2"/>
-              <circle cx="20" cy="12" r="2"/>
-              <line x1="12" y1="6" x2="12" y2="9"/>
-              <line x1="12" y1="15" x2="12" y2="18"/>
-              <line x1="6" y1="12" x2="9" y2="12"/>
-              <line x1="15" y1="12" x2="18" y2="12"/>
+            <svg
+              class="icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <circle cx="12" cy="12" r="3" />
+              <circle cx="12" cy="4" r="2" />
+              <circle cx="12" cy="20" r="2" />
+              <circle cx="4" cy="12" r="2" />
+              <circle cx="20" cy="12" r="2" />
+              <line x1="12" y1="6" x2="12" y2="9" />
+              <line x1="12" y1="15" x2="12" y2="18" />
+              <line x1="6" y1="12" x2="9" y2="12" />
+              <line x1="15" y1="12" x2="18" y2="12" />
             </svg>
             Sistema de Dependências
           </h1>
           <span class="project-name">{{ projectName }}</span>
         </div>
         <div class="header-right">
-          <div class="connection-status" :class="{ connected: isConnected, disconnected: !isConnected }">
+          <div
+            class="connection-status"
+            :class="{ connected: isConnected, disconnected: !isConnected }"
+          >
             <span class="status-dot"></span>
             {{ isConnected ? 'Conectado' : 'Desconectado' }}
           </div>
           <button class="btn-icon" @click="refreshDependencies" :class="{ rotating: isRefreshing }">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M21 2v6h-6"/>
-              <path d="M3 12a9 9 0 0 1 15-6.7L21 8"/>
-              <path d="M3 22v-6h6"/>
-              <path d="M21 12a9 9 0 0 1-15 6.7L3 16"/>
+              <path d="M21 2v6h-6" />
+              <path d="M3 12a9 9 0 0 1 15-6.7L21 8" />
+              <path d="M3 22v-6h6" />
+              <path d="M21 12a9 9 0 0 1-15 6.7L3 16" />
             </svg>
           </button>
           <button class="btn-primary" @click="openCreateModal">
-            <svg class="btn-icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <line x1="12" y1="5" x2="12" y2="19"/>
-              <line x1="5" y1="12" x2="19" y2="12"/>
+            <svg
+              class="btn-icon-sm"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5" y1="12" x2="19" y2="12" />
             </svg>
             Criar Alteração
           </button>
@@ -47,20 +62,26 @@
     <!-- Search and Filter Bar -->
     <div class="search-filter-bar">
       <div class="search-box">
-        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="11" cy="11" r="8"/>
-          <path d="m21 21-4.35-4.35"/>
+        <svg
+          class="search-icon"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <circle cx="11" cy="11" r="8" />
+          <path d="m21 21-4.35-4.35" />
         </svg>
-        <input 
-          v-model="searchQuery" 
-          type="text" 
+        <input
+          v-model="searchQuery"
+          type="text"
           placeholder="Buscar alterações do sistema..."
           class="search-input"
-        >
+        />
       </div>
       <div class="filter-chips">
-        <button 
-          v-for="filter in filters" 
+        <button
+          v-for="filter in filters"
           :key="filter.id"
           @click="toggleFilter(filter.id)"
           class="filter-chip"
@@ -71,40 +92,40 @@
         </button>
       </div>
       <div class="view-toggles">
-        <button 
-          @click="viewMode = 'grid'" 
+        <button
+          @click="viewMode = 'grid'"
           class="view-btn"
           :class="{ active: viewMode === 'grid' }"
         >
           <svg viewBox="0 0 24 24" fill="currentColor">
-            <rect x="3" y="3" width="7" height="7"/>
-            <rect x="14" y="3" width="7" height="7"/>
-            <rect x="3" y="14" width="7" height="7"/>
-            <rect x="14" y="14" width="7" height="7"/>
+            <rect x="3" y="3" width="7" height="7" />
+            <rect x="14" y="3" width="7" height="7" />
+            <rect x="3" y="14" width="7" height="7" />
+            <rect x="14" y="14" width="7" height="7" />
           </svg>
         </button>
-        <button 
-          @click="viewMode = 'list'" 
+        <button
+          @click="viewMode = 'list'"
           class="view-btn"
           :class="{ active: viewMode === 'list' }"
         >
           <svg viewBox="0 0 24 24" fill="currentColor">
-            <rect x="3" y="4" width="18" height="2"/>
-            <rect x="3" y="11" width="18" height="2"/>
-            <rect x="3" y="18" width="18" height="2"/>
+            <rect x="3" y="4" width="18" height="2" />
+            <rect x="3" y="11" width="18" height="2" />
+            <rect x="3" y="18" width="18" height="2" />
           </svg>
         </button>
-        <button 
-          @click="viewMode = 'tree'" 
+        <button
+          @click="viewMode = 'tree'"
           class="view-btn"
           :class="{ active: viewMode === 'tree' }"
         >
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M12 2v10m0 0l-3-3m3 3l3-3"/>
-            <path d="M12 12v10"/>
-            <circle cx="5" cy="19" r="2"/>
-            <circle cx="12" cy="19" r="2"/>
-            <circle cx="19" cy="19" r="2"/>
+            <path d="M12 2v10m0 0l-3-3m3 3l3-3" />
+            <path d="M12 12v10" />
+            <circle cx="5" cy="19" r="2" />
+            <circle cx="12" cy="19" r="2" />
+            <circle cx="19" cy="19" r="2" />
           </svg>
         </button>
       </div>
@@ -115,9 +136,9 @@
       <div class="stat-card">
         <div class="stat-icon blue">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M12 2L2 7l10 5 10-5-10-5z"/>
-            <path d="M2 17l10 5 10-5"/>
-            <path d="M2 12l10 5 10-5"/>
+            <path d="M12 2L2 7l10 5 10-5-10-5z" />
+            <path d="M2 17l10 5 10-5" />
+            <path d="M2 12l10 5 10-5" />
           </svg>
         </div>
         <div class="stat-content">
@@ -128,8 +149,8 @@
       <div class="stat-card">
         <div class="stat-icon green">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-            <polyline points="22 4 12 14.01 9 11.01"/>
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+            <polyline points="22 4 12 14.01 9 11.01" />
           </svg>
         </div>
         <div class="stat-content">
@@ -140,9 +161,11 @@
       <div class="stat-card">
         <div class="stat-icon orange">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-            <line x1="12" y1="9" x2="12" y2="13"/>
-            <line x1="12" y1="17" x2="12.01" y2="17"/>
+            <path
+              d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"
+            />
+            <line x1="12" y1="9" x2="12" y2="13" />
+            <line x1="12" y1="17" x2="12.01" y2="17" />
           </svg>
         </div>
         <div class="stat-content">
@@ -153,7 +176,9 @@
       <div class="stat-card">
         <div class="stat-icon red">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+            <polygon
+              points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"
+            />
           </svg>
         </div>
         <div class="stat-content">
@@ -173,8 +198,8 @@
 
       <!-- Grid View -->
       <div v-else-if="viewMode === 'grid'" class="grid-view">
-        <div 
-          v-for="dep in filteredDependencies" 
+        <div
+          v-for="dep in filteredDependencies"
           :key="dep.id"
           class="dep-card"
           @click="selectDependency(dep)"
@@ -195,17 +220,17 @@
             <div class="dep-meta">
               <span class="meta-item">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <circle cx="12" cy="12" r="10"/>
-                  <polyline points="12 6 12 12 16 14"/>
+                  <circle cx="12" cy="12" r="10" />
+                  <polyline points="12 6 12 12 16 14" />
                 </svg>
                 {{ formatDate(dep.ultima_atu) }}
               </span>
               <span class="meta-item">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                  <circle cx="8.5" cy="7" r="4"/>
-                  <line x1="20" y1="8" x2="20" y2="14"/>
-                  <line x1="23" y1="11" x2="17" y2="11"/>
+                  <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                  <circle cx="8.5" cy="7" r="4" />
+                  <line x1="20" y1="8" x2="20" y2="14" />
+                  <line x1="23" y1="11" x2="17" y2="11" />
                 </svg>
                 {{ dep.qtd_dependencias }} deps
               </span>
@@ -219,24 +244,26 @@
             <div class="dep-actions">
               <button class="action-btn" @click.stop="openDiagram(dep)" title="Abrir Diagrama">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <rect x="3" y="3" width="7" height="7"/>
-                  <path d="M10 6h4"/>
-                  <rect x="14" y="5" width="7" height="9"/>
-                  <path d="M14 10h-4"/>
-                  <rect x="3" y="14" width="7" height="7"/>
-                  <path d="M10 18h4M18 14v7"/>
+                  <rect x="3" y="3" width="7" height="7" />
+                  <path d="M10 6h4" />
+                  <rect x="14" y="5" width="7" height="9" />
+                  <path d="M14 10h-4" />
+                  <rect x="3" y="14" width="7" height="7" />
+                  <path d="M10 18h4M18 14v7" />
                 </svg>
               </button>
               <button class="action-btn" @click.stop="editDependency(dep)" title="Editar">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                  <path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4z"/>
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                  <path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4z" />
                 </svg>
               </button>
               <button class="action-btn" @click.stop="removeDependency(dep)" title="Remover">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <polyline points="3 6 5 6 21 6"/>
-                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                  <polyline points="3 6 5 6 21 6" />
+                  <path
+                    d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
+                  />
                 </svg>
               </button>
             </div>
@@ -258,8 +285,8 @@
             </tr>
           </thead>
           <tbody>
-            <tr 
-              v-for="dep in filteredDependencies" 
+            <tr
+              v-for="dep in filteredDependencies"
               :key="dep.id"
               @click="selectDependency(dep)"
               :class="{ selected: selectedDep?.id === dep.id }"
@@ -282,14 +309,16 @@
                 <div class="table-actions">
                   <button class="action-btn" @click.stop="editDependency(dep)">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                      <path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4z"/>
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                      <path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4z" />
                     </svg>
                   </button>
                   <button class="action-btn" @click.stop="removeDependency(dep)">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <polyline points="3 6 5 6 21 6"/>
-                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                      <polyline points="3 6 5 6 21 6" />
+                      <path
+                        d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
+                      />
                     </svg>
                   </button>
                 </div>
@@ -304,22 +333,22 @@
         <div class="tree-container">
           <div v-for="category in dependencyTree" :key="category.name" class="tree-category">
             <div class="category-header" @click="toggleCategory(category)">
-              <svg 
-                class="chevron" 
+              <svg
+                class="chevron"
                 :class="{ expanded: category.expanded }"
-                viewBox="0 0 24 24" 
-                fill="none" 
-                stroke="currentColor" 
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
                 stroke-width="2"
               >
-                <polyline points="9 18 15 12 9 6"/>
+                <polyline points="9 18 15 12 9 6" />
               </svg>
               <span class="category-name">{{ category.name }}</span>
               <span class="category-count">{{ category.items.length }}</span>
             </div>
             <div v-if="category.expanded" class="category-items">
-              <div 
-                v-for="item in category.items" 
+              <div
+                v-for="item in category.items"
                 :key="item.id"
                 class="tree-item"
                 @click="selectDependency(item)"
@@ -344,33 +373,37 @@
           <h2>{{ editingDependency ? 'Editar Alteração' : 'Nova Alteração do Sistema' }}</h2>
           <button class="modal-close" @click="closeModal">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <line x1="18" y1="6" x2="6" y2="18"/>
-              <line x1="6" y1="6" x2="18" y2="18"/>
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
             </svg>
           </button>
         </div>
         <div class="modal-body">
           <div class="form-group">
             <label>Nome da Alteração</label>
-            <input 
-              v-model="newDependency.nome" 
-              type="text" 
+            <input
+              v-model="newDependency.nome"
+              type="text"
               placeholder="Nome da alteração no sistema"
               class="form-input"
-            >
+            />
           </div>
           <div class="form-group">
             <label>Versão</label>
-            <input 
-              v-model="newDependency.versao" 
-              type="text" 
+            <input
+              v-model="newDependency.versao"
+              type="text"
               placeholder="v1.0.0"
               class="form-input"
-            >
+            />
           </div>
           <div class="form-group">
             <label>Tabela de Origem</label>
-            <select v-model="newDependency.tabela_origem" class="form-select" @change="loadOrigemItens">
+            <select
+              v-model="newDependency.tabela_origem"
+              class="form-select"
+              @change="loadOrigemItens"
+            >
               <option v-for="t in tabelasDisponiveis" :key="t" :value="t">{{ t }}</option>
             </select>
           </div>
@@ -382,17 +415,17 @@
           </div>
           <div class="form-group">
             <label>Criador</label>
-            <input 
-              v-model="newDependency.criador" 
-              type="text" 
+            <input
+              v-model="newDependency.criador"
+              type="text"
               placeholder="Nome do usuário"
               class="form-input"
-            >
+            />
           </div>
           <div class="form-group">
             <label>Descrição</label>
-            <textarea 
-              v-model="newDependency.descricao" 
+            <textarea
+              v-model="newDependency.descricao"
               placeholder="Descrição detalhada da alteração"
               class="form-textarea"
             ></textarea>
@@ -403,26 +436,44 @@
             <div class="dep-chooser">
               <div class="dep-chooser-col">
                 <small>Forma Visual</small>
-                <select v-model="depSelecionada.fv" class="form-select" @focus="ensureItens('AUD_FV')">
-                  <option v-for="fv in itensPorTabela.AUD_FV" :key="fv.id" :value="fv.id">{{ fv.nome }}</option>
+                <select
+                  v-model="depSelecionada.fv"
+                  class="form-select"
+                  @focus="ensureItens('AUD_FV')"
+                >
+                  <option v-for="fv in itensPorTabela.AUD_FV" :key="fv.id" :value="fv.id">
+                    {{ fv.nome }}
+                  </option>
                 </select>
               </div>
               <div class="dep-chooser-col">
                 <small>SQL</small>
-                <select v-model="depSelecionada.sql" class="form-select" @focus="ensureItens('AUD_SQLS')">
-                  <option v-for="s in itensPorTabela.AUD_SQLS" :key="s.id" :value="s.id">{{ s.nome }}</option>
+                <select
+                  v-model="depSelecionada.sql"
+                  class="form-select"
+                  @focus="ensureItens('AUD_SQLS')"
+                >
+                  <option v-for="s in itensPorTabela.AUD_SQLS" :key="s.id" :value="s.id">
+                    {{ s.nome }}
+                  </option>
                 </select>
               </div>
               <div class="dep-chooser-col">
                 <small>Relatório</small>
-                <select v-model="depSelecionada.report" class="form-select" @focus="ensureItens('AUD_REPORT')">
-                  <option v-for="r in itensPorTabela.AUD_REPORT" :key="r.id" :value="r.id">{{ r.nome }}</option>
+                <select
+                  v-model="depSelecionada.report"
+                  class="form-select"
+                  @focus="ensureItens('AUD_REPORT')"
+                >
+                  <option v-for="r in itensPorTabela.AUD_REPORT" :key="r.id" :value="r.id">
+                    {{ r.nome }}
+                  </option>
                 </select>
               </div>
               <button class="btn-secondary" @click="adicionarSequencia">Adicionar Sequência</button>
             </div>
             <div v-if="newDependency.dependencias.length" class="sequencias-list">
-              <div v-for="(d,i) in newDependency.dependencias" :key="i" class="sequencia-item">
+              <div v-for="(d, i) in newDependency.dependencias" :key="i" class="sequencia-item">
                 <span>{{ d.tabela_dependente }} → {{ d.id_dependente }}</span>
               </div>
             </div>
@@ -431,7 +482,7 @@
         <div class="modal-footer">
           <button class="btn-secondary" @click="closeModal">Cancelar</button>
           <button class="btn-primary" @click="saveDependency" :disabled="isSaving">
-            {{ isSaving ? 'Salvando...' : (editingDependency ? 'Atualizar' : 'Criar') }}
+            {{ isSaving ? 'Salvando...' : editingDependency ? 'Atualizar' : 'Criar' }}
           </button>
         </div>
       </div>
@@ -444,8 +495,8 @@
           <h2>Fluxo do Modelo: {{ diagramData?.nome }}</h2>
           <button class="modal-close" @click="showDiagram = false">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <line x1="18" y1="6" x2="6" y2="18"/>
-              <line x1="6" y1="6" x2="18" y2="18"/>
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
             </svg>
           </button>
         </div>
@@ -476,8 +527,8 @@
           <h2>{{ selectedDep.nome }}</h2>
           <button class="sidebar-close" @click="selectedDep = null">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <line x1="18" y1="6" x2="6" y2="18"/>
-              <line x1="6" y1="6" x2="18" y2="18"/>
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
             </svg>
           </button>
         </div>
@@ -490,17 +541,21 @@
             </div>
             <div class="detail-row">
               <span class="detail-label">Risco:</span>
-              <span class="status-badge" :class="getRiskClass(selectedDep.risco)">{{ selectedDep.risco }}</span>
+              <span class="status-badge" :class="getRiskClass(selectedDep.risco)">{{
+                selectedDep.risco
+              }}</span>
             </div>
             <div class="detail-row">
               <span class="detail-label">Dependências:</span>
               <span class="detail-value">{{ selectedDep.qtd_dependencias }}</span>
             </div>
           </div>
-          
+
           <div class="detail-section">
             <h3>Detalhes</h3>
-            <p class="detail-description">{{ selectedDep.descricao || 'Sem descrição disponível' }}</p>
+            <p class="detail-description">
+              {{ selectedDep.descricao || 'Sem descrição disponível' }}
+            </p>
             <div class="detail-row">
               <span class="detail-label">Última Atualização:</span>
               <span class="detail-value">{{ formatDate(selectedDep.ultima_atu) }}</span>
@@ -515,7 +570,10 @@
             </div>
           </div>
 
-          <div class="detail-section" v-if="selectedDep.dependencias && selectedDep.dependencias.length > 0">
+          <div
+            class="detail-section"
+            v-if="selectedDep.dependencias && selectedDep.dependencias.length > 0"
+          >
             <h3>Dependências ({{ selectedDep.dependencias.length }})</h3>
             <div class="sub-dependencies">
               <div v-for="subDep in selectedDep.dependencias" :key="subDep.id" class="sub-dep-item">
@@ -545,12 +603,7 @@
 
     <!-- Toast Notifications -->
     <div class="toast-container">
-      <div 
-        v-for="toast in toasts" 
-        :key="toast.id"
-        class="toast"
-        :class="toast.type"
-      >
+      <div v-for="toast in toasts" :key="toast.id" class="toast" :class="toast.type">
         <div class="toast-content">
           <span class="toast-message">{{ toast.message }}</span>
           <button class="toast-close" @click="removeToast(toast.id)">×</button>
@@ -561,7 +614,7 @@
 </template>
 
 <script>
-import { useFetch } from '@/hooks/useFetch.js';
+import { useFetch } from '@/hooks/useFetch.js'
 export default {
   data() {
     return {
@@ -579,51 +632,51 @@ export default {
       websocket: null,
       showDiagram: false,
       diagramData: null,
-      
+
       filters: [
         { id: 'all', label: 'Todos', count: 0, active: true },
         { id: 'Sem risco', label: 'Sem Risco', count: 0, active: false },
         { id: 'Baixo', label: 'Baixo', count: 0, active: false },
         { id: 'Médio', label: 'Médio', count: 0, active: false },
-        { id: 'Alto', label: 'Alto', count: 0, active: false }
+        { id: 'Alto', label: 'Alto', count: 0, active: false },
       ],
-      
+
       stats: {
         total_alteracoes: 0,
         total_dependencias: 0,
         distribuicao_risco: {
           'Sem risco': 0,
-          'Baixo': 0,
-          'Médio': 0,
-          'Alto': 0
-        }
+          Baixo: 0,
+          Médio: 0,
+          Alto: 0,
+        },
       },
-      
+
       dependencies: [],
-      
+
       dependencyTree: [
         {
           name: 'AUD_FV',
           expanded: true,
-          items: []
+          items: [],
         },
         {
           name: 'AUD_SQL',
           expanded: true,
-          items: []
+          items: [],
         },
         {
           name: 'AUD_REPORTS',
           expanded: false,
-          items: []
+          items: [],
         },
         {
           name: 'Outros',
           expanded: false,
-          items: []
-        }
+          items: [],
+        },
       ],
-      
+
       newDependency: {
         nome: '',
         versao: '',
@@ -631,345 +684,365 @@ export default {
         id_origem: null,
         criador: '',
         descricao: '',
-        dependencias: []
+        dependencias: [],
       },
 
-      tabelasDisponiveis: ['AUD_FV','AUD_SQLS','AUD_REPORT'],
+      tabelasDisponiveis: ['AUD_FV', 'AUD_SQLS', 'AUD_REPORT'],
       itensOrigem: [],
       itensPorTabela: { AUD_FV: [], AUD_SQLS: [], AUD_REPORT: [] },
       depSelecionada: { fv: null, sql: null, report: null },
 
-      toasts: []
+      toasts: [],
     }
   },
-  
+
   computed: {
     filteredDependencies() {
-      let deps = [...this.dependencies];
-      
+      let deps = [...this.dependencies]
+
       // Apply search filter
       if (this.searchQuery) {
-        const query = this.searchQuery.toLowerCase();
-        deps = deps.filter(dep => 
-          dep.nome.toLowerCase().includes(query) ||
-          (dep.descricao && dep.descricao.toLowerCase().includes(query)) ||
-          dep.criador.toLowerCase().includes(query) ||
-          dep.versao.toLowerCase().includes(query)
-        );
+        const query = this.searchQuery.toLowerCase()
+        deps = deps.filter(
+          (dep) =>
+            dep.nome.toLowerCase().includes(query) ||
+            (dep.descricao && dep.descricao.toLowerCase().includes(query)) ||
+            dep.criador.toLowerCase().includes(query) ||
+            dep.versao.toLowerCase().includes(query),
+        )
       }
-      
+
       // Apply risk filters
-      const activeFilter = this.filters.find(f => f.active && f.id !== 'all');
+      const activeFilter = this.filters.find((f) => f.active && f.id !== 'all')
       if (activeFilter) {
-        deps = deps.filter(dep => dep.risco === activeFilter.id);
+        deps = deps.filter((dep) => dep.risco === activeFilter.id)
       }
-      
-      return deps;
-    }
+
+      return deps
+    },
   },
-  
+
   async mounted() {
-    await this.initializeApp();
+    await this.initializeApp()
   },
 
   beforeUnmount() {
     if (this.websocket) {
-      this.websocket.close();
+      this.websocket.close()
     }
   },
-  
+
   methods: {
     useFetch,
     async initializeApp() {
       try {
-        await this.checkConnection();
+        await this.checkConnection()
         if (this.isConnected) {
           await Promise.all([
             this.loadDependencies(),
             this.loadStatistics(),
             this.loadNotifications(),
-            this.connectWebSocket()
-          ]);
+            this.connectWebSocket(),
+          ])
         }
       } catch (error) {
-        this.showToast('Erro ao inicializar aplicação', 'error');
-        console.error('Initialization error:', error);
+        this.showToast('Erro ao inicializar aplicação', 'error')
+        console.error('Initialization error:', error)
       }
     },
 
     async checkConnection() {
       try {
-        await this.useFetch(`/health`);
-        this.isConnected = true;
+        await this.useFetch(`/health`)
+        this.isConnected = true
       } catch (error) {
-        this.isConnected = false;
-        this.showToast('Erro de conexão com a API', 'error');
+        this.isConnected = false
+        this.showToast('Erro de conexão com a API', 'error')
       }
     },
 
     async loadDependencies() {
       try {
-        this.isLoading = true;
-        const response = await this.useFetch(`/api/v2/dependencias/itens`);
-        this.dependencies = response;
-        this.updateFilterCounts();
-        this.organizeDependencyTree();
+        this.isLoading = true
+        const response = await this.useFetch(`/api/v2/dependencias/itens`)
+        this.dependencies = response
+        this.updateFilterCounts()
+        this.organizeDependencyTree()
       } catch (error) {
-        this.showToast('Erro ao carregar alterações', 'error');
-        console.error('Load dependencies error:', error);
+        this.showToast('Erro ao carregar alterações', 'error')
+        console.error('Load dependencies error:', error)
       } finally {
-        this.isLoading = false;
+        this.isLoading = false
       }
     },
 
     async loadStatistics() {
       try {
-        const response = await this.useFetch(`/api/v2/dependencias/estatisticas`);
-        this.stats = response;
+        const response = await this.useFetch(`/api/v2/dependencias/estatisticas`)
+        this.stats = response
       } catch (error) {
-        console.error('Load statistics error:', error);
+        console.error('Load statistics error:', error)
       }
     },
 
     async loadNotifications() {
       try {
-        const response = await this.useFetch(`/notifications/count/unread`);
-        this.unreadNotifications = response.unread_count;
+        const response = await this.useFetch(`/notifications/count/unread`)
+        this.unreadNotifications = response.unread_count
       } catch (error) {
-        console.error('Load notifications error:', error);
+        console.error('Load notifications error:', error)
       }
     },
 
     connectWebSocket() {
       try {
-        const wsUrl = this.apiBaseUrl.replace('http', 'ws') + '/ws/notifications';
-        this.websocket = new WebSocket(wsUrl);
-        
+        const wsUrl = this.apiBaseUrl.replace('http', 'ws') + '/ws/notifications'
+        this.websocket = new WebSocket(wsUrl)
+
         this.websocket.onopen = () => {
-          console.log('WebSocket connected');
-        };
-        
+          console.log('WebSocket connected')
+        }
+
         this.websocket.onmessage = (event) => {
-          const data = JSON.parse(event.data);
+          const data = JSON.parse(event.data)
           if (data.tabela && data.tabela.includes('ALTERACOES_SISTEMA')) {
-            this.handleNotification(data);
+            this.handleNotification(data)
           }
-        };
-        
+        }
+
         this.websocket.onclose = () => {
-          console.log('WebSocket disconnected');
+          console.log('WebSocket disconnected')
           // Attempt to reconnect after 5 seconds
           setTimeout(() => {
-            this.connectWebSocket();
-          }, 5000);
-        };
+            this.connectWebSocket()
+          }, 5000)
+        }
       } catch (error) {
-        console.error('WebSocket connection error:', error);
+        console.error('WebSocket connection error:', error)
       }
     },
 
     handleNotification(notification) {
-      this.unreadNotifications++;
-      this.showToast(`Nova notificação: ${notification.dados?.acao || 'Alteração no sistema'}`, 'info');
+      this.unreadNotifications++
+      this.showToast(
+        `Nova notificação: ${notification.dados?.acao || 'Alteração no sistema'}`,
+        'info',
+      )
       // Reload dependencies if it's a system change
       if (notification.dados?.acao) {
-        this.loadDependencies();
+        this.loadDependencies()
       }
     },
 
     async refreshDependencies() {
-      this.isRefreshing = true;
+      this.isRefreshing = true
       try {
         await Promise.all([
           this.loadDependencies(),
           this.loadStatistics(),
-          this.loadNotifications()
-        ]);
-        this.showToast('Dados atualizados com sucesso', 'success');
+          this.loadNotifications(),
+        ])
+        this.showToast('Dados atualizados com sucesso', 'success')
       } catch (error) {
-        this.showToast('Erro ao atualizar dados', 'error');
+        this.showToast('Erro ao atualizar dados', 'error')
       } finally {
-        this.isRefreshing = false;
+        this.isRefreshing = false
       }
     },
 
     toggleFilter(filterId) {
-      this.filters.forEach(filter => {
-        filter.active = filter.id === filterId;
-      });
+      this.filters.forEach((filter) => {
+        filter.active = filter.id === filterId
+      })
     },
-    
+
     selectDependency(dep) {
       if (this.selectedDep?.id === dep.id) {
-        this.selectedDep = null;
+        this.selectedDep = null
       } else {
         // Load full dependency details
-        this.loadDependencyDetails(dep.id);
+        this.loadDependencyDetails(dep.id)
       }
     },
 
     async loadDependencyDetails(id) {
       try {
-        const response = await this.useFetch(`/api/v2/dependencias/itens/${id}`);
-        this.selectedDep = response;
+        const response = await this.useFetch(`/api/v2/dependencias/itens/${id}`)
+        this.selectedDep = response
       } catch (error) {
-        this.showToast('Erro ao carregar detalhes da alteração', 'error');
+        this.showToast('Erro ao carregar detalhes da alteração', 'error')
       }
     },
 
     editDependency(dep) {
-      this.editingDependency = dep;
+      this.editingDependency = dep
       this.newDependency = {
         nome: dep.nome,
         versao: dep.versao,
         tabela_origem: dep.tabela_origem,
         criador: dep.criador,
         descricao: dep.descricao || '',
-        dependencias: []
-      };
-      this.showAddModal = true;
+        dependencias: [],
+      }
+      this.showAddModal = true
     },
-    
-    async removeDependency(dep) {
-        if (confirm(`Tem certeza que deseja remover a alteração "${dep.nome}"?`)) {
-            try {
-            const usuario = prompt('Digite seu nome de usuário:');
-            if (!usuario) return;
 
-            await useFetch(`/api/v2/dependencias/itens/${dep.id}?usuario=${encodeURIComponent(usuario)}`, {
-                method: 'DELETE'
-            });
-            
-            await this.loadDependencies();
-            this.selectedDep = null;
-            this.showToast('Alteração removida com sucesso', 'success');
-            } catch (error) {
-            this.showToast('Erro ao remover alteração', 'error');
-            console.error('Remove dependency error:', error);
-            }
+    async removeDependency(dep) {
+      if (confirm(`Tem certeza que deseja remover a alteração "${dep.nome}"?`)) {
+        try {
+          const usuario = prompt('Digite seu nome de usuário:')
+          if (!usuario) return
+
+          await useFetch(
+            `/api/v2/dependencias/itens/${dep.id}?usuario=${encodeURIComponent(usuario)}`,
+            {
+              method: 'DELETE',
+            },
+          )
+
+          await this.loadDependencies()
+          this.selectedDep = null
+          this.showToast('Alteração removida com sucesso', 'success')
+        } catch (error) {
+          this.showToast('Erro ao remover alteração', 'error')
+          console.error('Remove dependency error:', error)
         }
+      }
     },
 
     async saveDependency() {
-        if (!this.newDependency.nome || !this.newDependency.versao || !this.newDependency.criador) {
-            this.showToast('Preencha todos os campos obrigatórios', 'error');
-            return;
+      if (!this.newDependency.nome || !this.newDependency.versao || !this.newDependency.criador) {
+        this.showToast('Preencha todos os campos obrigatórios', 'error')
+        return
+      }
+
+      this.isSaving = true
+      try {
+        if (this.editingDependency) {
+          // Update existing dependency
+          const usuario = this.newDependency.criador
+          await useFetch(
+            `/api/v2/dependencias/itens/${this.editingDependency.id}?usuario=${encodeURIComponent(usuario)}`,
+            {
+              method: 'PUT',
+              body: {
+                nome: this.newDependency.nome,
+                versao: this.newDependency.versao,
+                descricao: this.newDependency.descricao,
+                tabela_origem: this.newDependency.tabela_origem,
+              },
+            },
+          )
+          this.showToast('Alteração atualizada com sucesso', 'success')
+        } else {
+          // Create new dependency
+          const body = {
+            tabela_origem: this.newDependency.tabela_origem,
+            id_origem: this.newDependency.id_origem,
+            nome: this.newDependency.nome,
+            descricao: this.newDependency.descricao,
+            versao: this.newDependency.versao,
+            criador: this.newDependency.criador,
+            dependencias: this.newDependency.dependencias,
+          }
+          await useFetch('/api/v2/dependencias/itens', {
+            method: 'POST',
+            body,
+          })
+          this.showToast('Alteração criada com sucesso', 'success')
         }
 
-        this.isSaving = true;
-        try {
-            if (this.editingDependency) {
-            // Update existing dependency
-            const usuario = this.newDependency.criador;
-            await useFetch(
-                `/api/v2/dependencias/itens/${this.editingDependency.id}?usuario=${encodeURIComponent(usuario)}`,
-                {
-                method: 'PUT',
-                body: {
-                    nome: this.newDependency.nome,
-                    versao: this.newDependency.versao,
-                    descricao: this.newDependency.descricao,
-                    tabela_origem: this.newDependency.tabela_origem
-                }
-                }
-            );
-            this.showToast('Alteração atualizada com sucesso', 'success');
-            } else {
-            // Create new dependency
-            const body = {
-                tabela_origem: this.newDependency.tabela_origem,
-                id_origem: this.newDependency.id_origem,
-                nome: this.newDependency.nome,
-                descricao: this.newDependency.descricao,
-                versao: this.newDependency.versao,
-                criador: this.newDependency.criador,
-                dependencias: this.newDependency.dependencias
-            };
-            await useFetch('/api/v2/dependencias/itens', {
-                method: 'POST',
-                body
-            });
-            this.showToast('Alteração criada com sucesso', 'success');
-            }
-            
-            await this.loadDependencies();
-            await this.loadStatistics();
-            this.closeModal();
-        } catch (error) {
-            this.showToast('Erro ao salvar alteração', 'error');
-            console.error('Save dependency error:', error);
-        } finally {
-            this.isSaving = false;
-        }
+        await this.loadDependencies()
+        await this.loadStatistics()
+        this.closeModal()
+      } catch (error) {
+        this.showToast('Erro ao salvar alteração', 'error')
+        console.error('Save dependency error:', error)
+      } finally {
+        this.isSaving = false
+      }
     },
 
     async openCreateModal() {
-      this.showAddModal = true;
-      await this.loadTabelas();
-      await this.loadOrigemItens();
-      await this.ensureItens('AUD_FV');
-      await this.ensureItens('AUD_SQLS');
-      await this.ensureItens('AUD_REPORT');
+      this.showAddModal = true
+      await this.loadTabelas()
+      await this.loadOrigemItens()
+      await this.ensureItens('AUD_FV')
+      await this.ensureItens('AUD_SQLS')
+      await this.ensureItens('AUD_REPORT')
     },
 
     async loadTabelas() {
       try {
-        const tabs = await this.useFetch('/api/v2/dependencias/tabelas');
-        if (Array.isArray(tabs) && tabs.length) this.tabelasDisponiveis = tabs;
+        const tabs = await this.useFetch('/api/v2/dependencias/tabelas')
+        if (Array.isArray(tabs) && tabs.length) this.tabelasDisponiveis = tabs
       } catch {}
     },
 
     async loadOrigemItens() {
       try {
-        const t = this.newDependency.tabela_origem;
-        const itens = await this.useFetch(`/api/v2/dependencias/tabelas/${encodeURIComponent(t)}/itens`);
-        this.itensOrigem = itens;
-        if (!this.newDependency.id_origem && itens.length) this.newDependency.id_origem = itens[0].id;
+        const t = this.newDependency.tabela_origem
+        const itens = await this.useFetch(
+          `/api/v2/dependencias/tabelas/${encodeURIComponent(t)}/itens`,
+        )
+        this.itensOrigem = itens
+        if (!this.newDependency.id_origem && itens.length)
+          this.newDependency.id_origem = itens[0].id
       } catch (e) {
-        this.itensOrigem = [];
+        this.itensOrigem = []
       }
     },
 
     async ensureItens(tabela) {
-      if (this.itensPorTabela[tabela] && this.itensPorTabela[tabela].length) return;
+      if (this.itensPorTabela[tabela] && this.itensPorTabela[tabela].length) return
       try {
-        const itens = await this.useFetch(`/api/v2/dependencias/tabelas/${encodeURIComponent(tabela)}/itens`);
-        this.itensPorTabela[tabela] = itens;
+        const itens = await this.useFetch(
+          `/api/v2/dependencias/tabelas/${encodeURIComponent(tabela)}/itens`,
+        )
+        this.itensPorTabela[tabela] = itens
       } catch (error) {
-        console.error(`Erro ao carregar itens da tabela ${tabela}:`, error);
-        this.showToast(`Não foi possível carregar itens de ${tabela}`, 'error');
+        console.error(`Erro ao carregar itens da tabela ${tabela}:`, error)
+        this.showToast(`Não foi possível carregar itens de ${tabela}`, 'error')
       }
     },
 
     adicionarSequencia() {
-      this.newDependency.dependencias = [];
+      this.newDependency.dependencias = []
       if (this.depSelecionada.fv) {
-        this.newDependency.dependencias.push({ tabela_dependente: 'AUD_FV', id_dependente: this.depSelecionada.fv });
+        this.newDependency.dependencias.push({
+          tabela_dependente: 'AUD_FV',
+          id_dependente: this.depSelecionada.fv,
+        })
       }
       if (this.depSelecionada.sql) {
-        this.newDependency.dependencias.push({ tabela_dependente: 'AUD_SQL', id_dependente: this.depSelecionada.sql });
+        this.newDependency.dependencias.push({
+          tabela_dependente: 'AUD_SQL',
+          id_dependente: this.depSelecionada.sql,
+        })
       }
       if (this.depSelecionada.report) {
-        this.newDependency.dependencias.push({ tabela_dependente: 'AUD_REPORT', id_dependente: this.depSelecionada.report });
+        this.newDependency.dependencias.push({
+          tabela_dependente: 'AUD_REPORT',
+          id_dependente: this.depSelecionada.report,
+        })
       }
     },
 
     openDiagram(dep) {
-      this.diagramData = dep;
+      this.diagramData = dep
       if (!dep.dependencias) {
         this.loadDependencyDetails(dep.id).then(() => {
-          this.diagramData = this.selectedDep;
-          this.showDiagram = true;
-        });
+          this.diagramData = this.selectedDep
+          this.showDiagram = true
+        })
       } else {
-        this.showDiagram = true;
+        this.showDiagram = true
       }
     },
 
-
     closeModal() {
-      this.showAddModal = false;
-      this.editingDependency = null;
+      this.showAddModal = false
+      this.editingDependency = null
       this.newDependency = {
         nome: '',
         versao: '',
@@ -977,100 +1050,100 @@ export default {
         id_origem: null,
         criador: '',
         descricao: '',
-        dependencias: []
-      };
-      this.depSelecionada = { fv: null, sql: null, report: null };
+        dependencias: [],
+      }
+      this.depSelecionada = { fv: null, sql: null, report: null }
     },
 
     async viewHistory(dep) {
       try {
-        const response = await this.useFetch(`/dependencias/alteracoes/${dep.id}/historico`);
-        console.log('Histórico:', response.data);
+        const response = await this.useFetch(`/dependencias/alteracoes/${dep.id}/historico`)
+        console.log('Histórico:', response.data)
         // Here you could open another modal or sidebar to show the history
-        this.showToast(`Histórico carregado (${response.data.length} entradas)`, 'info');
+        this.showToast(`Histórico carregado (${response.data.length} entradas)`, 'info')
       } catch (error) {
-        this.showToast('Erro ao carregar histórico', 'error');
+        this.showToast('Erro ao carregar histórico', 'error')
       }
     },
-    
+
     toggleCategory(category) {
-      category.expanded = !category.expanded;
+      category.expanded = !category.expanded
     },
-    
+
     organizeDependencyTree() {
       // Reset tree items
-      this.dependencyTree.forEach(category => {
-        category.items = [];
-      });
+      this.dependencyTree.forEach((category) => {
+        category.items = []
+      })
 
       // Group dependencies by table origin
-      this.dependencies.forEach(dep => {
-        const category = this.dependencyTree.find(cat => cat.name === dep.tabela_origem);
+      this.dependencies.forEach((dep) => {
+        const category = this.dependencyTree.find((cat) => cat.name === dep.tabela_origem)
         if (category) {
-          category.items.push(dep);
+          category.items.push(dep)
         } else {
           // Add to "Outros" category
-          const otherCategory = this.dependencyTree.find(cat => cat.name === 'Outros');
+          const otherCategory = this.dependencyTree.find((cat) => cat.name === 'Outros')
           if (otherCategory) {
-            otherCategory.items.push(dep);
+            otherCategory.items.push(dep)
           }
         }
-      });
+      })
     },
 
     updateFilterCounts() {
       // Count total
-      this.filters[0].count = this.dependencies.length;
-      
+      this.filters[0].count = this.dependencies.length
+
       // Count by risk
       const riskCounts = {
         'Sem risco': 0,
-        'Baixo': 0,
-        'Médio': 0,
-        'Alto': 0
-      };
+        Baixo: 0,
+        Médio: 0,
+        Alto: 0,
+      }
 
-      this.dependencies.forEach(dep => {
+      this.dependencies.forEach((dep) => {
         if (riskCounts.hasOwnProperty(dep.risco)) {
-          riskCounts[dep.risco]++;
+          riskCounts[dep.risco]++
         }
-      });
+      })
 
       // Update filter counts
-      this.filters.forEach(filter => {
+      this.filters.forEach((filter) => {
         if (filter.id !== 'all' && riskCounts.hasOwnProperty(filter.id)) {
-          filter.count = riskCounts[filter.id];
+          filter.count = riskCounts[filter.id]
         }
-      });
+      })
     },
 
     getRiskClass(risco) {
       const riskClasses = {
         'Sem risco': 'sem-risco',
-        'Baixo': 'baixo',
-        'Médio': 'medio',
-        'Alto': 'alto'
-      };
-      return riskClasses[risco] || 'baixo';
+        Baixo: 'baixo',
+        Médio: 'medio',
+        Alto: 'alto',
+      }
+      return riskClasses[risco] || 'baixo'
     },
 
     formatDate(dateString) {
-      if (!dateString) return 'N/A';
-      
+      if (!dateString) return 'N/A'
+
       try {
-        const date = new Date(dateString);
-        const now = new Date();
-        const diffTime = Math.abs(now - date);
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        
-        if (diffDays === 1) return 'ontem';
-        if (diffDays < 7) return `${diffDays} dias atrás`;
-        if (diffDays < 30) return `${Math.ceil(diffDays / 7)} semanas atrás`;
-        if (diffDays < 365) return `${Math.ceil(diffDays / 30)} meses atrás`;
-        
-        return date.toLocaleDateString('pt-BR');
+        const date = new Date(dateString)
+        const now = new Date()
+        const diffTime = Math.abs(now - date)
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+
+        if (diffDays === 1) return 'ontem'
+        if (diffDays < 7) return `${diffDays} dias atrás`
+        if (diffDays < 30) return `${Math.ceil(diffDays / 7)} semanas atrás`
+        if (diffDays < 365) return `${Math.ceil(diffDays / 30)} meses atrás`
+
+        return date.toLocaleDateString('pt-BR')
       } catch (error) {
-        return dateString;
+        return dateString
       }
     },
 
@@ -1078,23 +1151,23 @@ export default {
       const toast = {
         id: Date.now(),
         message,
-        type
-      };
-      
-      this.toasts.push(toast);
-      
+        type,
+      }
+
+      this.toasts.push(toast)
+
       setTimeout(() => {
-        this.removeToast(toast.id);
-      }, 5000);
+        this.removeToast(toast.id)
+      }, 5000)
     },
 
     removeToast(id) {
-      const index = this.toasts.findIndex(toast => toast.id === id);
+      const index = this.toasts.findIndex((toast) => toast.id === id)
       if (index > -1) {
-        this.toasts.splice(index, 1);
+        this.toasts.splice(index, 1)
       }
-    }
-  }
+    },
+  },
 }
 </script>
 
@@ -1108,7 +1181,8 @@ export default {
 .dependency-manager {
   min-height: 100vh;
   background: linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
 
 /* Header */
@@ -1216,8 +1290,12 @@ export default {
 }
 
 @keyframes rotate {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .btn-primary {
@@ -1272,8 +1350,12 @@ export default {
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 /* Search and Filter Bar */
@@ -1871,8 +1953,12 @@ export default {
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 .modal {
@@ -1887,11 +1973,11 @@ export default {
 }
 
 @keyframes slideUp {
-  from { 
+  from {
     opacity: 0;
     transform: translateY(20px);
   }
-  to { 
+  to {
     opacity: 1;
     transform: translateY(0);
   }
@@ -2225,21 +2311,21 @@ export default {
     grid-template-columns: 1fr 1fr;
     gap: 1rem;
   }
-  
+
   .grid-view {
     grid-template-columns: 1fr;
   }
-  
+
   .sidebar {
     width: 100%;
   }
-  
+
   .search-filter-bar {
     flex-direction: column;
     align-items: stretch;
     gap: 1rem;
   }
-  
+
   .filter-chips {
     overflow-x: auto;
     padding-bottom: 0.5rem;
@@ -2289,5 +2375,4 @@ export default {
     justify-content: center;
   }
 }
-
 </style>

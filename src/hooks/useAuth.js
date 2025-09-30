@@ -45,12 +45,12 @@ export function useAuth() {
       router.push('/login')
       return false
     }
-    
+
     if (!isAdmin.value) {
       router.push('/dashboard')
       return false
     }
-    
+
     return true
   }
 
@@ -65,13 +65,13 @@ export function useAuth() {
   // Utilitários
   const canAccess = (permission) => {
     if (!isAuthenticated.value) return false
-    
+
     const permissions = {
       admin: isAdmin.value,
       user: true,
-      active: authStore.isUserActive
+      active: authStore.isUserActive,
     }
-    
+
     return permissions[permission] || false
   }
 
@@ -81,10 +81,10 @@ export function useAuth() {
 
   const formatUserName = (maxLength = 20) => {
     if (!user.value?.nome) return 'Usuário'
-    
+
     const name = user.value.nome
     if (name.length <= maxLength) return name
-    
+
     return name.substring(0, maxLength - 3) + '...'
   }
 
@@ -93,7 +93,7 @@ export function useAuth() {
     const colors = {
       ativo: '#28a745',
       pendente: '#ffc107',
-      bloqueado: '#dc3545'
+      bloqueado: '#dc3545',
     }
     return colors[status] || '#6c757d'
   }
@@ -103,7 +103,7 @@ export function useAuth() {
     const texts = {
       ativo: 'Ativo',
       pendente: 'Pendente',
-      bloqueado: 'Bloqueado'
+      bloqueado: 'Bloqueado',
     }
     return texts[status] || 'Desconhecido'
   }
@@ -115,24 +115,24 @@ export function useAuth() {
     isLoading,
     error,
     isAdmin,
-    
+
     // Métodos
     login,
     loginMicrosoft,
     register,
     logout,
-    
+
     // Guards
     requireAuth,
     requireAdmin,
     requireGuest,
-    
+
     // Utilitários
     canAccess,
     getUserInitials,
     formatUserName,
     getStatusColor,
-    getStatusText
+    getStatusText,
   }
 }
 
@@ -159,7 +159,7 @@ export function useNotifications() {
     if (diffDays === 1) return 'Hoje'
     if (diffDays === 2) return 'Ontem'
     if (diffDays <= 7) return `${diffDays} dias atrás`
-    
+
     return date.toLocaleDateString('pt-BR')
   }
 
@@ -169,7 +169,7 @@ export function useNotifications() {
       bloqueio: 'ban',
       sistema: 'bell',
       cadastro: 'user-plus',
-      login: 'sign-in-alt'
+      login: 'sign-in-alt',
     }
     return icons[type] || 'bell'
   }
@@ -180,7 +180,7 @@ export function useNotifications() {
       bloqueio: '#dc3545',
       sistema: '#17a2b8',
       cadastro: '#007bff',
-      login: '#6c757d'
+      login: '#6c757d',
     }
     return colors[type] || '#6c757d'
   }
@@ -192,7 +192,7 @@ export function useNotifications() {
     markAsRead,
     formatNotificationTime,
     getNotificationIcon,
-    getNotificationColor
+    getNotificationColor,
   }
 }
 
@@ -225,7 +225,7 @@ export function useAdmin() {
     const statusMap = {
       ativo: { text: 'Ativo', class: 'status-active' },
       pendente: { text: 'Pendente', class: 'status-pending' },
-      bloqueado: { text: 'Bloqueado', class: 'status-blocked' }
+      bloqueado: { text: 'Bloqueado', class: 'status-blocked' },
     }
     return statusMap[status] || { text: 'Desconhecido', class: 'status-unknown' }
   }
@@ -233,7 +233,7 @@ export function useAdmin() {
   const formatLoginType = (type) => {
     const typeMap = {
       credenciais: 'Email/Senha',
-      microsoft: 'Microsoft OAuth'
+      microsoft: 'Microsoft OAuth',
     }
     return typeMap[type] || 'Desconhecido'
   }
@@ -246,7 +246,7 @@ export function useAdmin() {
     blockUser,
     getStatistics,
     formatUserStatus,
-    formatLoginType
+    formatLoginType,
   }
 }
 
@@ -256,19 +256,19 @@ export function useFormValidation() {
 
   const validateEmail = (email) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    
+
     if (!email) {
       return 'Email é obrigatório'
     }
-    
+
     if (!emailRegex.test(email)) {
       return 'Email inválido'
     }
-    
+
     if (!email.includes('@jotanunes')) {
       return 'Use o email corporativo @jotanunes'
     }
-    
+
     return null
   }
 
@@ -276,20 +276,20 @@ export function useFormValidation() {
     if (!password) {
       return 'Senha é obrigatória'
     }
-    
+
     if (isRegister) {
       if (password.length < 8) {
         return 'Senha deve ter pelo menos 8 caracteres'
       }
-      
+
       if (!/(?=.*[a-z])/.test(password)) {
         return 'Senha deve ter pelo menos 1 letra minúscula'
       }
-      
+
       if (!/(?=.*[A-Z])/.test(password)) {
         return 'Senha deve ter pelo menos 1 letra maiúscula'
       }
-      
+
       if (!/(?=.*\d)/.test(password)) {
         return 'Senha deve ter pelo menos 1 número'
       }
@@ -298,7 +298,7 @@ export function useFormValidation() {
         return 'Senha deve ter pelo menos 6 caracteres'
       }
     }
-    
+
     return null
   }
 
@@ -306,11 +306,11 @@ export function useFormValidation() {
     if (!name) {
       return 'Nome é obrigatório'
     }
-    
+
     if (name.length < 2) {
       return 'Nome deve ter pelo menos 2 caracteres'
     }
-    
+
     return null
   }
 
@@ -318,11 +318,11 @@ export function useFormValidation() {
     if (!confirmPassword) {
       return 'Confirmação de senha é obrigatória'
     }
-    
+
     if (password !== confirmPassword) {
       return 'Senhas não coincidem'
     }
-    
+
     return null
   }
 
@@ -355,7 +355,7 @@ export function useFormValidation() {
     setError,
     clearError,
     hasErrors,
-    getError
+    getError,
   }
 }
 
@@ -405,7 +405,7 @@ export function useStorage() {
     setItem,
     getItem,
     removeItem,
-    clear
+    clear,
   }
 }
 
@@ -413,22 +413,22 @@ export function useStorage() {
 export function useTimer() {
   const createCountdown = (seconds, callback) => {
     let remaining = seconds
-    
+
     const interval = setInterval(() => {
       remaining--
-      
+
       if (callback) {
         callback(remaining)
       }
-      
+
       if (remaining <= 0) {
         clearInterval(interval)
       }
     }, 1000)
-    
+
     return {
       clear: () => clearInterval(interval),
-      remaining: () => remaining
+      remaining: () => remaining,
     }
   }
 
@@ -440,6 +440,6 @@ export function useTimer() {
 
   return {
     createCountdown,
-    formatTime
+    formatTime,
   }
 }
