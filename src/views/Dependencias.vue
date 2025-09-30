@@ -501,18 +501,11 @@
           </button>
         </div>
         <div class="modal-body">
-          <div class="diagram">
-            <div class="node">Forma Visual</div>
-            <div class="arrow">→</div>
-            <div class="node">SQL</div>
-            <div class="arrow">→</div>
-            <div class="node">Relatório</div>
+          <VMermaid v-if="mermaidDiagram" :diagram="mermaidDiagram" :theme="mermaidTheme" />
+          <div v-else class="loading-state">
+            <div class="loading-spinner"></div>
+            <p>Gerando diagrama...</p>
           </div>
-          <ul class="diagram-list">
-            <li v-for="d in diagramData?.dependencias || []" :key="d.id">
-              {{ d.tabela_dependente }}: {{ d.nome_dependente || d.id_dependente }}
-            </li>
-          </ul>
         </div>
         <div class="modal-footer">
           <button class="btn-secondary" @click="showDiagram = false">Fechar</button>
@@ -615,7 +608,10 @@
 
 <script>
 import { useFetch } from '@/hooks/useFetch.js'
+import VMermaid from '@/components/Mermaid/VMermaid.vue'
+import { toMermaidFlowchart } from '@/util/toMermaid.js'
 export default {
+  components: { VMermaid },
   data() {
     return {
       projectName: 'JotaNunes Construtora',
@@ -632,6 +628,8 @@ export default {
       websocket: null,
       showDiagram: false,
       diagramData: null,
+      mermaidDiagram: '',
+      mermaidTheme: 'default',
 
       filters: [
         { id: 'all', label: 'Todos', count: 0, active: true },
@@ -1028,15 +1026,17 @@ export default {
       }
     },
 
-    openDiagram(dep) {
-      this.diagramData = dep
-      if (!dep.dependencias) {
-        this.loadDependencyDetails(dep.id).then(() => {
-          this.diagramData = this.selectedDep
-          this.showDiagram = true
-        })
-      } else {
+    async openDiagram(dep) {
+      try {
         this.showDiagram = true
+        this.mermaidDiagram = ''
+
+        // Busca JSON pronto no backend
+        const model = await this.useFetch(`/api/v2/dependencias/itens/${dep.id}/json-model`)
+        this.mermaidDiagram = toMermaidFlowchart(model)
+      } catch (e) {
+        this.showToast('Erro ao gerar diagrama', 'error')
+        this.showDiagram = false
       }
     },
 

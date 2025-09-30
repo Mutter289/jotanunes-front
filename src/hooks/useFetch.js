@@ -33,7 +33,7 @@ export async function useFetch(
     }
   }
 
-  const res = await fetch(`http://192.168.195.162:8000${endpoint}`, options)
+const res = await fetch(`http://192.168.195.162:8000${endpoint}`, options)
   let data
   try {
     data = await res.json()
@@ -45,4 +45,26 @@ export async function useFetch(
     throw new Error(message)
   }
   return data.data ?? data
+}
+
+function mockResponse(endpoint) {
+  try {
+    if (endpoint && endpoint.startsWith('/api/v2/dependencias/itens/') && endpoint.endsWith('/json-model')) {
+      return {
+        titulo_dependencia: 'Titulo',
+        versao: 'v1.0.0',
+        criado: 'Gustavo Trindade',
+        origem: {
+          tabela: 'AUD_SQLS',
+          item: 'SELECT * FROM AUD_SQLS',
+          id: 'COD2201.0001',
+        },
+        descricao: 'aqui vai ter uma descrição',
+        dependencias: [
+          { tabela: 'AUD_FVS', item: 'alguma coisa vaivim aqui', id: 1 },
+          { tabela: 'AUD_REPORTS', item: 'alguma coisa vaivim aqui', id: 1 },
+        ],
+      }
+    }
+  } catch {}
 }
