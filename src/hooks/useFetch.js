@@ -34,7 +34,7 @@ export async function useFetch(
   }
 
   try {
-    const res = await fetch(`http://192.168.0.2:8000${endpoint}`, options) //http://192.168.195.162:8000${endpoint}
+    const res = await fetch(`http://192.168.195.162:8000${endpoint}`, options) //http://192.168.195.162:8000${endpoint}
 
     let data
     try {
