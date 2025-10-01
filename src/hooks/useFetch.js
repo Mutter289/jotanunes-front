@@ -33,18 +33,75 @@ export async function useFetch(
     }
   }
 
-const res = await fetch(`http://192.168.195.162:8000${endpoint}`, options)
-  let data
   try {
-    data = await res.json()
-  } catch {
-    data = null
+    const res = await fetch(`http://192.168.195.162:8000${endpoint}`, options)
+
+    let data
+    try {
+      data = await res.json()
+    } catch {
+      data = null
+    }
+
+    if (!res.ok) {
+      // Criar objeto de erro com informações detalhadas
+      const error = new Error(`Erro HTTP: ${res.status}`)
+      error.status = res.status
+      error.statusText = res.statusText
+      error.data = data
+
+      // Mensagens personalizadas por código de status
+      switch (res.status) {
+        case 400:
+          error.message = data?.msg || data?.detail || 'Requisição inválida'
+          break
+        case 401:
+          error.message = 'Não autorizado. Faça login novamente.'
+          break
+        case 403:
+          error.message = 'Acesso negado'
+          break
+        case 404:
+          error.message = 'Recurso não encontrado'
+          break
+        case 422:
+          // Tratar erros de validação do FastAPI/Pydantic
+          if (data?.detail && Array.isArray(data.detail)) {
+            const validationErrors = data.detail
+              .map((err) => {
+                const field = err.loc?.slice(1).join('.') || 'campo desconhecido'
+                return `${field}: ${err.msg}`
+              })
+              .join('; ')
+            error.message = `Erro de validação: ${validationErrors}`
+          } else {
+            error.message = data?.msg || data?.detail || 'Erro de validação dos dados'
+          }
+          break
+        case 500:
+          error.message = 'Erro interno do servidor'
+          break
+        default:
+          error.message = data?.msg || data?.detail || `Erro ${res.status}: ${res.statusText}`
+      }
+
+      // Log detalhado do erro
+      console.error(`Erro HTTP ${res.status}:`, JSON.stringify(data, null, 2))
+
+      throw error
+    }
+
+    return data.data ?? data
+  } catch (error) {
+    // Se for um erro de rede ou outro erro não relacionado ao HTTP
+    if (!error.status) {
+      console.error('Erro de rede ou conexão:', error)
+      throw new Error('Erro de conexão com o servidor. Verifique sua internet.')
+    }
+
+    // Re-lançar erros HTTP já tratados
+    throw error
   }
-  if (!res.ok) {
-    const message = data?.msg || `Erro ${res.status}: ${res.statusText}`
-    throw new Error(message)
-  }
-  return data.data ?? data
 }
 
 function mockResponse(endpoint) {

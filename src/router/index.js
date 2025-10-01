@@ -23,6 +23,16 @@ const routes = [
     },
   },
   {
+    path: '/monitoring',
+    name: 'monitoring',
+    component: () => import('../views/MonitoringView.vue'),
+    meta: {
+      requiresAuth: true,
+      requiresAdmin: true,
+      title: 'Monitoramento',
+    },
+  },
+  {
     path: '/gemini-analyses',
     name: 'GeminiAnalyses',
     component: () => import('../views/GeminiAnalysesView.vue'),

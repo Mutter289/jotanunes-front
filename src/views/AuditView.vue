@@ -603,7 +603,6 @@ export default {
           method: 'DELETE',
         })
 
-        // Remove do array local
         const index = this.tableData.findIndex((item) => this.getRowId(item) === rowId)
         if (index > -1) {
           this.tableData.splice(index, 1)
