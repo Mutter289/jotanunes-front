@@ -1,8 +1,8 @@
 <template>
   <div class="header-wrapper">
     <div class="sidebar-header" :class="{ 'header-collapsed': isCollapsed }">
-      <div class="logo-container">
-        <transition name="logo-fade" mode="out-in">
+      <div class="logo-container" >
+        <transition name="logo-fade" mode="out-in" >
           <img
             v-if="!isCollapsed"
             src="/logo/logo-jotanunes-branca.svg"
@@ -16,12 +16,12 @@
         </transition>
       </div>
 
-      <div class="header-actions">
-        <VButton @click="$emit('item-click')" customClass="toggle-btn" variant="primary">
+      <div class="header-actions" >
+        <VButton @click="$emit('item-click')" customClass="toggle-btn" variant="primary" style="background-color: rgba(0, 0, 0, 0.75); border: none;">
           <FontAwesomeIcon
             icon="caret-left"
             :class="{ 'icon-rotated': isCollapsed }"
-            style="color: #fff"
+            style="color: #fff;"
           />
         </VButton>
       </div>
@@ -49,3 +49,4 @@ export default {
   emits: ['item-click', 'mobile-menu'],
 }
 </script>
+

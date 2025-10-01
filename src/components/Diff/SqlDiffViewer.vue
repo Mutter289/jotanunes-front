@@ -2,11 +2,11 @@
   <div class="diff-container">
     <div class="diff-column">
       <h4 class="diff-title">Versão Anterior</h4>
-      <pre class="diff-code">{{ oldSql || 'N/A' }}</pre>
+      <pre class="diff-code" style="color: var(--theme-color);">{{ oldSql || 'N/A' }}</pre>
     </div>
     <div class="diff-column">
       <h4 class="diff-title">Versão Atual</h4>
-      <pre class="diff-code">{{ newSql || 'N/A' }}</pre>
+      <pre class="diff-code" style="color: green;">{{ newSql || 'N/A' }}</pre>
     </div>
   </div>
 </template>
