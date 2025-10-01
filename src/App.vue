@@ -46,24 +46,6 @@
       <RouterView v-else class="content-full" />
     </template>
 
-    <!-- Notificações Toast -->
-    <div class="toast-container">
-      <transition-group name="toast" tag="div">
-        <div v-for="toast in toasts" :key="toast.id" :class="['toast', `toast-${toast.type}`]">
-          <div class="toast-icon">
-            <i :class="getToastIcon(toast.type)"></i>
-          </div>
-          <div class="toast-content">
-            <div class="toast-title">{{ toast.title }}</div>
-            <div class="toast-message">{{ toast.message }}</div>
-          </div>
-          <button class="toast-close" @click="removeToast(toast.id)">
-            <i class="fas fa-times"></i>
-          </button>
-        </div>
-      </transition-group>
-    </div>
-
     <!-- Modal de confirmação global -->
     <teleport to="body">
       <div v-if="showConfirmModal" class="modal-overlay" @click="cancelConfirm">
@@ -106,6 +88,7 @@ import { useAuth, useNotifications } from '@/hooks/useAuth'
 import VSidebar from './components/Sidebar/VSidebar.vue'
 import VNav from './components/Nav/VNav.vue'
 import VButton from './components/Button/VButton.vue'
+import VPopup from './components/Popup/VPopup.vue'
 
 const authStore = useAuthStore()
 const { isAuthenticated, user: currentUser, logout } = useAuth()
@@ -120,7 +103,7 @@ const route = useRoute()
 const sidebarWidth = ref(250)
 const isCollapsed = ref(false)
 const isInitializing = ref(true)
-const toasts = ref([])
+const popups = ref([])
 const showConfirmModal = ref(false)
 const confirmData = ref({})
 const confirmCallback = ref(null)
@@ -140,18 +123,6 @@ const gridAreas = computed(() => {
   return "'sidebar main'"
 })
 
-// Watchers
-watch(isAuthenticated, async (newValue) => {
-  if (newValue) {
-    // Carregar notificações quando usuário faz login
-    try {
-      await loadNotifications()
-    } catch (error) {
-      console.error('Erro ao carregar notificações:', error)
-    }
-  }
-})
-
 // Métodos
 function handleSidebarCollapsed(collapsed) {
   isCollapsed.value = collapsed
@@ -160,8 +131,7 @@ function handleSidebarCollapsed(collapsed) {
 
 function handleSearch(searchQuery) {
   console.log('Pesquisando:', searchQuery)
-  // Implementar lógica de pesquisa global
-  showToast('info', 'Pesquisa', `Pesquisando por: ${searchQuery}`)
+  showPopup('warning', 'Pesquisa', `Pesquisando por: ${searchQuery}`)
 }
 
 async function handleProfileAction(action) {
@@ -170,7 +140,6 @@ async function handleProfileAction(action) {
   if (action === 'logout') {
     await handleLogout()
   } else if (action === 'edit') {
-    // Navegar para página de edição de perfil
     console.log('Editando perfil...')
   } else if (action === 'settings') {
     console.log('Abrindo configurações...')
@@ -179,8 +148,6 @@ async function handleProfileAction(action) {
 
 function handleNotificationClick(notification) {
   console.log('Notificação clicada:', notification)
-  // Implementar ação da notificação
-  // Marcar como lida se não foi lida
   if (!notification.lida) {
     // markAsRead será chamado automaticamente pelo componente
   }
@@ -197,51 +164,46 @@ async function handleLogout() {
   if (confirmed) {
     try {
       await logout()
-      showToast('success', 'Logout', 'Você foi desconectado com sucesso')
+      showPopup('success', 'Logout realizado', 'Você foi desconectado com sucesso')
     } catch (error) {
-      showToast('error', 'Erro', 'Erro ao fazer logout')
+      showPopup('danger', 'Erro ao fazer logout', 'Ocorreu um erro ao tentar desconectar')
     }
   }
 }
 
-// Sistema de Toast
-let toastId = 0
+// Sistema de Popup usando VPopup
+let popupId = 0
 
-function showToast(type, title, message, duration = 5000) {
-  const toast = {
-    id: ++toastId,
-    type,
-    title,
-    message,
-    duration,
+function showPopup(mark, msg, content = '', autoClose = 5000) {
+  const popup = {
+    id: ++popupId,
+    mark, // 'success', 'danger', 'warning'
+    msg,
+    content,
+    visible: true,
+    autoClose,
   }
 
-  toasts.value.push(toast)
-
-  if (duration > 0) {
-    setTimeout(() => {
-      removeToast(toast.id)
-    }, duration)
-  }
-
-  return toast.id
+  popups.value.push(popup)
+  return popup.id
 }
 
-function removeToast(id) {
-  const index = toasts.value.findIndex((toast) => toast.id === id)
+function updatePopupVisibility(id, visible) {
+  const popup = popups.value.find((p) => p.id === id)
+  if (popup) {
+    popup.visible = visible
+    if (!visible) {
+      // Remove após a transição
+      setTimeout(() => removePopup(id), 300)
+    }
+  }
+}
+
+function removePopup(id) {
+  const index = popups.value.findIndex((popup) => popup.id === id)
   if (index > -1) {
-    toasts.value.splice(index, 1)
+    popups.value.splice(index, 1)
   }
-}
-
-function getToastIcon(type) {
-  const icons = {
-    success: 'fas fa-check-circle',
-    error: 'fas fa-exclamation-circle',
-    warning: 'fas fa-exclamation-triangle',
-    info: 'fas fa-info-circle',
-  }
-  return icons[type] || 'fas fa-bell'
 }
 
 // Sistema de Modal de Confirmação
@@ -279,20 +241,20 @@ function cancelConfirm() {
 function checkConnection() {
   if (navigator.onLine) {
     showOfflineMessage.value = false
-    showToast('success', 'Conexão', 'Conexão restaurada')
+    showPopup('success', 'Conexão restaurada', 'Você está online novamente')
   } else {
-    showToast('error', 'Offline', 'Ainda sem conexão')
+    showPopup('danger', 'Ainda sem conexão', 'Verifique sua rede')
   }
 }
 
 function handleOnline() {
   showOfflineMessage.value = false
-  showToast('success', 'Online', 'Conexão restaurada')
+  showPopup('success', 'Conexão restaurada', 'Você está online')
 }
 
 function handleOffline() {
   showOfflineMessage.value = true
-  showToast('warning', 'Offline', 'Conexão perdida')
+  showPopup('warning', 'Conexão perdida', 'Você está offline')
 }
 
 // Inicialização
@@ -300,20 +262,19 @@ async function initializeApp() {
   try {
     isInitializing.value = true
 
-    // Inicializar autenticação
     await authStore.initializeAuth()
 
-    // Se está autenticado, carregar dados necessários
     if (isAuthenticated.value) {
       try {
         await loadNotifications()
       } catch (error) {
         console.warn('Erro ao carregar notificações iniciais:', error)
+        showPopup('warning', 'Aviso', 'Não foi possível carregar algumas notificações')
       }
     }
   } catch (error) {
     console.error('Erro na inicialização:', error)
-    showToast('error', 'Erro', 'Erro ao inicializar aplicação')
+    showPopup('danger', 'Erro na inicialização', 'Ocorreu um erro ao inicializar a aplicação')
   } finally {
     isInitializing.value = false
   }
@@ -323,11 +284,9 @@ async function initializeApp() {
 onMounted(async () => {
   await initializeApp()
 
-  // Event listeners para conexão
   window.addEventListener('online', handleOnline)
   window.addEventListener('offline', handleOffline)
 
-  // Verificar conexão inicial
   if (!navigator.onLine) {
     showOfflineMessage.value = true
   }
@@ -339,7 +298,7 @@ onUnmounted(() => {
 })
 
 // Expor métodos globalmente para outros componentes
-window.showToast = showToast
+window.showPopup = showPopup
 window.showConfirm = showConfirm
 </script>
 
@@ -407,7 +366,6 @@ window.showConfirm = showConfirm
   z-index: 2;
 }
 
-/* Animação do Logo */
 .logo-animation {
   margin-bottom: 3rem;
   position: relative;
@@ -429,116 +387,6 @@ window.showConfirm = showConfirm
   }
 }
 
-.logo-parts {
-  display: flex;
-  justify-content: center;
-  align-items: flex-end;
-  margin-bottom: 2rem;
-  height: 80px;
-  position: relative;
-}
-
-.beam {
-  width: 12px;
-  background: linear-gradient(180deg, #bc1f1b 0%, #d63031 50%, #bc1f1b 100%);
-  margin: 0 3px;
-  border-radius: 2px;
-  transform-origin: bottom;
-  box-shadow: 0 0 20px rgba(188, 31, 27, 0.5);
-}
-
-.beam-1 {
-  height: 40px;
-  animation: beamGrow1 2s ease-in-out infinite;
-}
-
-.beam-2 {
-  height: 60px;
-  animation: beamGrow2 2s ease-in-out infinite 0.3s;
-}
-
-.beam-3 {
-  height: 80px;
-  animation: beamGrow3 2s ease-in-out infinite 0.6s;
-}
-
-@keyframes beamGrow1 {
-  0%,
-  100% {
-    transform: scaleY(0.6);
-    opacity: 0.7;
-  }
-  50% {
-    transform: scaleY(1);
-    opacity: 1;
-  }
-}
-
-@keyframes beamGrow2 {
-  0%,
-  100% {
-    transform: scaleY(0.7);
-    opacity: 0.8;
-  }
-  50% {
-    transform: scaleY(1);
-    opacity: 1;
-  }
-}
-
-@keyframes beamGrow3 {
-  0%,
-  100% {
-    transform: scaleY(0.8);
-    opacity: 0.9;
-  }
-  50% {
-    transform: scaleY(1);
-    opacity: 1;
-  }
-}
-
-.logo-text h1 {
-  font-size: 3.5rem;
-  font-weight: 800;
-  margin: 0;
-  background: linear-gradient(135deg, #bc1f1b 0%, #d63031 50%, #bc1f1b 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  animation: titleGlow 3s ease-in-out infinite;
-  letter-spacing: -2px;
-}
-
-.subtitle {
-  font-size: 1.2rem;
-  font-weight: 600;
-  color: #ffffff;
-  letter-spacing: 8px;
-  opacity: 0.9;
-  animation: subtitleFade 2s ease-in-out infinite alternate;
-}
-
-@keyframes titleGlow {
-  0%,
-  100% {
-    filter: drop-shadow(0 0 10px rgba(188, 31, 27, 0.3));
-  }
-  50% {
-    filter: drop-shadow(0 0 20px rgba(188, 31, 27, 0.6));
-  }
-}
-
-@keyframes subtitleFade {
-  0% {
-    opacity: 0.7;
-  }
-  100% {
-    opacity: 1;
-  }
-}
-
-/* Barra de progresso */
 .loading-progress {
   margin: 3rem 0;
   width: 300px;
@@ -594,7 +442,6 @@ window.showConfirm = showConfirm
   }
 }
 
-/* Ícones flutuantes de construção */
 .construction-icons {
   position: absolute;
   top: 0;
@@ -650,7 +497,6 @@ window.showConfirm = showConfirm
   }
 }
 
-/* Efeito de partículas no fundo */
 .app-loading::before {
   content: '';
   position: absolute;
@@ -677,53 +523,8 @@ window.showConfirm = showConfirm
   }
 }
 
-/* Responsividade */
-@media (max-width: 768px) {
-  .logo-text h1 {
-    font-size: 2.5rem;
-  }
-
-  .subtitle {
-    font-size: 1rem;
-    letter-spacing: 4px;
-  }
-
-  .loading-progress {
-    width: 250px;
-  }
-
-  .beam {
-    width: 10px;
-    margin: 0 2px;
-  }
-
-  .beam-1 {
-    height: 30px;
-  }
-  .beam-2 {
-    height: 45px;
-  }
-  .beam-3 {
-    height: 60px;
-  }
-}
-
-@media (max-width: 480px) {
-  .logo-text h1 {
-    font-size: 2rem;
-  }
-
-  .loading-progress {
-    width: 200px;
-  }
-
-  .icon-float {
-    font-size: 1.5rem;
-  }
-}
-
-/* Toast notifications */
-.toast-container {
+/* Container de Popups */
+.popup-container {
   position: fixed;
   top: 2rem;
   right: 2rem;
@@ -731,89 +532,32 @@ window.showConfirm = showConfirm
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  max-width: 400px;
+  max-width: 450px;
+  pointer-events: none;
 }
 
-.toast {
-  display: flex;
-  align-items: flex-start;
-  gap: 1rem;
-  padding: 1rem;
-  border-radius: 12px;
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: white;
-  min-width: 300px;
+.popup-container > * {
+  pointer-events: all;
 }
 
-.toast-success {
-  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+/* Transições para VPopup */
+.popup-slide-enter-active,
+.popup-slide-leave-active {
+  transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 }
 
-.toast-error {
-  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
-}
-
-.toast-warning {
-  background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
-  color: #212529;
-}
-
-.toast-info {
-  background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
-}
-
-.toast-icon {
-  flex-shrink: 0;
-  font-size: 1.25rem;
-  margin-top: 0.125rem;
-}
-
-.toast-content {
-  flex: 1;
-}
-
-.toast-title {
-  font-weight: 600;
-  margin-bottom: 0.25rem;
-}
-
-.toast-message {
-  font-size: 0.9rem;
-  opacity: 0.9;
-  line-height: 1.4;
-}
-
-.toast-close {
-  background: none;
-  border: none;
-  color: inherit;
-  cursor: pointer;
-  padding: 0.25rem;
-  border-radius: 4px;
-  transition: background-color 0.2s;
-  flex-shrink: 0;
-}
-
-.toast-close:hover {
-  background: rgba(255, 255, 255, 0.2);
-}
-
-/* Toast transitions */
-.toast-enter-active,
-.toast-leave-active {
-  transition: all 0.3s ease;
-}
-
-.toast-enter-from {
+.popup-slide-enter-from {
   opacity: 0;
-  transform: translateX(100%);
+  transform: translateX(400px) scale(0.8);
 }
 
-.toast-leave-to {
+.popup-slide-leave-to {
   opacity: 0;
-  transform: translateX(100%) scale(0.9);
+  transform: translateX(400px) scale(0.8);
+}
+
+.popup-slide-move {
+  transition: transform 0.4s ease;
 }
 
 /* Modal de confirmação */
@@ -905,7 +649,7 @@ window.showConfirm = showConfirm
   opacity: 0.9;
 }
 
-/* Responsive adjustments */
+/* Responsividade */
 @media (max-width: 1024px) {
   .content {
     padding: 1rem;
@@ -917,15 +661,11 @@ window.showConfirm = showConfirm
     padding: 0.75rem;
   }
 
-  .toast-container {
+  .popup-container {
     top: 1rem;
     right: 1rem;
     left: 1rem;
     max-width: none;
-  }
-
-  .toast {
-    min-width: auto;
   }
 
   .offline-overlay {
@@ -943,6 +683,14 @@ window.showConfirm = showConfirm
 
   .confirm-actions {
     flex-direction: column;
+  }
+
+  .loading-progress {
+    width: 200px;
+  }
+
+  .icon-float {
+    font-size: 1.5rem;
   }
 }
 </style>

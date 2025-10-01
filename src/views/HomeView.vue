@@ -365,12 +365,7 @@ export default {
 
     isAuthenticated(newValue) {
       if (newValue) {
-        this.showSuccessToast = true
-        this.successMessage = 'Login realizado com sucesso!'
-
-        setTimeout(() => {
-          this.$router.push('/main')
-        }, 1500)
+        this.$router.push('/main')
       }
     },
 

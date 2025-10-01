@@ -11,7 +11,6 @@
     </div>
 
     <template v-else>
-      
       <div class="stats-cards">
         <div class="stat-card">
           <div class="stat-value">{{ stats.totalSentencas }}</div>
@@ -47,21 +46,18 @@
           <canvas ref="timelineChart"></canvas>
         </div>
 
-        
         <!-- Gráfico de Tamanhos -->
         <div class="chart-container">
           <h3>Ultimas Notificações</h3>
-          <VTable/>
+          <VTable />
         </div>
       </div>
       <!-- Gráfico de Usuários -->
-      <div class="chart-container" style="margin-bottom: 100px;">
+      <div class="chart-container" style="margin-bottom: 100px">
         <h3>Usuários Mais Ativos</h3>
         <p class="chart-subtitle">Top usuários por número de modificações</p>
         <canvas ref="usersChart"></canvas>
       </div>
-      
-      
     </template>
   </div>
 </template>
@@ -112,7 +108,7 @@ const getData = async () => {
     }
 
     await nextTick()
-    
+
     if (apiData.value.length > 0) {
       setTimeout(() => {
         initCharts()
@@ -146,7 +142,7 @@ const stats = computed(() => {
   return {
     totalSentencas: data.length,
     tamanhoMedio: Math.round(
-      data.reduce((sum, item) => sum + (item.TAMANHO || 0), 0) / data.length
+      data.reduce((sum, item) => sum + (item.TAMANHO || 0), 0) / data.length,
     ),
     aplicacoesAtivas: new Set(data.map((item) => item.APLICACAO).filter(Boolean)).size,
     modificacoesRecentes: data.filter((item) => {
@@ -177,7 +173,7 @@ const handleClearFilters = () => {
 // Inicializar gráficos
 const initCharts = () => {
   console.log('Iniciando gráficos com gmt-charts-growup...')
-  
+
   if (!applicationChart.value || !timelineChart.value || !usersChart.value) {
     console.error('Canvas refs não disponíveis')
     setTimeout(() => initCharts(), 500)
@@ -215,34 +211,12 @@ const initCharts = () => {
       callback: updateStats,
     })
 
-    // 4. Gráfico de Tamanhos (Agregação por soma)
-    createChart(sizeChart, {
-      type: 'bar',
-      field: 'APLICACAO',
-      data: apiData.value,
-      label: 'Tamanho Total (KB)',
-      backgroundColor: generateColors(10),
-      aggregationType: 'sum',
-      valueField: 'TAMANHO',
-      callback: updateStats,
-    })
-
-    // 5. Criar Tabela
-    const columns = ['APLICACAO', 'RECMODIFIEDBY', 'RECMODIFIEDON', 'TAMANHO']
-    createDataTable(dataTableContainer, apiData.value, columns, {
-      itemsPerPage: 50,
-    })
-
-    // 6. Criar Botão de Relatório
-    createReportButton(reportContainer, apiData.value)
-
     console.log('Todos os gráficos foram inicializados!')
 
     // Atualizar filtros ativos a cada 500ms
     setInterval(() => {
       activeFilters.value = { ...getCurrentFilters() }
     }, 500)
-
   } catch (error) {
     console.error('Erro ao inicializar gráficos:', error)
     error.value = 'Erro ao renderizar gráficos'
@@ -267,7 +241,7 @@ watch(apiData, () => {
 
 <style scoped>
 .dashboard {
-  padding: 20px;
+  margin: 20px;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   background: #f8f9fa;
   min-height: 100vh;
@@ -292,8 +266,12 @@ watch(apiData, () => {
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .error-message {
@@ -422,7 +400,9 @@ watch(apiData, () => {
   padding: 24px;
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  transition: transform 0.3s, box-shadow 0.3s;
+  transition:
+    transform 0.3s,
+    box-shadow 0.3s;
 }
 
 .stat-card:hover {

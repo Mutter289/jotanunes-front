@@ -214,16 +214,13 @@
       </div>
     </div>
 
-    <!-- Resto do componente permanece igual -->
     <VOffcanvas
       v-model="showNotificationOffcanvas"
       side="right"
       width="900px"
       :title="`Detalhes - ${selectedNotificationData?.NOME || 'Notificação'}`"
     >
-      <!-- Conteúdo do Offcanvas permanece igual -->
       <div v-if="selectedNotificationData" class="offcanvas-content">
-        <!-- Header com informações principais -->
         <div class="detail-header">
           <div
             class="detail-badge"
@@ -237,7 +234,6 @@
           <p class="detail-id">ID: {{ selectedNotificationData.RECID }}</p>
         </div>
 
-        <!-- Seções de Informações -->
         <div class="detail-section notification-info">
           <h3 class="section-title">Informações da Notificação</h3>
           <div class="detail-grid">
@@ -265,7 +261,6 @@
           </div>
         </div>
 
-        <!-- Outras seções permanecem iguais -->
         <div class="detail-section">
           <h3 class="section-title">Informações do Registro</h3>
           <div class="detail-grid">
@@ -341,7 +336,6 @@ import './VNav.css'
 import websocketService from '@/services/websocketService'
 import notificationStore from '@/store/notificationStore'
 import VOffcanvas from '@/components/Offcanvas/VOffcanvas.vue'
-import { useSuccess, useQuestion, useError } from '@/hooks/useAlerts.js'
 import { useAuthStore } from '@/store/auth.js'
 
 export default {
@@ -386,14 +380,10 @@ export default {
       isConnected: false,
       hasNewNotification: false,
       notificationStore: notificationStore,
-
-      // Estados de loading
       isLoadingNotifications: false,
       isProcessing: false,
       isReconnecting: false,
       isSyncing: false,
-
-      // Auth store
       authStore: useAuthStore(),
     }
   },
@@ -407,7 +397,6 @@ export default {
       return this.notificationStore.unreadCount
     },
 
-    // Dados do usuário atual do token
     currentUserName() {
       return this.authStore.user?.nome || 'Usuário'
     },
@@ -497,32 +486,37 @@ export default {
     },
 
     async confirmLogout() {
-      const confirmed = await useQuestion({
-        title: 'Confirmar Logout',
-        text: 'Tem certeza que deseja sair do sistema?',
-        icon: 'warning',
-        confirmButtonText: 'Sim, sair',
-        cancelButtonText: 'Cancelar',
-      })
+      const confirmed = await window.showConfirm(
+        'Confirmar Logout',
+        'Tem certeza que deseja sair do sistema?',
+        'Sim, sair',
+        'danger',
+      )
 
       if (confirmed) {
         this.isProcessing = true
         try {
           await this.authStore.logout()
-          await useSuccess({ title: 'Logout realizado com sucesso!' })
+          window.showPopup(
+            'success',
+            'Logout realizado!',
+            'Você foi desconectado com sucesso',
+            3000,
+          )
           this.$router.push('/login')
         } catch (error) {
-          await useError({
-            title: 'Erro no logout',
-            text: error.message || 'Erro ao fazer logout',
-          })
+          window.showPopup(
+            'danger',
+            'Erro no logout',
+            error.message || 'Erro ao fazer logout',
+            5000,
+          )
         } finally {
           this.isProcessing = false
         }
       }
     },
 
-    // Método principal para clique em notificação
     async onNotificationClick(notification) {
       if (notification.processing) return
 
@@ -537,19 +531,13 @@ export default {
           this.showNotificationsDropdown = false
           this.$emit('notification-click', notification)
 
-          await useSuccess({ title: 'Notificação marcada como lida' })
+          window.showPopup('success', 'Marcada como lida', 'Notificação atualizada', 2000)
         } else {
-          await useError({
-            title: 'Erro',
-            text: 'Erro ao marcar notificação como lida',
-          })
+          window.showPopup('danger', 'Erro', 'Não foi possível marcar notificação como lida', 4000)
         }
       } catch (error) {
         console.error('Erro ao processar clique na notificação:', error)
-        await useError({
-          title: 'Erro',
-          text: 'Erro ao processar notificação',
-        })
+        window.showPopup('danger', 'Erro', 'Erro ao processar notificação', 4000)
       } finally {
         notification.processing = false
       }
@@ -563,36 +551,29 @@ export default {
         const success = await this.notificationStore.markAsRead(notification.id)
 
         if (success) {
-          await useSuccess({ title: 'Notificação marcada como lida' })
+          window.showPopup('success', 'Marcada como lida', '', 2000)
         } else {
-          await useError({
-            title: 'Erro',
-            text: 'Erro ao marcar notificação como lida',
-          })
+          window.showPopup('danger', 'Erro', 'Não foi possível marcar como lida', 4000)
         }
       } catch (error) {
         console.error('Erro ao marcar notificação como lida:', error)
-        await useError({
-          title: 'Erro',
-          text: 'Erro ao processar notificação',
-        })
+        window.showPopup('danger', 'Erro', 'Erro ao processar notificação', 4000)
       } finally {
         notification.processing = false
       }
     },
 
     async confirmRemoveNotification(notification) {
-      const confirmed = await useQuestion({
-        title: 'Remover Notificação',
-        text: `Tem certeza que deseja remover a notificação "${notification.title}"?`,
-        icon: 'warning',
-        confirmButtonText: 'Sim, remover',
-        cancelButtonText: 'Cancelar',
-      })
+      const confirmed = await window.showConfirm(
+        'Remover Notificação',
+        `Tem certeza que deseja remover "${notification.title}"?`,
+        'Sim, remover',
+        'danger',
+      )
 
       if (confirmed) {
         this.removeNotification(notification.id)
-        await useSuccess({ title: 'Notificação removida' })
+        window.showPopup('success', 'Notificação removida', '', 2000)
       }
     },
 
@@ -608,20 +589,16 @@ export default {
 
     async confirmMarkAllAsRead() {
       if (this.unreadCount === 0) {
-        await useError({
-          title: 'Aviso',
-          text: 'Nenhuma notificação não lida encontrada',
-        })
+        window.showPopup('warning', 'Aviso', 'Nenhuma notificação não lida encontrada', 3000)
         return
       }
 
-      const confirmed = await useQuestion({
-        title: 'Marcar Todas Como Lidas',
-        text: `Tem certeza que deseja marcar todas as ${this.unreadCount} notificações como lidas?`,
-        icon: 'question',
-        confirmButtonText: 'Sim, marcar todas',
-        cancelButtonText: 'Cancelar',
-      })
+      const confirmed = await window.showConfirm(
+        'Marcar Todas Como Lidas',
+        `Tem certeza que deseja marcar todas as ${this.unreadCount} notificações como lidas?`,
+        'Sim, marcar todas',
+        'primary',
+      )
 
       if (confirmed) {
         await this.markAllAsRead()
@@ -635,15 +612,15 @@ export default {
         await this.notificationStore.markAllAsRead()
         this.showNotificationsDropdown = false
 
-        await useSuccess({
-          title: `${previousCount} notificação${previousCount > 1 ? 'ões' : ''} marcada${previousCount > 1 ? 's' : ''} como lida${previousCount > 1 ? 's' : ''}`,
-        })
+        window.showPopup(
+          'success',
+          'Todas marcadas como lidas!',
+          `${previousCount} notificação${previousCount > 1 ? 'ões' : ''} atualizada${previousCount > 1 ? 's' : ''}`,
+          3000,
+        )
       } catch (error) {
         console.error('Erro ao marcar todas as notificações como lidas:', error)
-        await useError({
-          title: 'Erro',
-          text: 'Erro ao marcar notificações como lidas',
-        })
+        window.showPopup('danger', 'Erro', 'Erro ao marcar notificações como lidas', 5000)
       } finally {
         this.isProcessing = false
       }
@@ -653,20 +630,16 @@ export default {
       const readCount = this.notificationStore.allNotifications.filter((n) => n.read).length
 
       if (readCount === 0) {
-        await useError({
-          title: 'Aviso',
-          text: 'Nenhuma notificação lida para limpar',
-        })
+        window.showPopup('warning', 'Aviso', 'Nenhuma notificação lida para limpar', 3000)
         return
       }
 
-      const confirmed = await useQuestion({
-        title: 'Limpar Notificações Lidas',
-        text: `Tem certeza que deseja remover todas as ${readCount} notificações lidas?`,
-        icon: 'warning',
-        confirmButtonText: 'Sim, limpar',
-        cancelButtonText: 'Cancelar',
-      })
+      const confirmed = await window.showConfirm(
+        'Limpar Notificações Lidas',
+        `Tem certeza que deseja remover todas as ${readCount} notificações lidas?`,
+        'Sim, limpar',
+        'danger',
+      )
 
       if (confirmed) {
         this.clearReadNotifications(readCount)
@@ -681,22 +654,22 @@ export default {
         this.selectedNotificationData = null
       }
 
-      useSuccess({
-        title: `${readCount} notificação${readCount > 1 ? 'ões' : ''} lida${readCount > 1 ? 's' : ''} removida${readCount > 1 ? 's' : ''}`,
-      })
+      window.showPopup(
+        'success',
+        'Notificações limpas!',
+        `${readCount} notificação${readCount > 1 ? 'ões' : ''} removida${readCount > 1 ? 's' : ''}`,
+        3000,
+      )
     },
 
     async syncNotifications() {
       this.isSyncing = true
       try {
         await this.notificationStore.loadUnreadNotifications()
-        await useSuccess({ title: 'Notificações sincronizadas' })
+        window.showPopup('success', 'Sincronizado!', 'Notificações atualizadas', 2000)
       } catch (error) {
         console.error('Erro ao sincronizar notificações:', error)
-        await useError({
-          title: 'Erro',
-          text: 'Erro ao sincronizar notificações',
-        })
+        window.showPopup('danger', 'Erro ao sincronizar', error.message || 'Tente novamente', 5000)
       } finally {
         this.isSyncing = false
       }
@@ -706,19 +679,15 @@ export default {
       this.isReconnecting = true
       try {
         websocketService.reconnect()
-        // Aguarda um pouco para dar tempo da conexão
         setTimeout(() => {
           this.isReconnecting = false
           if (this.isConnected) {
-            useSuccess({ title: 'Reconectado com sucesso!' })
+            window.showPopup('success', 'Reconectado!', 'WebSocket conectado', 2000)
           }
         }, 2000)
       } catch (error) {
         this.isReconnecting = false
-        await useError({
-          title: 'Erro',
-          text: 'Erro ao reconectar',
-        })
+        window.showPopup('danger', 'Erro ao reconectar', 'Verifique sua conexão', 5000)
       }
     },
 
@@ -728,10 +697,7 @@ export default {
         await this.notificationStore.loadUnreadNotifications()
       } catch (error) {
         console.error('Erro ao carregar notificações:', error)
-        await useError({
-          title: 'Erro',
-          text: 'Erro ao carregar notificações',
-        })
+        window.showPopup('danger', 'Erro ao carregar', 'Não foi possível buscar notificações', 5000)
       } finally {
         this.isLoadingNotifications = false
       }
@@ -770,7 +736,12 @@ export default {
           this.hasNewNotification = false
         }, 1000)
 
-        useSuccess({ title: `Nova notificação: ${data.tabela || 'Registro'}` })
+        window.showPopup(
+          'success',
+          'Nova notificação!',
+          data.tabela || 'Você tem uma nova atualização',
+          4000,
+        )
       }
     },
 
@@ -778,12 +749,14 @@ export default {
       this.isConnected = status
 
       if (status) {
-        useSuccess({ title: 'Conectado ao servidor de notificações' })
+        window.showPopup('success', 'WebSocket Conectado', 'Servidor de notificações online', 3000)
       } else {
-        useError({
-          title: 'Desconectado',
-          text: 'Desconectado do servidor de notificações',
-        })
+        window.showPopup(
+          'warning',
+          'WebSocket Desconectado',
+          'Servidor de notificações offline',
+          4000,
+        )
       }
     },
 
@@ -824,7 +797,6 @@ export default {
     websocketService.on('connected', this.handleConnectionStatus)
     document.addEventListener('click', this.handleClickOutside)
 
-    // Carrega notificações iniciais
     this.loadNotifications()
   },
 
