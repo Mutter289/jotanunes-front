@@ -106,7 +106,11 @@ export async function useFetch(
 
 function mockResponse(endpoint) {
   try {
-    if (endpoint && endpoint.startsWith('/api/v2/dependencias/itens/') && endpoint.endsWith('/json-model')) {
+    if (
+      endpoint &&
+      endpoint.startsWith('/api/v2/dependencias/itens/') &&
+      endpoint.endsWith('/json-model')
+    ) {
       return {
         titulo_dependencia: 'Titulo',
         versao: 'v1.0.0',

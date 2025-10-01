@@ -52,10 +52,5 @@ function nodeId(key) {
 }
 
 function sanitize(text) {
-  return String(text)
-    .replace(/"/g, '\\"')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
+  return String(text).replace(/"/g, '\\"').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 }
-
-

@@ -10,7 +10,7 @@ export default {
   name: 'VMermaid',
   props: {
     diagram: { type: String, required: true },
-    theme: { type: String, default: 'default' } // 'default' | 'dark' | 'forest' | 'neutral'
+    theme: { type: String, default: 'default' }, // 'default' | 'dark' | 'forest' | 'neutral'
   },
   data() {
     return { error: null, renderKey: 0 }
@@ -20,11 +20,11 @@ export default {
       immediate: true,
       handler() {
         this.renderDiagram()
-      }
+      },
     },
     theme() {
       this.renderDiagram()
-    }
+    },
   },
   mounted() {
     mermaid.initialize({ startOnLoad: false, theme: this.theme })
@@ -48,8 +48,8 @@ export default {
         // eslint-disable-next-line no-console
         console.error(e)
       }
-    }
-  }
+    },
+  },
 }
 </script>
 
@@ -60,5 +60,3 @@ export default {
   margin-top: 8px;
 }
 </style>
-
-
