@@ -410,6 +410,7 @@
           <div class="form-group">
             <label>Item de Origem</label>
             <select v-model="newDependency.id_origem" class="form-select">
+              <option disabled value="">Selecione um item</option>
               <option v-for="it in itensOrigem" :key="it.id" :value="it.id">{{ it.nome }}</option>
             </select>
           </div>
@@ -453,15 +454,16 @@
                   v-model="depSelecionada.sql"
                   class="form-select"
                   @focus="ensureItens('AUD_SQLS')"
-                  @change="this.$nextTick(() => console.log('SQL selecionado:', depSelecionada.sql, 'Tipo:', typeof depSelecionada.sql))"
+                  @change="handleSqlChange"
                 >
                   <option value="">Selecione um SQL</option>
-                  <option v-for="s in itensPorTabela.AUD_SQLS" :key="s.id" :value="s.id">
+                  <option v-for="(s, index) in itensPorTabela.AUD_SQLS" :key="s.id" :value="index">
                     {{ s.nome }}
                   </option>
                 </select>
-                <div class="debug-info" style="font-size: 10px; color: #666;">
-                  Debug: {{ newDependency.tabela_origem }} | SQLs: {{ itensPorTabela.AUD_SQLS.length }} | Selecionado: {{ depSelecionada.sql }}
+                <div class="debug-info" style="font-size: 10px; color: #666">
+                  Debug: {{ newDependency.tabela_origem }} | SQLs:
+                  {{ itensPorTabela.AUD_SQLS.length }} | Selecionado: {{ depSelecionada.sql }}
                 </div>
               </div>
               <div class="dep-chooser-col" v-if="newDependency.tabela_origem !== 'AUD_REPORT'">
@@ -492,7 +494,6 @@
               </div>
             </div>
           </div>
-
         </div>
         <div class="modal-footer">
           <button class="btn-secondary" @click="closeModal">Cancelar</button>
@@ -599,7 +600,9 @@
             <div class="sub-dependencies">
               <div v-for="subDep in selectedDep.dependencias" :key="subDep.id" class="sub-dep-item">
                 <strong>{{ subDep.nome_dependente || 'Dependência sem nome' }}</strong>
-                <small>por {{ subDep.tabela_dependente }} - {{ formatDate(subDep.criado_em) }}</small>
+                <small
+                  >por {{ subDep.tabela_dependente }} - {{ formatDate(subDep.criado_em) }}</small
+                >
               </div>
             </div>
           </div>
@@ -641,7 +644,7 @@ import VMermaid from '@/components/Mermaid/VMermaid.vue'
 
 export default {
   components: {
-    VMermaid
+    VMermaid,
   },
   data() {
     return {
@@ -717,7 +720,7 @@ export default {
       tabelasDisponiveis: ['AUD_FV', 'AUD_SQLS', 'AUD_REPORT'],
       itensOrigem: [],
       itensPorTabela: { AUD_FV: [], AUD_SQLS: [], AUD_REPORT: [] },
-      depSelecionada: { fv: null, sql: null, report: null },
+      depSelecionada: { fv: '', sql: '', report: '' }, // Strings vazias em vez de null
 
       toasts: [],
     }
@@ -791,8 +794,31 @@ export default {
     async loadDependencies() {
       try {
         this.isLoading = true
+        console.log('=== DEBUG loadDependencies ===')
+
+        // 1. Buscar lista resumida
         const response = await this.useFetch(`/api/v2/dependencias/itens`)
-        this.dependencies = response
+        console.log('Lista resumida recebida:', response)
+        console.log('Quantidade de itens:', response?.length)
+
+        // 2. Buscar detalhes completos de cada item
+        const dependenciesCompletas = []
+        if (response && response.length > 0) {
+          for (const item of response) {
+            try {
+              const detalhes = await this.useFetch(`/api/v2/dependencias/itens/${item.id}`)
+              console.log(`Detalhes do item ${item.id}:`, detalhes)
+              dependenciesCompletas.push(detalhes)
+            } catch (error) {
+              console.error(`Erro ao buscar detalhes do item ${item.id}:`, error)
+              // Adicionar item resumido se não conseguir buscar detalhes
+              dependenciesCompletas.push(item)
+            }
+          }
+        }
+
+        console.log('Dependências completas:', dependenciesCompletas)
+        this.dependencies = dependenciesCompletas
         this.updateFilterCounts()
         this.organizeDependencyTree()
       } catch (error) {
@@ -894,10 +920,26 @@ export default {
 
     async loadDependencyDetails(id) {
       try {
+        console.log('=== DEBUG loadDependencyDetails ===')
+        console.log('Buscando detalhes do item ID:', id)
         const response = await this.useFetch(`/api/v2/dependencias/itens/${id}`)
+        console.log('Detalhes recebidos:', response)
+        console.log('Dependências encontradas:', response?.dependencias)
+        if (response?.dependencias) {
+          response.dependencias.forEach((dep, index) => {
+            console.log(`Dependência ${index}:`, {
+              id: dep.id,
+              tabela_dependente: dep.tabela_dependente,
+              id_dependente: dep.id_dependente,
+              nome_dependente: dep.nome_dependente,
+            })
+          })
+        }
         this.selectedDep = response
+        console.log('=== FIM DEBUG loadDependencyDetails ===')
       } catch (error) {
         this.showToast('Erro ao carregar detalhes da alteração', 'error')
+        console.error('Erro ao carregar detalhes:', error)
       }
     },
 
@@ -970,7 +1012,7 @@ export default {
           // Create new dependency
           const body = {
             tabela_origem: this.newDependency.tabela_origem,
-            id_origem: this.newDependency.id_origem,
+            id_origem: String(this.newDependency.id_origem || ''), // ✅ Cast para string
             nome: this.newDependency.nome,
             descricao: this.newDependency.descricao,
             versao: this.newDependency.versao,
@@ -978,7 +1020,19 @@ export default {
             dependencias: this.newDependency.dependencias,
           }
 
+          console.log('=== DEBUG SALVAMENTO ===')
           console.log('Enviando dados para criação:', body)
+          console.log('Dependências sendo enviadas:', body.dependencias)
+          if (body.dependencias && body.dependencias.length > 0) {
+            body.dependencias.forEach((dep, index) => {
+              console.log(`Dependência ${index}:`, {
+                tabela_dependente: dep.tabela_dependente,
+                id_dependente: dep.id_dependente,
+                nome_dependente: dep.nome_dependente,
+              })
+            })
+          }
+          console.log('=== FIM DEBUG SALVAMENTO ===')
 
           await this.useFetch('/api/v2/dependencias/itens', {
             method: 'POST',
@@ -1021,8 +1075,7 @@ export default {
           `/api/v2/dependencias/tabelas/${encodeURIComponent(t)}/itens`,
         )
         this.itensOrigem = itens
-        if (!this.newDependency.id_origem && itens.length)
-          this.newDependency.id_origem = itens[0].id
+        // ✅ Não forçar id_origem - deixar usuário escolher no select
       } catch (e) {
         this.itensOrigem = []
       }
@@ -1032,18 +1085,29 @@ export default {
       console.log('=== DEBUG ensureItens ===')
       console.log('Tabela:', tabela)
       console.log('itensPorTabela[tabela]:', this.itensPorTabela[tabela])
-      
+
       if (this.itensPorTabela[tabela] && this.itensPorTabela[tabela].length) {
         console.log('Itens já carregados, retornando')
         return
       }
-      
+
       try {
         console.log('Carregando itens para tabela:', tabela)
         const itens = await this.useFetch(
           `/api/v2/dependencias/tabelas/${encodeURIComponent(tabela)}/itens`,
         )
         console.log('Itens carregados:', itens)
+        console.log('Primeiro item:', itens[0])
+        console.log(
+          'Tipos dos campos:',
+          itens[0]
+            ? {
+                id: typeof itens[0].id,
+                nome: typeof itens[0].nome,
+                descricao: typeof itens[0].descricao,
+              }
+            : 'Nenhum item',
+        )
         this.itensPorTabela[tabela] = itens
         console.log('itensPorTabela após carregamento:', this.itensPorTabela[tabela])
       } catch (error) {
@@ -1052,17 +1116,34 @@ export default {
       console.log('=== FIM DEBUG ensureItens ===')
     },
 
+    handleSqlChange() {
+      console.log('=== DEBUG SQL CHANGE ===')
+      console.log('Índice selecionado:', this.depSelecionada.sql)
+      console.log('Tipo:', typeof this.depSelecionada.sql)
+      console.log('itensPorTabela.AUD_SQLS:', this.itensPorTabela.AUD_SQLS)
+
+      if (this.depSelecionada.sql !== '' && this.depSelecionada.sql !== null) {
+        const itemSelecionado = this.itensPorTabela.AUD_SQLS[this.depSelecionada.sql]
+        console.log('Item selecionado:', itemSelecionado)
+        console.log('ID real:', itemSelecionado?.id)
+        console.log('Nome:', itemSelecionado?.nome)
+      }
+      console.log('=== FIM DEBUG SQL CHANGE ===')
+    },
+
     adicionarSequencia() {
       console.log('=== DEBUG adicionarSequencia ===')
       console.log('depSelecionada:', this.depSelecionada)
       console.log('tabela_origem:', this.newDependency.tabela_origem)
       console.log('itensPorTabela.AUD_SQLS:', this.itensPorTabela.AUD_SQLS)
-      
+
       this.newDependency.dependencias = []
 
       // Regra de negócio: não adiciona a tabela escolhida como origem
       if (this.depSelecionada.fv && this.newDependency.tabela_origem !== 'AUD_FV') {
-        const itemFv = this.itensPorTabela.AUD_FV.find((fv) => String(fv.id) === String(this.depSelecionada.fv))
+        const itemFv = this.itensPorTabela.AUD_FV.find(
+          (fv) => String(fv.id) === String(this.depSelecionada.fv),
+        )
         console.log('Adicionando FV:', itemFv)
         this.newDependency.dependencias.push({
           tabela_dependente: 'AUD_FV',
@@ -1070,15 +1151,23 @@ export default {
           nome_dependente: itemFv ? itemFv.nome : null,
         })
       }
-      if (this.depSelecionada.sql && this.newDependency.tabela_origem !== 'AUD_SQLS') {
-        const itemSql = this.itensPorTabela.AUD_SQLS.find((s) => String(s.id) === String(this.depSelecionada.sql))
+      if (
+        this.depSelecionada.sql !== '' &&
+        this.depSelecionada.sql !== null &&
+        this.newDependency.tabela_origem !== 'AUD_SQLS'
+      ) {
+        // Usar índice para encontrar o item
+        const itemSql = this.itensPorTabela.AUD_SQLS[this.depSelecionada.sql]
         console.log('Adicionando SQL:', itemSql)
-        console.log('Comparando:', this.depSelecionada.sql, 'com', this.itensPorTabela.AUD_SQLS.map(s => s.id))
-        this.newDependency.dependencias.push({
-          tabela_dependente: 'AUD_SQLS',
-          id_dependente: this.depSelecionada.sql,
-          nome_dependente: itemSql ? itemSql.nome : null,
-        })
+        console.log('Índice:', this.depSelecionada.sql, 'ID real:', itemSql?.id)
+
+        if (itemSql) {
+          this.newDependency.dependencias.push({
+            tabela_dependente: 'AUD_SQLS', // ✅ Usar AUD_SQLS conforme enum do backend
+            id_dependente: itemSql.id, // ✅ Usar o ID real do item
+            nome_dependente: itemSql.nome,
+          })
+        }
       }
       if (this.depSelecionada.report && this.newDependency.tabela_origem !== 'AUD_REPORT') {
         const itemReport = this.itensPorTabela.AUD_REPORT.find(
@@ -1096,7 +1185,7 @@ export default {
       console.log('=== FIM DEBUG ===')
 
       // Limpa os campos após adicionar
-      this.depSelecionada = { fv: null, sql: null, report: null }
+      this.depSelecionada = { fv: '', sql: '', report: '' } //Strings vazias em vez de null
     },
 
     removerDependencia(index) {
@@ -1112,11 +1201,11 @@ export default {
         console.log('Abrindo diagrama para:', dep)
         console.log('ID do item:', dep.id)
         console.log('URL completa:', `/api/v2/dependencias/itens/${dep.id}/json-model`)
-        
+
         // Busca JSON pronto no backend
         const model = await this.useFetch(`/api/v2/dependencias/itens/${dep.id}/json-model`)
         console.log('Modelo recebido:', model)
-        
+
         this.mermaidDiagram = toMermaidFlowchart(model)
         console.log('Diagrama Mermaid gerado:', this.mermaidDiagram)
       } catch (e) {
@@ -1138,12 +1227,12 @@ export default {
         nome: '',
         versao: '',
         tabela_origem: 'AUD_FV',
-        id_origem: null,
+        id_origem: '', //  String vazia em vez de null
         criador: '',
         descricao: '',
         dependencias: [],
       }
-      this.depSelecionada = { fv: null, sql: null, report: null }
+      this.depSelecionada = { fv: '', sql: '', report: '' } //  Strings vazias em vez de null
     },
 
     async viewHistory(dep) {
