@@ -27,26 +27,61 @@ export default {
     },
   },
   mounted() {
-    mermaid.initialize({ startOnLoad: false, theme: this.theme })
+    mermaid.initialize({ 
+      startOnLoad: false, 
+      theme: this.theme,
+      securityLevel: 'loose',
+      fontFamily: 'Arial, sans-serif'
+    })
     this.renderDiagram()
   },
   methods: {
     async renderDiagram() {
       try {
         this.error = null
+        console.log('Renderizando diagrama Mermaid:', this.diagram)
+        
+        if (!this.diagram || this.diagram.trim() === '') {
+          console.log('Diagrama vazio, não renderizando')
+          return
+        }
+        
         // Reinitialize to apply theme changes
-        mermaid.initialize({ startOnLoad: false, theme: this.theme })
+        mermaid.initialize({ 
+          startOnLoad: false, 
+          theme: this.theme,
+          securityLevel: 'loose',
+          fontFamily: 'Arial, sans-serif'
+        })
 
         const id = `mermaid-${Date.now()}-${++this.renderKey}`
-        const { svg } = await mermaid.render(id, this.diagram)
-        if (this.$refs.container) {
-          this.$refs.container.innerHTML = svg
+        console.log('ID do diagrama:', id)
+        
+        // Tentar método mais antigo primeiro
+        try {
+          const { svg } = await mermaid.render(id, this.diagram)
+          console.log('SVG gerado (novo método):', svg)
+          
+          if (this.$refs.container) {
+            this.$refs.container.innerHTML = svg
+          }
+        } catch (renderError) {
+          console.log('Método novo falhou, tentando método antigo:', renderError)
+          
+          // Método antigo (compatibilidade)
+          const element = document.createElement('div')
+          element.className = 'mermaid'
+          element.textContent = this.diagram
+          
+          if (this.$refs.container) {
+            this.$refs.container.innerHTML = ''
+            this.$refs.container.appendChild(element)
+            await mermaid.init(undefined, element)
+          }
         }
       } catch (e) {
         this.error = 'Falha ao renderizar diagrama Mermaid'
-        // Opcional: console para debug
-        // eslint-disable-next-line no-console
-        console.error(e)
+        console.error('Erro ao renderizar Mermaid:', e)
       }
     },
   },

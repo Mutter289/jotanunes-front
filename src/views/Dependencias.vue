@@ -27,13 +27,13 @@
           <span class="project-name">{{ projectName }}</span>
         </div>
         <div class="header-right">
-          <div
+          <!-- <div
             class="connection-status"
             :class="{ connected: isConnected, disconnected: !isConnected }"
           >
             <span class="status-dot"></span>
             {{ isConnected ? 'Conectado' : 'Desconectado' }}
-          </div>
+          </div> -->
           <button class="btn-icon" @click="refreshDependencies" :class="{ rotating: isRefreshing }">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M21 2v6h-6" />
@@ -489,15 +489,6 @@
             </div>
           </div>
 
-          <!-- Campo de Observações para Dependências -->
-          <div class="form-group" v-if="newDependency.dependencias.length > 0">
-            <label>Observações das Dependências</label>
-            <textarea
-              v-model="observacoesDependencias"
-              placeholder="Observações gerais sobre as dependências selecionadas"
-              class="form-textarea"
-            ></textarea>
-          </div>
         </div>
         <div class="modal-footer">
           <button class="btn-secondary" @click="closeModal">Cancelar</button>
@@ -522,7 +513,7 @@
         </div>
         <div class="modal-body">
           <div class="diagram-container">
-            <div v-if="mermaidDiagram" v-html="mermaidDiagram"></div>
+            <VMermaid v-if="mermaidDiagram" :diagram="mermaidDiagram" />
             <div v-else class="loading-diagram">
               <div class="spinner"></div>
               <p>Gerando diagrama...</p>
@@ -603,8 +594,8 @@
             <h3>Dependências ({{ selectedDep.dependencias.length }})</h3>
             <div class="sub-dependencies">
               <div v-for="subDep in selectedDep.dependencias" :key="subDep.id" class="sub-dep-item">
-                <strong>{{ subDep.nome || 'Dependência sem nome' }}</strong>
-                <small>por {{ subDep.criador }} - {{ formatDate(subDep.ultima_atu) }}</small>
+                <strong>{{ subDep.nome_dependente || 'Dependência sem nome' }}</strong>
+                <small>por {{ subDep.tabela_dependente }} - {{ formatDate(subDep.criado_em) }}</small>
               </div>
             </div>
           </div>
@@ -641,8 +632,13 @@
 
 <script>
 import { useFetch } from '@/hooks/useFetch.js'
+import { toMermaidFlowchart } from '@/util/toMermaid.js'
+import VMermaid from '@/components/Mermaid/VMermaid.vue'
 
 export default {
+  components: {
+    VMermaid
+  },
   data() {
     return {
       projectName: 'JotaNunes Construtora',
@@ -718,7 +714,6 @@ export default {
       itensOrigem: [],
       itensPorTabela: { AUD_FV: [], AUD_SQL: [], AUD_REPORT: [] },
       depSelecionada: { fv: null, sql: null, report: null },
-      observacoesDependencias: '',
 
       toasts: [],
     }
@@ -785,7 +780,7 @@ export default {
         this.isConnected = true
       } catch (error) {
         this.isConnected = false
-        this.showToast('Erro de conexão com a API', 'error')
+        // this.showToast('Erro de conexão com a API', 'error')
       }
     },
 
@@ -1049,7 +1044,6 @@ export default {
           tabela_dependente: 'AUD_FV',
           id_dependente: this.depSelecionada.fv,
           nome_dependente: itemFv ? itemFv.nome : null,
-          observacoes: this.observacoesDependencias,
         })
       }
       if (this.depSelecionada.sql && this.newDependency.tabela_origem !== 'AUD_SQLS') {
@@ -1058,7 +1052,6 @@ export default {
           tabela_dependente: 'AUD_SQLS',
           id_dependente: this.depSelecionada.sql,
           nome_dependente: itemSql ? itemSql.nome : null,
-          observacoes: this.observacoesDependencias,
         })
       }
       if (this.depSelecionada.report && this.newDependency.tabela_origem !== 'AUD_REPORT') {
@@ -1069,13 +1062,11 @@ export default {
           tabela_dependente: 'AUD_REPORT',
           id_dependente: this.depSelecionada.report,
           nome_dependente: itemReport ? itemReport.nome : null,
-          observacoes: this.observacoesDependencias,
         })
       }
 
       // Limpa os campos após adicionar
       this.depSelecionada = { fv: null, sql: null, report: null }
-      this.observacoesDependencias = ''
     },
 
     removerDependencia(index) {
@@ -1088,10 +1079,18 @@ export default {
         this.mermaidDiagram = ''
         this.diagramData = dep
 
+        console.log('Abrindo diagrama para:', dep)
+        console.log('ID do item:', dep.id)
+        console.log('URL completa:', `/api/v2/dependencias/itens/${dep.id}/json-model`)
+        
         // Busca JSON pronto no backend
         const model = await this.useFetch(`/api/v2/dependencias/itens/${dep.id}/json-model`)
+        console.log('Modelo recebido:', model)
+        
         this.mermaidDiagram = toMermaidFlowchart(model)
+        console.log('Diagrama Mermaid gerado:', this.mermaidDiagram)
       } catch (e) {
+        console.error('Erro ao gerar diagrama:', e)
         this.showToast('Erro ao gerar diagrama', 'error')
         this.showDiagram = false
       }
@@ -1115,7 +1114,6 @@ export default {
         dependencias: [],
       }
       this.depSelecionada = { fv: null, sql: null, report: null }
-      this.observacoesDependencias = ''
     },
 
     async viewHistory(dep) {
