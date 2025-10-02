@@ -453,12 +453,16 @@
                   v-model="depSelecionada.sql"
                   class="form-select"
                   @focus="ensureItens('AUD_SQLS')"
+                  @change="this.$nextTick(() => console.log('SQL selecionado:', depSelecionada.sql, 'Tipo:', typeof depSelecionada.sql))"
                 >
                   <option value="">Selecione um SQL</option>
                   <option v-for="s in itensPorTabela.AUD_SQLS" :key="s.id" :value="s.id">
                     {{ s.nome }}
                   </option>
                 </select>
+                <div class="debug-info" style="font-size: 10px; color: #666;">
+                  Debug: {{ newDependency.tabela_origem }} | SQLs: {{ itensPorTabela.AUD_SQLS.length }} | Selecionado: {{ depSelecionada.sql }}
+                </div>
               </div>
               <div class="dep-chooser-col" v-if="newDependency.tabela_origem !== 'AUD_REPORT'">
                 <small>Relatório</small>
@@ -684,12 +688,12 @@ export default {
           items: [],
         },
         {
-          name: 'AUD_SQL',
+          name: 'AUD_SQLS',
           expanded: true,
           items: [],
         },
         {
-          name: 'AUD_REPORTS',
+          name: 'AUD_REPORT',
           expanded: false,
           items: [],
         },
@@ -710,9 +714,9 @@ export default {
         dependencias: [],
       },
 
-      tabelasDisponiveis: ['AUD_FV', 'AUD_SQL', 'AUD_REPORT'],
+      tabelasDisponiveis: ['AUD_FV', 'AUD_SQLS', 'AUD_REPORT'],
       itensOrigem: [],
-      itensPorTabela: { AUD_FV: [], AUD_SQL: [], AUD_REPORT: [] },
+      itensPorTabela: { AUD_FV: [], AUD_SQLS: [], AUD_REPORT: [] },
       depSelecionada: { fv: null, sql: null, report: null },
 
       toasts: [],
@@ -1025,21 +1029,41 @@ export default {
     },
 
     async ensureItens(tabela) {
-      if (this.itensPorTabela[tabela] && this.itensPorTabela[tabela].length) return
+      console.log('=== DEBUG ensureItens ===')
+      console.log('Tabela:', tabela)
+      console.log('itensPorTabela[tabela]:', this.itensPorTabela[tabela])
+      
+      if (this.itensPorTabela[tabela] && this.itensPorTabela[tabela].length) {
+        console.log('Itens já carregados, retornando')
+        return
+      }
+      
       try {
+        console.log('Carregando itens para tabela:', tabela)
         const itens = await this.useFetch(
           `/api/v2/dependencias/tabelas/${encodeURIComponent(tabela)}/itens`,
         )
+        console.log('Itens carregados:', itens)
         this.itensPorTabela[tabela] = itens
-      } catch {}
+        console.log('itensPorTabela após carregamento:', this.itensPorTabela[tabela])
+      } catch (error) {
+        console.error('Erro ao carregar itens:', error)
+      }
+      console.log('=== FIM DEBUG ensureItens ===')
     },
 
     adicionarSequencia() {
+      console.log('=== DEBUG adicionarSequencia ===')
+      console.log('depSelecionada:', this.depSelecionada)
+      console.log('tabela_origem:', this.newDependency.tabela_origem)
+      console.log('itensPorTabela.AUD_SQLS:', this.itensPorTabela.AUD_SQLS)
+      
       this.newDependency.dependencias = []
 
       // Regra de negócio: não adiciona a tabela escolhida como origem
       if (this.depSelecionada.fv && this.newDependency.tabela_origem !== 'AUD_FV') {
-        const itemFv = this.itensPorTabela.AUD_FV.find((fv) => fv.id == this.depSelecionada.fv)
+        const itemFv = this.itensPorTabela.AUD_FV.find((fv) => String(fv.id) === String(this.depSelecionada.fv))
+        console.log('Adicionando FV:', itemFv)
         this.newDependency.dependencias.push({
           tabela_dependente: 'AUD_FV',
           id_dependente: this.depSelecionada.fv,
@@ -1047,7 +1071,9 @@ export default {
         })
       }
       if (this.depSelecionada.sql && this.newDependency.tabela_origem !== 'AUD_SQLS') {
-        const itemSql = this.itensPorTabela.AUD_SQLS.find((s) => s.id == this.depSelecionada.sql)
+        const itemSql = this.itensPorTabela.AUD_SQLS.find((s) => String(s.id) === String(this.depSelecionada.sql))
+        console.log('Adicionando SQL:', itemSql)
+        console.log('Comparando:', this.depSelecionada.sql, 'com', this.itensPorTabela.AUD_SQLS.map(s => s.id))
         this.newDependency.dependencias.push({
           tabela_dependente: 'AUD_SQLS',
           id_dependente: this.depSelecionada.sql,
@@ -1056,14 +1082,18 @@ export default {
       }
       if (this.depSelecionada.report && this.newDependency.tabela_origem !== 'AUD_REPORT') {
         const itemReport = this.itensPorTabela.AUD_REPORT.find(
-          (r) => r.id == this.depSelecionada.report,
+          (r) => String(r.id) === String(this.depSelecionada.report),
         )
+        console.log('Adicionando REPORT:', itemReport)
         this.newDependency.dependencias.push({
           tabela_dependente: 'AUD_REPORT',
           id_dependente: this.depSelecionada.report,
           nome_dependente: itemReport ? itemReport.nome : null,
         })
       }
+
+      console.log('Dependências finais:', this.newDependency.dependencias)
+      console.log('=== FIM DEBUG ===')
 
       // Limpa os campos após adicionar
       this.depSelecionada = { fv: null, sql: null, report: null }
