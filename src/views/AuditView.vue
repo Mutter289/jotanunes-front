@@ -974,22 +974,22 @@ export default {
 
 .gemini-result-offcanvas {
   margin-top: 16px;
-  background: #f0fdf4;
-  border-left: 4px solid #22c55e;
+  background: #eff6ff;              
+  border-left: 4px solid #3b82f6;   
   padding: 16px;
   border-radius: 8px;
 }
 
 .gemini-title-offcanvas {
   margin: 0 0 8px 0;
-  color: #166534;
+  color: #1e40af;                   
   font-size: 16px;
 }
 
 .gemini-result-offcanvas p {
   margin: 0;
   line-height: 1.6;
-  color: #15803d;
+  color: #1d4ed8;                   
 }
 
 /* Estilos para Observações */
