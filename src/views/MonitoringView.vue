@@ -505,8 +505,11 @@ export default {
   },
 
   data() {
+    const base = (window.API_BASE_URL || '').startsWith('http')
+      ? window.API_BASE_URL
+      : `http://${window.API_BASE_URL || 'localhost:8000'}`
     return {
-      API_BASE_URL: 'http://192.168.195.162:8000',
+      API_BASE_URL: base, //http://192.168.195.162:8000
       services: [],
       stats: {
         total_services: 0,

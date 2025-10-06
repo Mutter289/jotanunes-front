@@ -789,10 +789,10 @@ export default {
     async loadDependencies() {
       try {
         this.isLoading = true
-        
+
         // Buscar lista resumida
         const response = await this.useFetch(`/api/v2/dependencias/itens`)
-        
+
         // Buscar detalhes completos de cada item
         const dependenciesCompletas = []
         if (response && response.length > 0) {
@@ -806,7 +806,7 @@ export default {
             }
           }
         }
-        
+
         this.dependencies = dependenciesCompletas
         this.updateFilterCounts()
         this.organizeDependencyTree()
@@ -994,7 +994,6 @@ export default {
             dependencias: this.newDependency.dependencias,
           }
 
-
           await this.useFetch('/api/v2/dependencias/itens', {
             method: 'POST',
             body,
@@ -1057,7 +1056,6 @@ export default {
       }
     },
 
-
     adicionarSequencia() {
       this.newDependency.dependencias = []
 
@@ -1078,7 +1076,7 @@ export default {
       // Adicionar SQL se selecionado
       if (this.depSelecionada.sql && this.newDependency.tabela_origem !== 'AUD_SQLS') {
         const itemSql = this.itensPorTabela.AUD_SQLS.find(
-          (s) => String(s.id) === String(this.depSelecionada.sql)
+          (s) => String(s.id) === String(this.depSelecionada.sql),
         )
         if (itemSql) {
           this.newDependency.dependencias.push({
