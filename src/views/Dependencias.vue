@@ -718,6 +718,7 @@ export default {
       depSelecionada: { fv: '', sql: '', report: '' }, // Strings vazias em vez de null
 
       toasts: [],
+      nowTick: Date.now(),
     }
   },
 
@@ -749,12 +750,17 @@ export default {
 
   async mounted() {
     await this.initializeApp()
+    // Atualiza o relógio a cada 60s para re-renderizar e recalcular textos relativos
+    this._timeInterval = setInterval(() => {
+      this.nowTick = Date.now()
+    }, 60000)
   },
 
   beforeUnmount() {
     if (this.websocket) {
       this.websocket.close()
     }
+    if (this._timeInterval) clearInterval(this._timeInterval)
   },
 
   methods: {
@@ -1224,24 +1230,40 @@ export default {
       return riskClasses[risco] || 'baixo'
     },
 
-    formatDate(dateString) {
-      if (!dateString) return 'N/A'
+    formatDate(input) {
+      // Referência para forçar re-render quando nowTick muda
+      void this.nowTick
+      if (!input) return 'N/A'
+      const d = typeof input === 'string' || typeof input === 'number' ? new Date(input) : input
+      if (Number.isNaN(d.getTime())) return 'N/A'
 
-      try {
-        const date = new Date(dateString)
-        const now = new Date()
-        const diffTime = Math.abs(now - date)
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+      const now = new Date()
+      const diffMs = now.getTime() - d.getTime()
+      const diffSec = Math.floor(diffMs / 1000)
+      const diffMin = Math.floor(diffSec / 60)
 
-        if (diffDays === 1) return 'ontem'
-        if (diffDays < 7) return `${diffDays} dias atrás`
-        if (diffDays < 30) return `${Math.ceil(diffDays / 7)} semanas atrás`
-        if (diffDays < 365) return `${Math.ceil(diffDays / 30)} meses atrás`
+      const pad = (n) => String(n).padStart(2, '0')
+      const timeStr = `${pad(d.getHours())}:${pad(d.getMinutes())}`
 
-        return date.toLocaleDateString('pt-BR')
-      } catch (error) {
-        return dateString
+      const startOfDay = (x) => new Date(x.getFullYear(), x.getMonth(), x.getDate())
+      const todayStart = startOfDay(now).getTime()
+      const dateStart = startOfDay(d).getTime()
+      const dayDiff = Math.round((todayStart - dateStart) / (24 * 60 * 60 * 1000))
+
+      if (diffSec < 30) return 'agora'
+      if (diffMin < 60) return `há ${diffMin} min`
+      if (dayDiff === 0) return `hoje ${timeStr}`
+      if (dayDiff === 1) return `ontem ${timeStr}`
+      if (dayDiff > 1 && dayDiff < 7) {
+        return d.toLocaleDateString('pt-BR', { weekday: 'long' }) + ` ${timeStr}`
       }
+      return new Intl.DateTimeFormat('pt-BR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      }).format(d)
     },
 
     showToast(message, type = 'info') {
