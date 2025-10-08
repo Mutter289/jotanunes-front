@@ -1,5 +1,5 @@
 <template>
-  <div ref="container"></div>
+  <div ref="container" class="mermaid-wrap"></div>
   <div v-if="error" class="mermaid-error">{{ error }}</div>
 </template>
 
@@ -32,6 +32,7 @@ export default {
       theme: this.theme,
       securityLevel: 'loose',
       fontFamily: 'Arial, sans-serif',
+      flowchart: { useMaxWidth: false },
     })
     this.renderDiagram()
   },
@@ -52,6 +53,7 @@ export default {
           theme: this.theme,
           securityLevel: 'loose',
           fontFamily: 'Arial, sans-serif',
+          flowchart: { useMaxWidth: false },
         })
 
         const id = `mermaid-${Date.now()}-${++this.renderKey}`
@@ -89,6 +91,22 @@ export default {
 </script>
 
 <style scoped>
+.mermaid-wrap {
+  display: flex;
+  justify-content: center; /* centraliza horizontalmente */
+  align-items: flex-start;
+  width: 100%;
+  max-width: 100%;
+  overflow: auto;
+}
+
+.mermaid-wrap :deep(svg) {
+  height: auto;
+  width: auto; /* deixa o SVG no tamanho natural gerado, evitando encolher para 100% */
+  transform: scale(0.4); /* reduz ~60% do tamanho visual */
+  transform-origin: top center; /* centraliza melhor com flex */
+}
+
 .mermaid-error {
   color: #c00;
   font-size: 0.9rem;

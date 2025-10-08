@@ -434,47 +434,59 @@
 
           <div class="form-group">
             <label>Dependências</label>
-            <div class="dep-chooser">
+            <div class="dep-chooser grid-2">
               <div class="dep-chooser-col" v-if="newDependency.tabela_origem !== 'AUD_FV'">
-                <small>Forma Visual</small>
-                <select
-                  v-model="depSelecionada.fv"
-                  class="form-select"
-                  @focus="ensureItens('AUD_FV')"
-                >
-                  <option value="">Selecione uma Forma Visual</option>
-                  <option v-for="fv in itensPorTabela.AUD_FV" :key="fv.id" :value="fv.id">
+                <div class="dep-col-header">Forma Visual</div>
+                <div class="option-list" @mouseenter="ensureItens('AUD_FV')">
+                  <div
+                    v-for="fv in availableOptions('AUD_FV')"
+                    :key="fv.id"
+                    class="option-item"
+                    :class="{ selected: isSelected('AUD_FV', String(fv.id)) }"
+                    @click="toggleOption('AUD_FV', String(fv.id))"
+                    role="button"
+                    tabindex="0"
+                  >
                     {{ fv.nome }}
-                  </option>
-                </select>
+                  </div>
+                </div>
               </div>
               <div class="dep-chooser-col" v-if="newDependency.tabela_origem !== 'AUD_SQLS'">
-                <small>SQL</small>
-                <select
-                  v-model="depSelecionada.sql"
-                  class="form-select"
-                  @focus="ensureItens('AUD_SQLS')"
-                >
-                  <option value="">Selecione um SQL</option>
-                  <option v-for="s in itensPorTabela.AUD_SQLS" :key="s.id" :value="s.id">
+                <div class="dep-col-header">SQL</div>
+                <div class="option-list" @mouseenter="ensureItens('AUD_SQLS')">
+                  <div
+                    v-for="s in itensPorTabela.AUD_SQLS"
+                    :key="s.id"
+                    class="option-item"
+                    :class="{ selected: isSelected('AUD_SQLS', String(s.id)) }"
+                    @click="toggleOption('AUD_SQLS', String(s.id))"
+                    role="button"
+                    tabindex="0"
+                  >
                     {{ s.nome }}
-                  </option>
-                </select>
+                  </div>
+                </div>
               </div>
               <div class="dep-chooser-col" v-if="newDependency.tabela_origem !== 'AUD_REPORT'">
-                <small>Relatório</small>
-                <select
-                  v-model="depSelecionada.report"
-                  class="form-select"
-                  @focus="ensureItens('AUD_REPORT')"
-                >
-                  <option value="">Selecione um Relatório</option>
-                  <option v-for="r in itensPorTabela.AUD_REPORT" :key="r.id" :value="r.id">
+                <div class="dep-col-header">Relatório</div>
+                <div class="option-list" @mouseenter="ensureItens('AUD_REPORT')">
+                  <div
+                    v-for="r in itensPorTabela.AUD_REPORT"
+                    :key="r.id"
+                    class="option-item"
+                    :class="{ selected: isSelected('AUD_REPORT', String(r.id)) }"
+                    @click="toggleOption('AUD_REPORT', String(r.id))"
+                    role="button"
+                    tabindex="0"
+                  >
                     {{ r.nome }}
-                  </option>
-                </select>
+                  </div>
+                </div>
               </div>
-              <button class="btn-secondary" @click="adicionarSequencia">Adicionar Sequência</button>
+            </div>
+            <div class="dep-actions-row">
+              <button class="btn-secondary" @click="adicionarSequencia">adicionar sequência</button>
+              <button class="btn-secondary" @click="limparSelecao">limpar seleção</button>
             </div>
             <div v-if="newDependency.dependencias.length" class="sequencias-list">
               <div v-for="(d, i) in newDependency.dependencias" :key="i" class="sequencia-item">
@@ -715,7 +727,7 @@ export default {
       tabelasDisponiveis: ['AUD_FV', 'AUD_SQLS', 'AUD_REPORT'],
       itensOrigem: [],
       itensPorTabela: { AUD_FV: [], AUD_SQLS: [], AUD_REPORT: [] },
-      depSelecionada: { fv: '', sql: '', report: '' }, // Strings vazias em vez de null
+      depSelecionada: { fv: [], sql: [], report: [] }, // seleção múltipla por clique
 
       toasts: [],
       nowTick: Date.now(),
@@ -1063,52 +1075,83 @@ export default {
     },
 
     adicionarSequencia() {
-      this.newDependency.dependencias = []
+      // Não limpar dependências já adicionadas; apenas acrescentar
 
-      // Adicionar FV se selecionado
-      if (this.depSelecionada.fv && this.newDependency.tabela_origem !== 'AUD_FV') {
-        const itemFv = this.itensPorTabela.AUD_FV.find(
-          (fv) => String(fv.id) === String(this.depSelecionada.fv),
-        )
-        if (itemFv) {
-          this.newDependency.dependencias.push({
-            tabela_dependente: 'AUD_FV',
-            id_dependente: this.depSelecionada.fv,
-            nome_dependente: itemFv.nome,
-          })
-        }
+      // FV múltiplos (aplica regra de negócio nos disponíveis; aqui apenas adiciona os selecionados)
+      if (Array.isArray(this.depSelecionada.fv) && this.newDependency.tabela_origem !== 'AUD_FV') {
+        this.depSelecionada.fv.forEach((idSel) => {
+          const item = this.availableOptions('AUD_FV').find((x) => String(x.id) === String(idSel))
+          if (item) {
+            this.newDependency.dependencias.push({
+              tabela_dependente: 'AUD_FV',
+              id_dependente: idSel,
+              nome_dependente: item.nome,
+            })
+          }
+        })
       }
 
-      // Adicionar SQL se selecionado
-      if (this.depSelecionada.sql && this.newDependency.tabela_origem !== 'AUD_SQLS') {
-        const itemSql = this.itensPorTabela.AUD_SQLS.find(
-          (s) => String(s.id) === String(this.depSelecionada.sql),
-        )
-        if (itemSql) {
-          this.newDependency.dependencias.push({
-            tabela_dependente: 'AUD_SQLS',
-            id_dependente: this.depSelecionada.sql,
-            nome_dependente: itemSql.nome,
-          })
-        }
+      // SQL múltiplos
+      if (Array.isArray(this.depSelecionada.sql) && this.newDependency.tabela_origem !== 'AUD_SQLS') {
+        this.depSelecionada.sql.forEach((idSel) => {
+          const item = this.itensPorTabela.AUD_SQLS.find((s) => String(s.id) === String(idSel))
+          if (item) {
+            this.newDependency.dependencias.push({
+              tabela_dependente: 'AUD_SQLS',
+              id_dependente: idSel,
+              nome_dependente: item.nome,
+            })
+          }
+        })
       }
 
-      // Adicionar REPORT se selecionado
-      if (this.depSelecionada.report && this.newDependency.tabela_origem !== 'AUD_REPORT') {
-        const itemReport = this.itensPorTabela.AUD_REPORT.find(
-          (r) => String(r.id) === String(this.depSelecionada.report),
-        )
-        if (itemReport) {
-          this.newDependency.dependencias.push({
-            tabela_dependente: 'AUD_REPORT',
-            id_dependente: this.depSelecionada.report,
-            nome_dependente: itemReport.nome,
-          })
-        }
+      // REPORT múltiplos
+      if (Array.isArray(this.depSelecionada.report) && this.newDependency.tabela_origem !== 'AUD_REPORT') {
+        this.depSelecionada.report.forEach((idSel) => {
+          const item = this.itensPorTabela.AUD_REPORT.find((r) => String(r.id) === String(idSel))
+          if (item) {
+            this.newDependency.dependencias.push({
+              tabela_dependente: 'AUD_REPORT',
+              id_dependente: idSel,
+              nome_dependente: item.nome,
+            })
+          }
+        })
       }
 
-      // Limpa os campos após adicionar
-      this.depSelecionada = { fv: '', sql: '', report: '' }
+      // Mantém seleções para permitir adicionar mais; se preferir limpar após adicionar, descomente a linha abaixo
+      // this.depSelecionada = { fv: [], sql: [], report: [] }
+      this.showToast('Dependências adicionadas à sequência (duplicatas permitidas).', 'info')
+    },
+
+    toggleOption(tabela, idSel) {
+      const key = tabela === 'AUD_SQLS' ? 'sql' : tabela === 'AUD_REPORT' ? 'report' : 'fv'
+      const arr = this.depSelecionada[key]
+      const i = arr.findIndex((x) => String(x) === String(idSel))
+      if (i >= 0) arr.splice(i, 1)
+      else arr.push(String(idSel))
+    },
+
+    isSelected(tabela, idSel) {
+      const key = tabela === 'AUD_SQLS' ? 'sql' : tabela === 'AUD_REPORT' ? 'report' : 'fv'
+      return this.depSelecionada[key].some((x) => String(x) === String(idSel))
+    },
+
+    limparSelecao() {
+      this.depSelecionada = { fv: [], sql: [], report: [] }
+    },
+
+    // Regras de negócio: quais FVs aparecem na seleção
+    availableOptions(tabela) {
+      const list = this.itensPorTabela[tabela] || []
+      if (tabela === 'AUD_FV') {
+        return list.filter((it) => {
+          const ativo = it.ATIVO === true || it.ativo === true || it.ativo === 1
+          const notSelf = !(this.newDependency.tabela_origem === 'AUD_FV' && String(it.id) === String(this.newDependency.id_origem))
+          return ativo && notSelf
+        })
+      }
+      return list
     },
 
     removerDependencia(index) {
@@ -2187,6 +2230,55 @@ export default {
   display: flex;
   justify-content: flex-end;
   gap: 1rem;
+}
+
+/* UI de seleção múltipla por clique (SQL/Relatório) */
+.dep-chooser.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.dep-col-header {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #64748b;
+  margin-bottom: 0.5rem;
+}
+
+.option-list {
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #fff;
+  min-height: 220px;
+  max-height: 260px;
+  overflow: auto;
+  padding: 0.5rem;
+}
+
+.option-item {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  margin-bottom: 0.5rem;
+  cursor: pointer;
+  transition: all 0.15s ease-in-out;
+}
+
+.option-item:hover {
+  background: #f1f5f9;
+}
+
+.option-item.selected {
+  background: #e0f2fe; /* azul claro */
+  border-color: #38bdf8; /* borda azul */
+  color: #0c4a6e;
+}
+
+.dep-actions-row {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
 }
 
 .btn-secondary {
