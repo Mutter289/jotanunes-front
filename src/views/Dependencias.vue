@@ -653,6 +653,26 @@ export default {
   components: {
     VMermaid,
   },
+  watch: {
+    newDependency: {
+      handler() {
+        this.saveDraft()
+      },
+      deep: true,
+    },
+    depSelecionada: {
+      handler() {
+        this.saveDraft()
+      },
+      deep: true,
+    },
+    'newDependency.dependencias': {
+      handler() {
+        this.saveDraft()
+      },
+      deep: true,
+    },
+  },
   data() {
     return {
       projectName: 'JotaNunes Construtora',
@@ -731,6 +751,7 @@ export default {
 
       toasts: [],
       nowTick: Date.now(),
+      draftKey: null,
     }
   },
 
@@ -946,6 +967,21 @@ export default {
         dependencias: [],
       }
       this.showAddModal = true
+
+      // Pré-carrega seleções e lista
+      this.depSelecionada = { fv: [], sql: [], report: [] }
+      if (Array.isArray(dep.dependencias)) {
+        dep.dependencias.forEach((d) => {
+          if (d.tabela_dependente === 'AUD_FV') this.depSelecionada.fv.push(String(d.id_dependente))
+          else if (d.tabela_dependente === 'AUD_SQLS') this.depSelecionada.sql.push(String(d.id_dependente))
+          else if (d.tabela_dependente === 'AUD_REPORT' || d.tabela_dependente === 'AUD_REPORTS') this.depSelecionada.report.push(String(d.id_dependente))
+        })
+        this.newDependency.dependencias = dep.dependencias.map((d) => ({ ...d }))
+      }
+
+      // Rascunho
+      this.draftKey = this.getDraftKey()
+      this.loadDraft()
     },
 
     async removeDependency(dep) {
@@ -1037,6 +1073,11 @@ export default {
       await this.ensureItens('AUD_FV')
       await this.ensureItens('AUD_SQLS')
       await this.ensureItens('AUD_REPORT')
+
+      // Rascunho para criação
+      this.editingDependency = null
+      this.draftKey = this.getDraftKey()
+      this.loadDraft()
     },
 
     async loadTabelas() {
@@ -1154,6 +1195,46 @@ export default {
       return list
     },
 
+    // Draft helpers
+    getDraftKey() {
+      const id = this.editingDependency?.id
+      return id ? `dep_draft_${id}` : 'dep_draft_new'
+    },
+
+    saveDraft() {
+      try {
+        if (!this.showAddModal) return
+        if (!this.draftKey) this.draftKey = this.getDraftKey()
+        const payload = {
+          newDependency: this.newDependency,
+          depSelecionada: this.depSelecionada,
+        }
+        localStorage.setItem(this.draftKey, JSON.stringify(payload))
+      } catch {}
+    },
+
+    loadDraft() {
+      try {
+        if (!this.draftKey) return
+        const raw = localStorage.getItem(this.draftKey)
+        if (!raw) return
+        const parsed = JSON.parse(raw)
+        if (parsed?.newDependency) {
+          this.newDependency = { ...this.newDependency, ...parsed.newDependency }
+        }
+        if (parsed?.depSelecionada) {
+          this.depSelecionada = { fv: [], sql: [], report: [], ...parsed.depSelecionada }
+        }
+      } catch {}
+    },
+
+    clearDraft() {
+      try {
+        if (!this.draftKey) this.draftKey = this.getDraftKey()
+        localStorage.removeItem(this.draftKey)
+      } catch {}
+    },
+
     removerDependencia(index) {
       this.newDependency.dependencias.splice(index, 1)
     },
@@ -1198,7 +1279,7 @@ export default {
         descricao: '',
         dependencias: [],
       }
-      this.depSelecionada = { fv: '', sql: '', report: '' } //  Strings vazias em vez de null
+      this.depSelecionada = { fv: [], sql: [], report: [] }
     },
 
     async viewHistory(dep) {
