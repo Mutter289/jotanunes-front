@@ -34,7 +34,10 @@ export async function useFetch(
   }
 
   try {
-    const res = await fetch(`http://192.168.195.162:8000${endpoint}`, options) //http://192.168.195.162:8000${endpoint}
+    const baseUrl = (window.API_BASE_URL || '').startsWith('http')
+      ? window.API_BASE_URL
+      : `http://${window.API_BASE_URL || 'localhost:8000'}`
+    const res = await fetch(`${baseUrl}${endpoint}`, options)
 
     let data
     try {
@@ -102,4 +105,30 @@ export async function useFetch(
     // Re-lançar erros HTTP já tratados
     throw error
   }
+}
+
+function mockResponse(endpoint) {
+  try {
+    if (
+      endpoint &&
+      endpoint.startsWith('/api/v2/dependencias/itens/') &&
+      endpoint.endsWith('/json-model')
+    ) {
+      return {
+        titulo_dependencia: 'Titulo',
+        versao: 'v1.0.0',
+        criado: 'Gustavo Trindade',
+        origem: {
+          tabela: 'AUD_SQLS',
+          item: 'SELECT * FROM AUD_SQLS',
+          id: 'COD2201.0001',
+        },
+        descricao: 'aqui vai ter uma descrição',
+        dependencias: [
+          { tabela: 'AUD_FVS', item: 'alguma coisa vaivim aqui', id: 1 },
+          { tabela: 'AUD_REPORTS', item: 'alguma coisa vaivim aqui', id: 1 },
+        ],
+      }
+    }
+  } catch {}
 }

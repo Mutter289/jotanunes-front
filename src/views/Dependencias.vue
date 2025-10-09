@@ -27,13 +27,13 @@
           <span class="project-name">{{ projectName }}</span>
         </div>
         <div class="header-right">
-          <div
+          <!-- <div
             class="connection-status"
             :class="{ connected: isConnected, disconnected: !isConnected }"
           >
             <span class="status-dot"></span>
             {{ isConnected ? 'Conectado' : 'Desconectado' }}
-          </div>
+          </div> -->
           <button class="btn-icon" @click="refreshDependencies" :class="{ rotating: isRefreshing }">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M21 2v6h-6" />
@@ -410,6 +410,7 @@
           <div class="form-group">
             <label>Item de Origem</label>
             <select v-model="newDependency.id_origem" class="form-select">
+              <option disabled value="">Selecione um item</option>
               <option v-for="it in itensOrigem" :key="it.id" :value="it.id">{{ it.nome }}</option>
             </select>
           </div>
@@ -432,49 +433,71 @@
           </div>
 
           <div class="form-group">
-            <label>Dependências (Forma Visual → SQL → Relatório)</label>
-            <div class="dep-chooser">
-              <div class="dep-chooser-col">
-                <small>Forma Visual</small>
-                <select
-                  v-model="depSelecionada.fv"
-                  class="form-select"
-                  @focus="ensureItens('AUD_FV')"
-                >
-                  <option v-for="fv in itensPorTabela.AUD_FV" :key="fv.id" :value="fv.id">
+            <label>Dependências</label>
+            <div class="dep-chooser grid-2">
+              <div class="dep-chooser-col" v-if="newDependency.tabela_origem !== 'AUD_FV'">
+                <div class="dep-col-header">Forma Visual</div>
+                <div class="option-list" @mouseenter="ensureItens('AUD_FV')">
+                  <div
+                    v-for="fv in availableOptions('AUD_FV')"
+                    :key="fv.id"
+                    class="option-item"
+                    :class="{ selected: isSelected('AUD_FV', String(fv.id)) }"
+                    @click="toggleOption('AUD_FV', String(fv.id))"
+                    role="button"
+                    tabindex="0"
+                  >
                     {{ fv.nome }}
-                  </option>
-                </select>
+                  </div>
+                </div>
               </div>
-              <div class="dep-chooser-col">
-                <small>SQL</small>
-                <select
-                  v-model="depSelecionada.sql"
-                  class="form-select"
-                  @focus="ensureItens('AUD_SQLS')"
-                >
-                  <option v-for="s in itensPorTabela.AUD_SQLS" :key="s.id" :value="s.id">
+              <div class="dep-chooser-col" v-if="newDependency.tabela_origem !== 'AUD_SQLS'">
+                <div class="dep-col-header">SQL</div>
+                <div class="option-list" @mouseenter="ensureItens('AUD_SQLS')">
+                  <div
+                    v-for="s in itensPorTabela.AUD_SQLS"
+                    :key="s.id"
+                    class="option-item"
+                    :class="{ selected: isSelected('AUD_SQLS', String(s.id)) }"
+                    @click="toggleOption('AUD_SQLS', String(s.id))"
+                    role="button"
+                    tabindex="0"
+                  >
                     {{ s.nome }}
-                  </option>
-                </select>
+                  </div>
+                </div>
               </div>
-              <div class="dep-chooser-col">
-                <small>Relatório</small>
-                <select
-                  v-model="depSelecionada.report"
-                  class="form-select"
-                  @focus="ensureItens('AUD_REPORT')"
-                >
-                  <option v-for="r in itensPorTabela.AUD_REPORT" :key="r.id" :value="r.id">
+              <div class="dep-chooser-col" v-if="newDependency.tabela_origem !== 'AUD_REPORT'">
+                <div class="dep-col-header">Relatório</div>
+                <div class="option-list" @mouseenter="ensureItens('AUD_REPORT')">
+                  <div
+                    v-for="r in itensPorTabela.AUD_REPORT"
+                    :key="r.id"
+                    class="option-item"
+                    :class="{ selected: isSelected('AUD_REPORT', String(r.id)) }"
+                    @click="toggleOption('AUD_REPORT', String(r.id))"
+                    role="button"
+                    tabindex="0"
+                  >
                     {{ r.nome }}
-                  </option>
-                </select>
+                  </div>
+                </div>
               </div>
-              <button class="btn-secondary" @click="adicionarSequencia">Adicionar Sequência</button>
+            </div>
+            <div class="dep-actions-row">
+              <button class="btn-secondary" @click="adicionarSequencia">adicionar sequência</button>
+              <button class="btn-secondary" @click="limparSelecao">limpar seleção</button>
             </div>
             <div v-if="newDependency.dependencias.length" class="sequencias-list">
               <div v-for="(d, i) in newDependency.dependencias" :key="i" class="sequencia-item">
-                <span>{{ d.tabela_dependente }} → {{ d.id_dependente }}</span>
+                <div class="sequencia-info">
+                  <span class="sequencia-tabela">{{ d.tabela_dependente }}</span>
+                  <span class="sequencia-item">{{ d.nome_dependente || d.id_dependente }}</span>
+                  <button class="btn-remove" @click="removerDependencia(i)">×</button>
+                </div>
+                <div v-if="d.observacoes" class="sequencia-observacoes">
+                  <small><strong>Observações:</strong> {{ d.observacoes }}</small>
+                </div>
               </div>
             </div>
           </div>
@@ -490,9 +513,9 @@
 
     <!-- Diagram Modal -->
     <div v-if="showDiagram" class="modal-overlay" @click.self="showDiagram = false">
-      <div class="modal">
+      <div class="modal large-modal">
         <div class="modal-header">
-          <h2>Fluxo do Modelo: {{ diagramData?.nome }}</h2>
+          <h2>Diagrama de Dependências: {{ diagramData?.nome }}</h2>
           <button class="modal-close" @click="showDiagram = false">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <line x1="18" y1="6" x2="6" y2="18" />
@@ -501,21 +524,27 @@
           </button>
         </div>
         <div class="modal-body">
-          <div class="diagram">
-            <div class="node">Forma Visual</div>
-            <div class="arrow">→</div>
-            <div class="node">SQL</div>
-            <div class="arrow">→</div>
-            <div class="node">Relatório</div>
+          <div class="diagram-container">
+            <VMermaid v-if="mermaidDiagram" :diagram="mermaidDiagram" />
+            <div v-else class="loading-diagram">
+              <div class="spinner"></div>
+              <p>Gerando diagrama...</p>
+            </div>
           </div>
-          <ul class="diagram-list">
-            <li v-for="d in diagramData?.dependencias || []" :key="d.id">
-              {{ d.tabela_dependente }}: {{ d.nome_dependente || d.id_dependente }}
-            </li>
-          </ul>
+          <div v-if="diagramData?.dependencias?.length" class="diagram-details">
+            <h3>Detalhes das Dependências</h3>
+            <ul class="diagram-list">
+              <li v-for="d in diagramData.dependencias" :key="d.id" class="diagram-item">
+                <strong>{{ d.tabela_dependente }}:</strong>
+                {{ d.nome_dependente || d.id_dependente }}
+                <span v-if="d.observacoes" class="observacoes">({{ d.observacoes }})</span>
+              </li>
+            </ul>
+          </div>
         </div>
         <div class="modal-footer">
           <button class="btn-secondary" @click="showDiagram = false">Fechar</button>
+          <button class="btn-primary" @click="downloadDiagram">Download PNG</button>
         </div>
       </div>
     </div>
@@ -577,8 +606,10 @@
             <h3>Dependências ({{ selectedDep.dependencias.length }})</h3>
             <div class="sub-dependencies">
               <div v-for="subDep in selectedDep.dependencias" :key="subDep.id" class="sub-dep-item">
-                <strong>{{ subDep.nome || 'Dependência sem nome' }}</strong>
-                <small>por {{ subDep.criador }} - {{ formatDate(subDep.ultima_atu) }}</small>
+                <strong>{{ subDep.nome_dependente || 'Dependência sem nome' }}</strong>
+                <small
+                  >por {{ subDep.tabela_dependente }} - {{ formatDate(subDep.criado_em) }}</small
+                >
               </div>
             </div>
           </div>
@@ -615,7 +646,33 @@
 
 <script>
 import { useFetch } from '@/hooks/useFetch.js'
+import { toMermaidFlowchart } from '@/util/toMermaid.js'
+import VMermaid from '@/components/Mermaid/VMermaid.vue'
+
 export default {
+  components: {
+    VMermaid,
+  },
+  watch: {
+    newDependency: {
+      handler() {
+        this.saveDraft()
+      },
+      deep: true,
+    },
+    depSelecionada: {
+      handler() {
+        this.saveDraft()
+      },
+      deep: true,
+    },
+    'newDependency.dependencias': {
+      handler() {
+        this.saveDraft()
+      },
+      deep: true,
+    },
+  },
   data() {
     return {
       projectName: 'JotaNunes Construtora',
@@ -661,12 +718,12 @@ export default {
           items: [],
         },
         {
-          name: 'AUD_SQL',
+          name: 'AUD_SQLS',
           expanded: true,
           items: [],
         },
         {
-          name: 'AUD_REPORTS',
+          name: 'AUD_REPORT',
           expanded: false,
           items: [],
         },
@@ -690,9 +747,11 @@ export default {
       tabelasDisponiveis: ['AUD_FV', 'AUD_SQLS', 'AUD_REPORT'],
       itensOrigem: [],
       itensPorTabela: { AUD_FV: [], AUD_SQLS: [], AUD_REPORT: [] },
-      depSelecionada: { fv: null, sql: null, report: null },
+      depSelecionada: { fv: [], sql: [], report: [] }, // seleção múltipla por clique
 
       toasts: [],
+      nowTick: Date.now(),
+      draftKey: null,
     }
   },
 
@@ -724,12 +783,17 @@ export default {
 
   async mounted() {
     await this.initializeApp()
+    // Atualiza o relógio a cada 60s para re-renderizar e recalcular textos relativos
+    this._timeInterval = setInterval(() => {
+      this.nowTick = Date.now()
+    }, 60000)
   },
 
   beforeUnmount() {
     if (this.websocket) {
       this.websocket.close()
     }
+    if (this._timeInterval) clearInterval(this._timeInterval)
   },
 
   methods: {
@@ -757,15 +821,32 @@ export default {
         this.isConnected = true
       } catch (error) {
         this.isConnected = false
-        this.showToast('Erro de conexão com a API', 'error')
+        // this.showToast('Erro de conexão com a API', 'error')
       }
     },
 
     async loadDependencies() {
       try {
         this.isLoading = true
+
+        // Buscar lista resumida
         const response = await this.useFetch(`/api/v2/dependencias/itens`)
-        this.dependencies = response
+
+        // Buscar detalhes completos de cada item
+        const dependenciesCompletas = []
+        if (response && response.length > 0) {
+          for (const item of response) {
+            try {
+              const detalhes = await this.useFetch(`/api/v2/dependencias/itens/${item.id}`)
+              dependenciesCompletas.push(detalhes)
+            } catch (error) {
+              // Adicionar item resumido se não conseguir buscar detalhes
+              dependenciesCompletas.push(item)
+            }
+          }
+        }
+
+        this.dependencies = dependenciesCompletas
         this.updateFilterCounts()
         this.organizeDependencyTree()
       } catch (error) {
@@ -871,6 +952,7 @@ export default {
         this.selectedDep = response
       } catch (error) {
         this.showToast('Erro ao carregar detalhes da alteração', 'error')
+        console.error('Erro ao carregar detalhes:', error)
       }
     },
 
@@ -885,33 +967,49 @@ export default {
         dependencias: [],
       }
       this.showAddModal = true
+
+      // Pré-carrega seleções e lista
+      this.depSelecionada = { fv: [], sql: [], report: [] }
+      if (Array.isArray(dep.dependencias)) {
+        dep.dependencias.forEach((d) => {
+          if (d.tabela_dependente === 'AUD_FV') this.depSelecionada.fv.push(String(d.id_dependente))
+          else if (d.tabela_dependente === 'AUD_SQLS') this.depSelecionada.sql.push(String(d.id_dependente))
+          else if (d.tabela_dependente === 'AUD_REPORT' || d.tabela_dependente === 'AUD_REPORTS') this.depSelecionada.report.push(String(d.id_dependente))
+        })
+        this.newDependency.dependencias = dep.dependencias.map((d) => ({ ...d }))
+      }
+
+      // Rascunho
+      this.draftKey = this.getDraftKey()
+      this.loadDraft()
     },
 
     async removeDependency(dep) {
-      if (confirm(`Tem certeza que deseja remover a alteração "${dep.nome}"?`)) {
-        try {
-          const usuario = prompt('Digite seu nome de usuário:')
-          if (!usuario) return
-
-          await useFetch(
-            `/api/v2/dependencias/itens/${dep.id}?usuario=${encodeURIComponent(usuario)}`,
-            {
-              method: 'DELETE',
-            },
-          )
-
-          await this.loadDependencies()
-          this.selectedDep = null
-          this.showToast('Alteração removida com sucesso', 'success')
-        } catch (error) {
-          this.showToast('Erro ao remover alteração', 'error')
-          console.error('Remove dependency error:', error)
-        }
+      if (!dep) return
+      if (!confirm(`Remover definitivamente a alteração "${dep.nome}" e tudo que foi criado no banco?`)) return
+      try {
+        const usuario = prompt('Digite seu nome de usuário:')
+        if (!usuario) return
+        await this.useFetch(
+          `/api/v2/dependencias/itens/${dep.id}/hard?usuario=${encodeURIComponent(usuario)}`,
+          { method: 'DELETE' },
+        )
+        this.showToast('Alteração excluída definitivamente', 'success')
+        await this.loadDependencies()
+        this.selectedDep = null
+      } catch (error) {
+        this.showToast('Erro ao remover alteração', 'error')
+        console.error('Remove dependency error:', error)
       }
     },
 
     async saveDependency() {
-      if (!this.newDependency.nome || !this.newDependency.versao || !this.newDependency.criador) {
+      if (
+        !this.newDependency.nome ||
+        !this.newDependency.versao ||
+        !this.newDependency.criador ||
+        !this.newDependency.id_origem
+      ) {
         this.showToast('Preencha todos os campos obrigatórios', 'error')
         return
       }
@@ -921,7 +1019,7 @@ export default {
         if (this.editingDependency) {
           // Update existing dependency
           const usuario = this.newDependency.criador
-          await useFetch(
+          await this.useFetch(
             `/api/v2/dependencias/itens/${this.editingDependency.id}?usuario=${encodeURIComponent(usuario)}`,
             {
               method: 'PUT',
@@ -938,14 +1036,15 @@ export default {
           // Create new dependency
           const body = {
             tabela_origem: this.newDependency.tabela_origem,
-            id_origem: this.newDependency.id_origem,
+            id_origem: String(this.newDependency.id_origem || ''), // ✅ Cast para string
             nome: this.newDependency.nome,
             descricao: this.newDependency.descricao,
             versao: this.newDependency.versao,
             criador: this.newDependency.criador,
             dependencias: this.newDependency.dependencias,
           }
-          await useFetch('/api/v2/dependencias/itens', {
+
+          await this.useFetch('/api/v2/dependencias/itens', {
             method: 'POST',
             body,
           })
@@ -970,6 +1069,11 @@ export default {
       await this.ensureItens('AUD_FV')
       await this.ensureItens('AUD_SQLS')
       await this.ensureItens('AUD_REPORT')
+
+      // Rascunho para criação
+      this.editingDependency = null
+      this.draftKey = this.getDraftKey()
+      this.loadDraft()
     },
 
     async loadTabelas() {
@@ -986,58 +1090,177 @@ export default {
           `/api/v2/dependencias/tabelas/${encodeURIComponent(t)}/itens`,
         )
         this.itensOrigem = itens
-        if (!this.newDependency.id_origem && itens.length)
-          this.newDependency.id_origem = itens[0].id
+        // ✅ Não forçar id_origem - deixar usuário escolher no select
       } catch (e) {
         this.itensOrigem = []
       }
     },
 
     async ensureItens(tabela) {
-      if (this.itensPorTabela[tabela] && this.itensPorTabela[tabela].length) return
+      if (this.itensPorTabela[tabela] && this.itensPorTabela[tabela].length) {
+        return
+      }
+
       try {
         const itens = await this.useFetch(
           `/api/v2/dependencias/tabelas/${encodeURIComponent(tabela)}/itens`,
         )
         this.itensPorTabela[tabela] = itens
       } catch (error) {
-        console.error(`Erro ao carregar itens da tabela ${tabela}:`, error)
-        this.showToast(`Não foi possível carregar itens de ${tabela}`, 'error')
+        console.error('Erro ao carregar itens:', error)
       }
     },
 
     adicionarSequencia() {
-      this.newDependency.dependencias = []
-      if (this.depSelecionada.fv) {
-        this.newDependency.dependencias.push({
-          tabela_dependente: 'AUD_FV',
-          id_dependente: this.depSelecionada.fv,
+      // Não limpar dependências já adicionadas; apenas acrescentar
+
+      // FV múltiplos (aplica regra de negócio nos disponíveis; aqui apenas adiciona os selecionados)
+      if (Array.isArray(this.depSelecionada.fv) && this.newDependency.tabela_origem !== 'AUD_FV') {
+        this.depSelecionada.fv.forEach((idSel) => {
+          const item = this.availableOptions('AUD_FV').find((x) => String(x.id) === String(idSel))
+          if (item) {
+            this.newDependency.dependencias.push({
+              tabela_dependente: 'AUD_FV',
+              id_dependente: idSel,
+              nome_dependente: item.nome,
+            })
+          }
         })
       }
-      if (this.depSelecionada.sql) {
-        this.newDependency.dependencias.push({
-          tabela_dependente: 'AUD_SQL',
-          id_dependente: this.depSelecionada.sql,
+
+      // SQL múltiplos
+      if (Array.isArray(this.depSelecionada.sql) && this.newDependency.tabela_origem !== 'AUD_SQLS') {
+        this.depSelecionada.sql.forEach((idSel) => {
+          const item = this.itensPorTabela.AUD_SQLS.find((s) => String(s.id) === String(idSel))
+          if (item) {
+            this.newDependency.dependencias.push({
+              tabela_dependente: 'AUD_SQLS',
+              id_dependente: idSel,
+              nome_dependente: item.nome,
+            })
+          }
         })
       }
-      if (this.depSelecionada.report) {
-        this.newDependency.dependencias.push({
-          tabela_dependente: 'AUD_REPORT',
-          id_dependente: this.depSelecionada.report,
+
+      // REPORT múltiplos
+      if (Array.isArray(this.depSelecionada.report) && this.newDependency.tabela_origem !== 'AUD_REPORT') {
+        this.depSelecionada.report.forEach((idSel) => {
+          const item = this.itensPorTabela.AUD_REPORT.find((r) => String(r.id) === String(idSel))
+          if (item) {
+            this.newDependency.dependencias.push({
+              tabela_dependente: 'AUD_REPORT',
+              id_dependente: idSel,
+              nome_dependente: item.nome,
+            })
+          }
         })
+      }
+
+      // Mantém seleções para permitir adicionar mais; se preferir limpar após adicionar, descomente a linha abaixo
+      // this.depSelecionada = { fv: [], sql: [], report: [] }
+      this.showToast('Dependências adicionadas à sequência (duplicatas permitidas).', 'info')
+    },
+
+    toggleOption(tabela, idSel) {
+      const key = tabela === 'AUD_SQLS' ? 'sql' : tabela === 'AUD_REPORT' ? 'report' : 'fv'
+      const arr = this.depSelecionada[key]
+      const i = arr.findIndex((x) => String(x) === String(idSel))
+      if (i >= 0) arr.splice(i, 1)
+      else arr.push(String(idSel))
+    },
+
+    isSelected(tabela, idSel) {
+      const key = tabela === 'AUD_SQLS' ? 'sql' : tabela === 'AUD_REPORT' ? 'report' : 'fv'
+      return this.depSelecionada[key].some((x) => String(x) === String(idSel))
+    },
+
+    limparSelecao() {
+      this.depSelecionada = { fv: [], sql: [], report: [] }
+    },
+
+    // Regras de negócio: quais FVs aparecem na seleção
+    availableOptions(tabela) {
+      const list = this.itensPorTabela[tabela] || []
+      if (tabela === 'AUD_FV') {
+        return list.filter((it) => {
+          const ativo = it.ATIVO === true || it.ativo === true || it.ativo === 1
+          const notSelf = !(this.newDependency.tabela_origem === 'AUD_FV' && String(it.id) === String(this.newDependency.id_origem))
+          return ativo && notSelf
+        })
+      }
+      return list
+    },
+
+    // Draft helpers
+    getDraftKey() {
+      const id = this.editingDependency?.id
+      return id ? `dep_draft_${id}` : 'dep_draft_new'
+    },
+
+    saveDraft() {
+      try {
+        if (!this.showAddModal) return
+        if (!this.draftKey) this.draftKey = this.getDraftKey()
+        const payload = {
+          newDependency: this.newDependency,
+          depSelecionada: this.depSelecionada,
+        }
+        localStorage.setItem(this.draftKey, JSON.stringify(payload))
+      } catch {}
+    },
+
+    loadDraft() {
+      try {
+        if (!this.draftKey) return
+        const raw = localStorage.getItem(this.draftKey)
+        if (!raw) return
+        const parsed = JSON.parse(raw)
+        if (parsed?.newDependency) {
+          this.newDependency = { ...this.newDependency, ...parsed.newDependency }
+        }
+        if (parsed?.depSelecionada) {
+          this.depSelecionada = { fv: [], sql: [], report: [], ...parsed.depSelecionada }
+        }
+      } catch {}
+    },
+
+    clearDraft() {
+      try {
+        if (!this.draftKey) this.draftKey = this.getDraftKey()
+        localStorage.removeItem(this.draftKey)
+      } catch {}
+    },
+
+    removerDependencia(index) {
+      this.newDependency.dependencias.splice(index, 1)
+    },
+
+    async openDiagram(dep) {
+      try {
+        this.showDiagram = true
+        this.mermaidDiagram = ''
+        this.diagramData = dep
+
+        console.log('Abrindo diagrama para:', dep)
+        console.log('ID do item:', dep.id)
+        console.log('URL completa:', `/api/v2/dependencias/itens/${dep.id}/json-model`)
+
+        // Busca JSON pronto no backend
+        const model = await this.useFetch(`/api/v2/dependencias/itens/${dep.id}/json-model`)
+        console.log('Modelo recebido:', model)
+
+        this.mermaidDiagram = toMermaidFlowchart(model)
+        console.log('Diagrama Mermaid gerado:', this.mermaidDiagram)
+      } catch (e) {
+        console.error('Erro ao gerar diagrama:', e)
+        this.showToast('Erro ao gerar diagrama', 'error')
+        this.showDiagram = false
       }
     },
 
-    openDiagram(dep) {
-      this.diagramData = dep
-      if (!dep.dependencias) {
-        this.loadDependencyDetails(dep.id).then(() => {
-          this.diagramData = this.selectedDep
-          this.showDiagram = true
-        })
-      } else {
-        this.showDiagram = true
-      }
+    downloadDiagram() {
+      // Implementar download do diagrama como PNG
+      this.showToast('Funcionalidade de download em desenvolvimento', 'info')
     },
 
     closeModal() {
@@ -1047,12 +1270,12 @@ export default {
         nome: '',
         versao: '',
         tabela_origem: 'AUD_FV',
-        id_origem: null,
+        id_origem: '', //  String vazia em vez de null
         criador: '',
         descricao: '',
         dependencias: [],
       }
-      this.depSelecionada = { fv: null, sql: null, report: null }
+      this.depSelecionada = { fv: [], sql: [], report: [] }
     },
 
     async viewHistory(dep) {
@@ -1127,24 +1350,40 @@ export default {
       return riskClasses[risco] || 'baixo'
     },
 
-    formatDate(dateString) {
-      if (!dateString) return 'N/A'
+    formatDate(input) {
+      // Referência para forçar re-render quando nowTick muda
+      void this.nowTick
+      if (!input) return 'N/A'
+      const d = typeof input === 'string' || typeof input === 'number' ? new Date(input) : input
+      if (Number.isNaN(d.getTime())) return 'N/A'
 
-      try {
-        const date = new Date(dateString)
-        const now = new Date()
-        const diffTime = Math.abs(now - date)
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+      const now = new Date()
+      const diffMs = now.getTime() - d.getTime()
+      const diffSec = Math.floor(diffMs / 1000)
+      const diffMin = Math.floor(diffSec / 60)
 
-        if (diffDays === 1) return 'ontem'
-        if (diffDays < 7) return `${diffDays} dias atrás`
-        if (diffDays < 30) return `${Math.ceil(diffDays / 7)} semanas atrás`
-        if (diffDays < 365) return `${Math.ceil(diffDays / 30)} meses atrás`
+      const pad = (n) => String(n).padStart(2, '0')
+      const timeStr = `${pad(d.getHours())}:${pad(d.getMinutes())}`
 
-        return date.toLocaleDateString('pt-BR')
-      } catch (error) {
-        return dateString
+      const startOfDay = (x) => new Date(x.getFullYear(), x.getMonth(), x.getDate())
+      const todayStart = startOfDay(now).getTime()
+      const dateStart = startOfDay(d).getTime()
+      const dayDiff = Math.round((todayStart - dateStart) / (24 * 60 * 60 * 1000))
+
+      if (diffSec < 30) return 'agora'
+      if (diffMin < 60) return `há ${diffMin} min`
+      if (dayDiff === 0) return `hoje ${timeStr}`
+      if (dayDiff === 1) return `ontem ${timeStr}`
+      if (dayDiff > 1 && dayDiff < 7) {
+        return d.toLocaleDateString('pt-BR', { weekday: 'long' }) + ` ${timeStr}`
       }
+      return new Intl.DateTimeFormat('pt-BR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      }).format(d)
     },
 
     showToast(message, type = 'info') {
@@ -2070,6 +2309,55 @@ export default {
   gap: 1rem;
 }
 
+/* UI de seleção múltipla por clique (SQL/Relatório) */
+.dep-chooser.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.dep-col-header {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #64748b;
+  margin-bottom: 0.5rem;
+}
+
+.option-list {
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #fff;
+  min-height: 220px;
+  max-height: 260px;
+  overflow: auto;
+  padding: 0.5rem;
+}
+
+.option-item {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  margin-bottom: 0.5rem;
+  cursor: pointer;
+  transition: all 0.15s ease-in-out;
+}
+
+.option-item:hover {
+  background: #f1f5f9;
+}
+
+.option-item.selected {
+  background: #e0f2fe; /* azul claro */
+  border-color: #38bdf8; /* borda azul */
+  color: #0c4a6e;
+}
+
+.dep-actions-row {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
 .btn-secondary {
   padding: 0.625rem 1.25rem;
   border: 1px solid #e2e8f0;
@@ -2354,6 +2642,152 @@ export default {
   .toast {
     max-width: none;
   }
+}
+
+/* Estilos para o modal de diagrama */
+.large-modal {
+  max-width: 90vw;
+  max-height: 90vh;
+}
+
+.diagram-container {
+  min-height: 400px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  background: #fafafa;
+  margin-bottom: 1rem;
+}
+
+.loading-diagram {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  color: #666;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #007bff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.diagram-details {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.diagram-details h3 {
+  margin: 0 0 1rem 0;
+  color: #333;
+  font-size: 1.1rem;
+}
+
+.diagram-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.diagram-item {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #e0e0e0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.diagram-item:last-child {
+  border-bottom: none;
+}
+
+.observacoes {
+  font-style: italic;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+/* Estilos para as sequências de dependências */
+.sequencias-list {
+  margin-top: 1rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.sequencia-item {
+  padding: 1rem;
+  border-bottom: 1px solid #e0e0e0;
+  background: #f8f9fa;
+}
+
+.sequencia-item:last-child {
+  border-bottom: none;
+}
+
+.sequencia-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.sequencia-tabela {
+  background: #007bff;
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: bold;
+}
+
+.sequencia-item {
+  flex: 1;
+  font-weight: 500;
+}
+
+.btn-remove {
+  background: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+}
+
+.btn-remove:hover {
+  background: #c82333;
+}
+
+.sequencia-observacoes {
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  background: #fff;
+  border-radius: 4px;
+  border-left: 3px solid #007bff;
 }
 
 @media (max-width: 480px) {

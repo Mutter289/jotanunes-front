@@ -505,8 +505,11 @@ export default {
   },
 
   data() {
+    const base = (window.API_BASE_URL || '').startsWith('http')
+      ? window.API_BASE_URL
+      : `http://${window.API_BASE_URL || 'localhost:8000'}`
     return {
-      API_BASE_URL: 'http://192.168.195.162:8000',
+      API_BASE_URL: base, //http://192.168.195.162:8000
       services: [],
       stats: {
         total_services: 0,
@@ -718,14 +721,39 @@ export default {
     },
 
     formatDate(date) {
+      if (!date) return '-'
+      const d = typeof date === 'string' || typeof date === 'number' ? new Date(date) : date
+      if (Number.isNaN(d.getTime())) return '-'
+
+      const now = new Date()
+      const diffMs = now.getTime() - d.getTime()
+      const diffSec = Math.floor(diffMs / 1000)
+      const diffMin = Math.floor(diffSec / 60)
+      const diffHour = Math.floor(diffMin / 60)
+
+      const pad = (n) => String(n).padStart(2, '0')
+      const timeStr = `${pad(d.getHours())}:${pad(d.getMinutes())}`
+
+      // Mesma data (hoje/ontem) com base em meia-noite local
+      const startOfDay = (x) => new Date(x.getFullYear(), x.getMonth(), x.getDate())
+      const todayStart = startOfDay(now).getTime()
+      const dateStart = startOfDay(d).getTime()
+      const dayDiff = Math.round((todayStart - dateStart) / (24 * 60 * 60 * 1000))
+
+      if (diffSec < 30) return 'agora'
+      if (diffMin < 60) return `há ${diffMin} min`
+      if (dayDiff === 0) return `hoje ${timeStr}`
+      if (dayDiff === 1) return `ontem ${timeStr}`
+      if (dayDiff > 1 && dayDiff < 7) {
+        return d.toLocaleDateString('pt-BR', { weekday: 'long' }) + ` ${timeStr}`
+      }
       return new Intl.DateTimeFormat('pt-BR', {
         day: '2-digit',
         month: '2-digit',
         year: 'numeric',
         hour: '2-digit',
         minute: '2-digit',
-        second: '2-digit',
-      }).format(date)
+      }).format(d)
     },
 
     getStatusText(status) {
