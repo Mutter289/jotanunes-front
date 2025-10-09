@@ -104,6 +104,7 @@ export default {
   height: auto;
   width: auto; /* deixa o SVG no tamanho natural gerado, evitando encolher para 100% */
   transform: scale(0.4); /* reduz ~60% do tamanho visual */
+
   transform-origin: top center; /* centraliza melhor com flex */
 }
 

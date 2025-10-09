@@ -985,25 +985,21 @@ export default {
     },
 
     async removeDependency(dep) {
-      if (confirm(`Tem certeza que deseja remover a alteração "${dep.nome}"?`)) {
-        try {
-          const usuario = prompt('Digite seu nome de usuário:')
-          if (!usuario) return
-
-          await this.useFetch(
-            `/api/v2/dependencias/itens/${dep.id}?usuario=${encodeURIComponent(usuario)}`,
-            {
-              method: 'DELETE',
-            },
-          )
-
-          await this.loadDependencies()
-          this.selectedDep = null
-          this.showToast('Alteração removida com sucesso', 'success')
-        } catch (error) {
-          this.showToast('Erro ao remover alteração', 'error')
-          console.error('Remove dependency error:', error)
-        }
+      if (!dep) return
+      if (!confirm(`Remover definitivamente a alteração "${dep.nome}" e tudo que foi criado no banco?`)) return
+      try {
+        const usuario = prompt('Digite seu nome de usuário:')
+        if (!usuario) return
+        await this.useFetch(
+          `/api/v2/dependencias/itens/${dep.id}/hard?usuario=${encodeURIComponent(usuario)}`,
+          { method: 'DELETE' },
+        )
+        this.showToast('Alteração excluída definitivamente', 'success')
+        await this.loadDependencies()
+        this.selectedDep = null
+      } catch (error) {
+        this.showToast('Erro ao remover alteração', 'error')
+        console.error('Remove dependency error:', error)
       }
     },
 
