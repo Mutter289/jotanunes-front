@@ -956,17 +956,27 @@ export default {
       }
     },
 
-    editDependency(dep) {
+    async editDependency(dep) {
       this.editingDependency = dep
+      this.showAddModal = true
+
+      // Carregar itens disponíveis para as tabelas
+      await this.loadTabelas()
+      await this.loadOrigemItens()
+      await this.ensureItens('AUD_FV')
+      await this.ensureItens('AUD_SQLS')
+      await this.ensureItens('AUD_REPORT')
+
+      // Definir dados do item
       this.newDependency = {
         nome: dep.nome,
         versao: dep.versao,
         tabela_origem: dep.tabela_origem,
+        id_origem: dep.id_origem, // ✅ Adicionar id_origem
         criador: dep.criador,
         descricao: dep.descricao || '',
         dependencias: [],
       }
-      this.showAddModal = true
 
       // Pré-carrega seleções e lista
       this.depSelecionada = { fv: [], sql: [], report: [] }
@@ -979,7 +989,7 @@ export default {
         this.newDependency.dependencias = dep.dependencias.map((d) => ({ ...d }))
       }
 
-      // Rascunho
+      // Rascunho (carregar APÓS definir os dados)
       this.draftKey = this.getDraftKey()
       this.loadDraft()
     },
@@ -991,7 +1001,7 @@ export default {
         const usuario = prompt('Digite seu nome de usuário:')
         if (!usuario) return
         await this.useFetch(
-          `/api/v2/dependencias/itens/${dep.id}/hard?usuario=${encodeURIComponent(usuario)}`,
+          `/api/v2/dependencias/itens/${dep.id}?usuario=${encodeURIComponent(usuario)}`,
           { method: 'DELETE' },
         )
         this.showToast('Alteração excluída definitivamente', 'success')
@@ -1070,10 +1080,21 @@ export default {
       await this.ensureItens('AUD_SQLS')
       await this.ensureItens('AUD_REPORT')
 
-      // Rascunho para criação
+      // Limpar dados para nova criação
       this.editingDependency = null
+      this.newDependency = {
+        nome: '',
+        versao: '',
+        tabela_origem: 'AUD_FV',
+        id_origem: null,
+        criador: '',
+        descricao: '',
+        dependencias: [],
+      }
+      this.depSelecionada = { fv: [], sql: [], report: [] }
+      
+      // Não carregar draft para nova criação
       this.draftKey = this.getDraftKey()
-      this.loadDraft()
     },
 
     async loadTabelas() {
