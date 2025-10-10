@@ -5,7 +5,7 @@ class WebSocketService {
     this.reconnectInterval = 5000
     this.shouldReconnect = true
     // this.url = 'ws://192.168.195.162:8000/ws/notifications'
-    const httpBase = window.API_BASE_URL || window.location.origin || 'http://localhost:8000'
+    const httpBase = window.API_BASE_URL || window.location.origin || 'http://192.168.195.162:8000'
     const wsBase = httpBase.replace(/^http/, 'ws')
     this.url = `${wsBase}/ws/notifications` //ws://192.168.195.162:8000/ws/notifications
     this.isConnected = false

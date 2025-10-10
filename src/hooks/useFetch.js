@@ -36,7 +36,7 @@ export async function useFetch(
   try {
     const baseUrl = (window.API_BASE_URL || '').startsWith('http')
       ? window.API_BASE_URL
-      : `http://${window.API_BASE_URL || 'localhost:8000'}`
+      : `http://${window.API_BASE_URL || '192.168.195.162:8000'}`
     const res = await fetch(`${baseUrl}${endpoint}`, options)
 
     let data

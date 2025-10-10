@@ -163,7 +163,7 @@ const notificationStore = {
         // )
         const base = (window.API_BASE_URL || '').startsWith('http')
           ? window.API_BASE_URL
-          : `http://${window.API_BASE_URL || 'localhost:8000'}`
+          : `http://${window.API_BASE_URL || '192.168.195.162:8000'}`
         const response = await fetch(`${base}/notifications/read/${backendId}`, {
           method: 'POST',
         })
