@@ -1,6 +1,5 @@
 <template>
   <div class="dependency-manager">
-    <!-- Header Section -->
     <header class="dm-header">
       <div class="header-content">
         <div class="header-left">
@@ -27,13 +26,6 @@
           <span class="project-name">{{ projectName }}</span>
         </div>
         <div class="header-right">
-          <!-- <div
-            class="connection-status"
-            :class="{ connected: isConnected, disconnected: !isConnected }"
-          >
-            <span class="status-dot"></span>
-            {{ isConnected ? 'Conectado' : 'Desconectado' }}
-          </div> -->
           <button class="btn-icon" @click="refreshDependencies" :class="{ rotating: isRefreshing }">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M21 2v6h-6" />
@@ -59,7 +51,6 @@
       </div>
     </header>
 
-    <!-- Search and Filter Bar -->
     <div class="search-filter-bar">
       <div class="search-box">
         <svg
@@ -131,7 +122,6 @@
       </div>
     </div>
 
-    <!-- Stats Overview -->
     <div class="stats-grid">
       <div class="stat-card">
         <div class="stat-icon blue">
@@ -188,15 +178,11 @@
       </div>
     </div>
 
-    <!-- Dependencies View -->
     <div class="dependencies-container">
-      <!-- Loading State -->
       <div v-if="isLoading" class="loading-state">
         <div class="loading-spinner"></div>
         <p>Carregando alterações...</p>
       </div>
-
-      <!-- Grid View -->
       <div v-else-if="viewMode === 'grid'" class="grid-view">
         <div
           v-for="dep in filteredDependencies"
@@ -271,7 +257,6 @@
         </div>
       </div>
 
-      <!-- List View -->
       <div v-else-if="viewMode === 'list'" class="list-view">
         <table class="dep-table">
           <thead>
@@ -328,7 +313,6 @@
         </table>
       </div>
 
-      <!-- Tree View -->
       <div v-else-if="viewMode === 'tree'" class="tree-view">
         <div class="tree-container">
           <div v-for="category in dependencyTree" :key="category.name" class="tree-category">
@@ -366,7 +350,6 @@
       </div>
     </div>
 
-    <!-- Add/Edit Modal -->
     <div v-if="showAddModal" class="modal-overlay" @click.self="showAddModal = false">
       <div class="modal">
         <div class="modal-header">
@@ -511,7 +494,6 @@
       </div>
     </div>
 
-    <!-- Diagram Modal -->
     <div v-if="showDiagram" class="modal-overlay" @click.self="showDiagram = false">
       <div class="modal large-modal">
         <div class="modal-header">
@@ -549,7 +531,6 @@
       </div>
     </div>
 
-    <!-- Sidebar -->
     <transition name="slide">
       <div v-if="selectedDep" class="sidebar">
         <div class="sidebar-header">
@@ -632,7 +613,6 @@
       </div>
     </transition>
 
-    <!-- Toast Notifications -->
     <div class="toast-container">
       <div v-for="toast in toasts" :key="toast.id" class="toast" :class="toast.type">
         <div class="toast-content">

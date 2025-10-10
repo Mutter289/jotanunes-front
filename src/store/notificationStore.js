@@ -155,18 +155,12 @@ const notificationStore = {
         const backendId = notification.notificationId
         console.log(`Tentando marcar notificação ${backendId} como lida...`)
 
-        // const response = await fetch(
-        //   `http://192.168.195.162:8000/notifications/read/${backendId}`,
-        //   {
-        //     method: 'POST',
-        //   },
-        // )
-        const base = (window.API_BASE_URL || '').startsWith('http')
-          ? window.API_BASE_URL
-          : `http://${window.API_BASE_URL || '192.168.195.162:8000'}`
-        const response = await fetch(`${base}/notifications/read/${backendId}`, {
-          method: 'POST',
-        })
+        const response = await fetch(
+          `http://192.168.195.162:8000/notifications/read/${backendId}`,
+          {
+            method: 'POST',
+          },
+        )
 
         if (!response.ok) {
           const errorText = await response.text()

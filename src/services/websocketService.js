@@ -4,10 +4,7 @@ class WebSocketService {
     this.listeners = new Map()
     this.reconnectInterval = 5000
     this.shouldReconnect = true
-    // this.url = 'ws://192.168.195.162:8000/ws/notifications'
-    const httpBase = window.API_BASE_URL || window.location.origin || 'http://192.168.195.162:8000'
-    const wsBase = httpBase.replace(/^http/, 'ws')
-    this.url = `${wsBase}/ws/notifications` //ws://192.168.195.162:8000/ws/notifications
+    this.url = 'ws://192.168.195.162:8000/ws/notifications'
     this.isConnected = false
   }
 
@@ -26,31 +23,24 @@ class WebSocketService {
           }
         }, 30000)
 
-        // Solicita sincronização de notificações não lidas ao conectar
         this.emit('sync-notifications')
       }
 
       this.ws.onmessage = (event) => {
         try {
-          // Se for pong, ignora
           if (event.data === 'pong') {
             return
           }
 
           const data = JSON.parse(event.data)
-
-          // Se for uma mensagem de status, ignora
           if (data.type === 'status') {
             return
           }
 
-          // Processa notificação apenas se não foi lida (Readed = false)
           if (data.Readed === false || data.Readed === undefined) {
-            // Emite o evento de nova notificação
             this.emit('notification', data)
           }
         } catch (error) {
-          // Se não conseguir fazer parse, pode ser uma mensagem simples
           if (event.data !== 'pong') {
             console.error('Erro ao processar mensagem:', error)
           }
@@ -71,7 +61,6 @@ class WebSocketService {
 
         clearInterval(this.pingInterval)
 
-        // Tenta reconectar automaticamente
         if (this.shouldReconnect) {
           console.log(`Tentando reconectar em ${this.reconnectInterval / 1000} segundos...`)
           setTimeout(() => {
@@ -86,7 +75,6 @@ class WebSocketService {
       this.isConnected = false
       this.emit('connected', false)
 
-      // Tenta reconectar
       if (this.shouldReconnect) {
         setTimeout(() => {
           if (this.shouldReconnect) {
@@ -109,7 +97,6 @@ class WebSocketService {
     clearInterval(this.pingInterval)
   }
 
-  // Reconecta manualmente
   reconnect() {
     console.log('Reconectando WebSocket...')
     this.disconnect()

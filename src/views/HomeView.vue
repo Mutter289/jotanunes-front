@@ -1,70 +1,59 @@
 <template>
-  <div class="login-bg">
+  <div class="login-page">
     <div class="login-container" :class="{ loading: isLoading }">
-      <!-- Loading Overlay -->
       <div v-if="isLoading" class="loading-overlay">
         <div class="loading-spinner"></div>
         <p>{{ loadingMessage }}</p>
       </div>
 
-      <div class="image-content">
-        <div class="image-overlay">
-          <div class="floating-elements">
-            <div class="floating-circle circle-1"></div>
-            <div class="floating-circle circle-2"></div>
-            <div class="floating-circle circle-3"></div>
-          </div>
+      <div class="login-form-section">
+        <div class="login-header">
+          <h1 class="login-title">
+            <img src="/logo/Logo-Preta.png" alt="logo" width="auto" height="66px">
+          </h1>
+          <p class="login-subtitle">
+            {{ currentMode === 'login' ? 'Entre em sua conta para continuar' : 'Preencha os dados para criar sua conta' }}
+          </p>
         </div>
-      </div>
 
-      <div class="form-container">
-        <div class="form-nav">
-          <!-- Header -->
-          <div class="form-header">
-            <p class="welcome-text">{{ welcomeMessage }}</p>
-            <h1 class="main-title">
-              {{ currentMode === 'login' ? 'Acesse o portal' : 'Criar conta' }}
-            </h1>
-          </div>
-
-          <!-- Login Form -->
-          <form
-            v-if="currentMode === 'login'"
-            @submit.prevent="handleLogin"
-            class="form-content"
-            novalidate
-          >
-            <!-- Email Input -->
-            <div class="input-group">
-              <VInput
-                v-model="userCredentials.username"
-                placeholder="E-mail @jotanunes"
-                label="Email *"
-                type="email"
-                :error="errors.username"
-                :disabled="isLoading"
-                custom-class="primary-input"
-                required
-                @blur="validateEmail"
-                @input="clearError('username')"
-              />
+        <form
+          v-if="currentMode === 'login'"
+          @submit.prevent="handleLogin"
+          class="login-form"
+          novalidate
+        >
+          <div class="form-fields">
+            <div class="field-group">
+              <label for="username" class="field-label">E-mail</label>
+              <div class="input-wrapper">
+                <input
+                  id="username"
+                  v-model="userCredentials.username"
+                  type="email"
+                  placeholder="Digite seu e-mail"
+                  class="form-input"
+                  :disabled="isLoading"
+                  @blur="validateEmail"
+                  @input="clearError('username')"
+                />
+                <span v-if="errors.username" class="error-text">{{ errors.username }}</span>
+              </div>
             </div>
 
-            <!-- Password Input -->
-            <div class="input-group">
-              <VInput
-                v-model="userCredentials.userPassword"
-                :type="showPassword ? 'text' : 'password'"
-                label="Senha *"
-                placeholder="Senha"
-                :error="errors.userPassword"
-                :disabled="isLoading"
-                custom-class="primary-input"
-                required
-                @blur="validatePassword"
-                @input="clearError('userPassword')"
-              >
-                <template #suffix>
+            <div class="field-group">
+              <label for="password" class="field-label">Senha</label>
+              <div class="input-wrapper">
+                <div class="password-wrapper">
+                  <input
+                    id="password"
+                    v-model="userCredentials.userPassword"
+                    :type="showPassword ? 'text' : 'password'"
+                    placeholder="Digite sua senha"
+                    class="form-input"
+                    :disabled="isLoading"
+                    @blur="validatePassword"
+                    @input="clearError('userPassword')"
+                  />
                   <button
                     type="button"
                     class="password-toggle"
@@ -72,13 +61,12 @@
                     :disabled="isLoading"
                     tabindex="-1"
                   >
-                    <i :class="showPassword ? 'icon-eye-off' : 'icon-eye'"></i>
                   </button>
-                </template>
-              </VInput>
+                </div>
+                <span v-if="errors.userPassword" class="error-text">{{ errors.userPassword }}</span>
+              </div>
             </div>
 
-            <!-- Remember Me -->
             <div class="checkbox-group">
               <label class="checkbox-label">
                 <input
@@ -87,93 +75,94 @@
                   class="checkbox-input"
                   :disabled="isLoading"
                 />
-                <span class="checkbox-custom"></span>
                 <span class="checkbox-text">Lembrar-me</span>
               </label>
             </div>
+          </div>
 
-            <!-- Login Button -->
-            <VButton
-              text="Acessar"
-              variant="add"
-              type="submit"
-              :loading="isLoading"
-              class="login-button"
-            />
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary btn-medium login-button" :disabled="isLoading">
+              Entrar
+            </button>
+          </div>
 
-            <!-- Microsoft Login -->
-            <div class="divider">
-              <span>ou</span>
+          <div class="divider">
+            <span>ou</span>
+          </div>
+
+          <button
+            type="button"
+            class="btn btn-secondary btn-medium microsoft-button"
+            @click="handleMicrosoftLogin"
+            :disabled="isLoading || microsoftLoading"
+          >
+            <img src="/icons/microsoft.svg" alt="Microsoft" class="microsoft-icon" />
+            Entrar com Microsoft
+          </button>
+
+          <div v-if="generalError" class="error-message">
+            <span>{{ generalError }}</span>
+          </div>
+
+          <div class="form-footer">
+            <p>
+              Não tem uma conta?
+              <a href="#" @click.prevent="switchMode('register')" class="access-link">Criar conta</a>
+            </p>
+          </div>
+        </form>
+
+        <!-- Register Form -->
+        <form v-else @submit.prevent="handleRegister" class="login-form" novalidate>
+          <div class="form-fields">
+            <div class="field-group">
+              <label for="nome" class="field-label">Nome Completo</label>
+              <div class="input-wrapper">
+                <input
+                  id="nome"
+                  v-model="registerData.nome"
+                  type="text"
+                  placeholder="Digite seu nome completo"
+                  class="form-input"
+                  :disabled="isLoading"
+                  @blur="validateName"
+                  @input="clearError('nome')"
+                />
+                <span v-if="errors.nome" class="error-text">{{ errors.nome }}</span>
+              </div>
             </div>
 
-            <VButton
-              text="Entrar com Microsoft"
-              variant="secondary"
-              type="button"
-              :loading="microsoftLoading"
-              class="microsoft-button"
-              @click="handleMicrosoftLogin"
-            >
-              <template #prefix>
-                <img src="/icons/microsoft.svg" alt="Microsoft" class="microsoft-icon" />
-              </template>
-            </VButton>
-
-            <div v-if="generalError" class="error-message">
-              <i class="icon-alert"></i>
-              <span>{{ generalError }}</span>
-            </div>
-          </form>
-
-          <!-- Register Form -->
-          <form v-else @submit.prevent="handleRegister" class="form-content" novalidate>
-            <!-- Name Input -->
-            <div class="input-group">
-              <VInput
-                v-model="registerData.nome"
-                placeholder="Nome completo"
-                label="Nome *"
-                type="text"
-                :error="errors.nome"
-                :disabled="isLoading"
-                custom-class="primary-input"
-                required
-                @blur="validateName"
-                @input="clearError('nome')"
-              />
+            <div class="field-group">
+              <label for="email" class="field-label">E-mail</label>
+              <div class="input-wrapper">
+                <input
+                  id="email"
+                  v-model="registerData.email"
+                  type="email"
+                  placeholder="Digite seu e-mail"
+                  class="form-input"
+                  :disabled="isLoading"
+                  @blur="validateRegisterEmail"
+                  @input="clearError('email')"
+                />
+                <span v-if="errors.email" class="error-text">{{ errors.email }}</span>
+              </div>
             </div>
 
-            <!-- Email Input -->
-            <div class="input-group">
-              <VInput
-                v-model="registerData.email"
-                placeholder="E-mail @jotanunes"
-                label="Email *"
-                type="email"
-                :error="errors.email"
-                :disabled="isLoading"
-                custom-class="primary-input"
-                required
-                @blur="validateRegisterEmail"
-                @input="clearError('email')"
-              />
-            </div>
-
-            <!-- Password Input -->
-            <div class="input-group">
-              <VInput
-                v-model="registerData.senha"
-                :type="showPassword ? 'text' : 'password'"
-                label="Senha *"
-                placeholder="Senha (mín. 8 caracteres)"
-                :error="errors.senha"
-                :disabled="isLoading"
-                custom-class="primary-input"
-                required
-                @blur="validateRegisterPassword"
-                @input="clearError('senha')"
-              >
-                <template #suffix>
+            <div class="field-group">
+              <label for="senha" class="field-label">Senha</label>
+              <div class="input-wrapper">
+                <div class="password-wrapper">
+                  <input
+                    id="senha"
+                    v-model="registerData.senha"
+                    :type="showPassword ? 'text' : 'password'"
+                    placeholder="Mínimo 8 caracteres"
+                    class="form-input"
+                    :disabled="isLoading"
+                    @blur="validateRegisterPassword"
+                    @input="clearError('senha')"
+                  />
                   <button
                     type="button"
                     class="password-toggle"
@@ -181,73 +170,66 @@
                     :disabled="isLoading"
                     tabindex="-1"
                   >
-                    <i :class="showPassword ? 'icon-eye-off' : 'icon-eye'"></i>
                   </button>
-                </template>
-              </VInput>
+                </div>
+                <span v-if="errors.senha" class="error-text">{{ errors.senha }}</span>
+              </div>
             </div>
 
-            <!-- Confirm Password Input -->
-            <div class="input-group">
-              <VInput
-                v-model="registerData.confirmSenha"
-                :type="showPassword ? 'text' : 'password'"
-                label="Confirmar Senha *"
-                placeholder="Confirme sua senha"
-                :error="errors.confirmSenha"
-                :disabled="isLoading"
-                custom-class="primary-input"
-                required
-                @blur="validateConfirmPassword"
-                @input="clearError('confirmSenha')"
-              />
+            <div class="field-group">
+              <label for="confirmSenha" class="field-label">Confirmar Senha</label>
+              <div class="input-wrapper">
+                <input
+                  id="confirmSenha"
+                  v-model="registerData.confirmSenha"
+                  :type="showPassword ? 'text' : 'password'"
+                  placeholder="Confirme sua senha"
+                  class="form-input"
+                  :disabled="isLoading"
+                  @blur="validateConfirmPassword"
+                  @input="clearError('confirmSenha')"
+                />
+                <span v-if="errors.confirmSenha" class="error-text">{{ errors.confirmSenha }}</span>
+              </div>
             </div>
+          </div>
 
-            <!-- Register Button -->
-            <VButton
-              text="Criar conta"
-              variant="add"
-              type="submit"
-              :loading="isLoading"
-              class="login-button"
-            />
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary btn-medium login-button" :disabled="isLoading">
+              Criar Conta
+            </button>
+          </div>
 
-            <div v-if="generalError" class="error-message">
-              <i class="icon-alert"></i>
-              <span>{{ generalError }}</span>
-            </div>
-          </form>
+          <div v-if="generalError" class="error-message">
+            <span>{{ generalError }}</span>
+          </div>
 
-          <!-- Footer -->
-          <div class="form-container-footer">
-            <p v-if="currentMode === 'login'">
-              Não tem uma conta?
-              <a href="#" @click.prevent="switchMode('register')" class="access-link"
-                >Criar conta</a
-              >
-            </p>
-            <p v-else>
+          <div class="form-footer">
+            <p>
               Já tem uma conta?
               <a href="#" @click.prevent="switchMode('login')" class="access-link">Fazer login</a>
             </p>
-
-            <div class="version-info">
-              <span>v{{ appVersion }}</span>
-            </div>
           </div>
-        </div>
+        </form>
+      </div>
+
+      <div class="login-image-section">
+        <p>{{ welcomeMessage }}</p>
+        <h1>Seja bem-vindo!</h1>
+        <p>{{ currentMode === 'login' ? 'Acesse o portal para continuar' : 'Cadastre-se para ter acesso aos sistemas' }}</p>
       </div>
     </div>
 
-    <!-- Success Toast -->
+    <div class="copy">
+      <p>&copy; 2025 Portal - v{{ appVersion }}</p>
+    </div>
+
     <Transition name="toast">
       <div v-if="showSuccessToast" class="success-toast">
-        <i class="icon-check"></i>
         <span>{{ successMessage }}</span>
       </div>
     </Transition>
 
-    <!-- Pending Approval Modal -->
     <VPopup
       v-model:visible="showPendingModal"
       msg="Aguardando Aprovação"
@@ -259,7 +241,9 @@
         <p>Sua conta foi criada e está aguardando aprovação do administrador.</p>
         <p>Você receberá um e-mail quando sua conta for aprovada.</p>
         <div class="pending-actions">
-          <VButton text="Entendi" variant="primary" @click="showPendingModal = false" />
+          <button class="btn btn-primary btn-medium" @click="showPendingModal = false">
+            Entendi
+          </button>
         </div>
       </div>
     </VPopup>
@@ -267,14 +251,12 @@
 </template>
 
 <script>
-import VInput from '@/components/Input/VInput.vue'
-import VButton from '@/components/Button/VButton.vue'
 import VPopup from '@/components/Popup/VPopup.vue'
 import { useAuthStore } from '@/store/auth.js'
 
 export default {
   name: 'LoginPage',
-  components: { VInput, VButton, VPopup },
+  components: { VPopup },
 
   data() {
     return {
@@ -313,26 +295,21 @@ export default {
     authStore() {
       return useAuthStore()
     },
-
     isLoading() {
       return this.authStore.isLoading
     },
-
     isAuthenticated() {
       return this.authStore.isAuthenticated
     },
-
     microsoftAuthInProgress() {
       return this.authStore.microsoftAuthInProgress
     },
-
     welcomeMessage() {
       const hour = new Date().getHours()
       if (hour < 12) return 'Bom dia!'
       if (hour < 18) return 'Boa tarde!'
       return 'Boa noite!'
     },
-
     isFormValid() {
       if (this.currentMode === 'login') {
         return (
@@ -362,13 +339,11 @@ export default {
         this.generalError = newError
       }
     },
-
     isAuthenticated(newValue) {
       if (newValue) {
         this.$router.push('/main')
       }
     },
-
     microsoftAuthInProgress(newValue) {
       this.microsoftLoading = newValue
       if (newValue) {
@@ -378,7 +353,6 @@ export default {
   },
 
   methods: {
-    // VALIDAÇÕES LOGIN
     validateEmail() {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
       if (!this.userCredentials.username) {
@@ -389,7 +363,6 @@ export default {
         this.errors.username = ''
       }
     },
-
     validatePassword() {
       if (!this.userCredentials.userPassword) {
         this.errors.userPassword = 'Senha é obrigatória'
@@ -399,7 +372,6 @@ export default {
         this.errors.userPassword = ''
       }
     },
-
     validateName() {
       if (!this.registerData.nome) {
         this.errors.nome = 'Nome é obrigatório'
@@ -409,7 +381,6 @@ export default {
         this.errors.nome = ''
       }
     },
-
     validateRegisterEmail() {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
       if (!this.registerData.email) {
@@ -420,7 +391,6 @@ export default {
         this.errors.email = ''
       }
     },
-
     validateRegisterPassword() {
       const password = this.registerData.senha
       if (!password) {
@@ -440,7 +410,6 @@ export default {
         }
       }
     },
-
     validateConfirmPassword() {
       if (!this.registerData.confirmSenha) {
         this.errors.confirmSenha = 'Confirmação de senha é obrigatória'
@@ -450,8 +419,6 @@ export default {
         this.errors.confirmSenha = ''
       }
     },
-
-    // UTILITÁRIOS
     clearError(field) {
       if (this.errors[field]) {
         this.errors[field] = ''
@@ -461,17 +428,14 @@ export default {
         this.authStore.clearError()
       }
     },
-
     togglePassword() {
       this.showPassword = !this.showPassword
     },
-
     switchMode(mode) {
       this.currentMode = mode
       this.clearAllErrors()
       this.resetForms()
     },
-
     clearAllErrors() {
       Object.keys(this.errors).forEach((key) => {
         this.errors[key] = ''
@@ -479,7 +443,6 @@ export default {
       this.generalError = ''
       this.authStore.clearError()
     },
-
     resetForms() {
       this.userCredentials = {
         username: '',
@@ -492,47 +455,29 @@ export default {
         confirmSenha: '',
       }
     },
-
-    // AUTENTICAÇÃO - AQUI ESTÁ O FIX PRINCIPAL
     async handleLogin() {
-      console.log('🚀 Login iniciado!')
-
-      // Validar campos
       this.validateEmail()
       this.validatePassword()
 
       if (!this.isFormValid) {
-        console.log('❌ Formulário inválido')
         return
       }
-
-      console.log('📤 Enviando credenciais:', {
-        username: this.userCredentials.username,
-        password: '***',
-      })
 
       this.loadingMessage = 'Fazendo login...'
 
       try {
-        // Chamar diretamente o método do store
         const result = await this.authStore.loginCredentials(
           this.userCredentials.username,
           this.userCredentials.userPassword,
           this.rememberMe,
         )
 
-        console.log('📥 Resultado:', result)
-
         if (result.success) {
-          console.log('✅ Login bem-sucedido!')
-          // Salvar preferências se lembrar
           if (this.rememberMe) {
             localStorage.setItem('rememberMe', 'true')
             localStorage.setItem('lastUsername', this.userCredentials.username)
           }
         } else {
-          console.log('❌ Login falhou:', result.error)
-          // Tratar diferentes tipos de erro
           if (result.status === 403) {
             this.generalError = 'Usuário aguardando aprovação do administrador'
           } else if (result.status === 401) {
@@ -542,11 +487,9 @@ export default {
           }
         }
       } catch (error) {
-        console.error('💥 Erro no login:', error)
         this.generalError = 'Erro interno no login'
       }
     },
-
     async handleMicrosoftLogin() {
       this.clearAllErrors()
       this.loadingMessage = 'Conectando com Microsoft...'
@@ -554,9 +497,7 @@ export default {
       try {
         const result = await this.authStore.startMicrosoftAuth()
 
-        if (result.success) {
-          // Login bem-sucedido será tratado pelo watcher do isAuthenticated
-        } else {
+        if (!result.success) {
           if (result.error.includes('pendente')) {
             this.generalError = 'Usuário aguardando aprovação do administrador'
           } else {
@@ -565,12 +506,9 @@ export default {
         }
       } catch (error) {
         this.generalError = 'Erro ao conectar com Microsoft'
-        console.error('Erro Microsoft:', error)
       }
     },
-
     async handleRegister() {
-      // Validar todos os campos
       this.validateName()
       this.validateRegisterEmail()
       this.validateRegisterPassword()
@@ -600,8 +538,6 @@ export default {
         }
       }
     },
-
-    // MICROSOFT CALLBACK
     handleMicrosoftCallback() {
       const urlParams = new URLSearchParams(window.location.search)
       const code = urlParams.get('code')
@@ -618,16 +554,13 @@ export default {
         window.history.replaceState({}, document.title, window.location.pathname)
       }
     },
-
     async completeMicrosoftLogin(code) {
       this.loadingMessage = 'Finalizando autenticação Microsoft...'
 
       try {
         const result = await this.authStore.completeMicrosoftAuth(code)
 
-        if (result.success) {
-          // Sucesso será tratado pelo watcher
-        } else {
+        if (!result.success) {
           if (result.error.includes('pendente')) {
             this.showPendingModal = true
           } else {
@@ -636,18 +569,14 @@ export default {
         }
       } catch (error) {
         this.generalError = 'Erro ao finalizar autenticação Microsoft'
-        console.error('Erro no callback Microsoft:', error)
       }
     },
-
-    // LIFECYCLE
     loadSavedCredentials() {
       if (localStorage.getItem('rememberMe') === 'true') {
         this.rememberMe = true
         this.userCredentials.username = localStorage.getItem('lastUsername') || ''
       }
     },
-
     handleKeyboard(event) {
       if (event.ctrlKey && event.key === 'Enter') {
         if (this.currentMode === 'login') {
@@ -657,7 +586,6 @@ export default {
         }
       }
     },
-
     setupMessageListener() {
       window.addEventListener('message', (event) => {
         if (event.origin !== window.location.origin) return
@@ -678,7 +606,6 @@ export default {
     this.setupMessageListener()
     document.addEventListener('keydown', this.handleKeyboard)
 
-    // Auto-hide success toast
     setTimeout(() => {
       if (this.showSuccessToast) {
         this.showSuccessToast = false
@@ -693,47 +620,37 @@ export default {
 </script>
 
 <style scoped>
-.login-bg {
-  background: linear-gradient(135deg, var(--grey-color) 0%, #e9ecef 100%);
+
+.login-page {
   min-height: 100vh;
   display: flex;
-  justify-content: center;
   align-items: center;
-  width: 100%;
+  justify-content: center;
+  flex-direction: column;
+  background: linear-gradient(135deg, var(--secundary-color) 0%, var(--grey-dark) 100%);
   padding: 1rem;
-  box-sizing: border-box;
-  position: relative;
-  overflow: hidden;
 }
 
-.login-bg::before {
-  content: '';
+.copy {
+  color: var(--white-color);
+  font-weight: bold;
+  font-size: 12px;
+  padding: 1rem;
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
   bottom: 0;
-  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="50" cy="50" r="1" fill="%23000" opacity="0.02"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
-  pointer-events: none;
 }
 
 .login-container {
-  background: rgba(247, 247, 247, 0.95);
-  backdrop-filter: blur(20px);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   width: 100%;
-  max-width: 75rem;
-  min-height: 40rem;
-  border-radius: 25px;
-  box-shadow:
-    0 20px 60px rgba(0, 0, 0, 0.1),
-    0 8px 25px rgba(0, 0, 0, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 0.6);
-  display: flex;
-  justify-content: space-between;
+  max-width: 1200px;
+  min-height: 700px;
+  background: white;
+  border-radius: 20px;
   overflow: hidden;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
   position: relative;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 .login-container.loading {
@@ -746,7 +663,7 @@ export default {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(5px);
   display: flex;
   flex-direction: column;
@@ -759,284 +676,221 @@ export default {
 .loading-spinner {
   width: 40px;
   height: 40px;
-  border: 3px solid rgba(var(--theme-color-rgb, 74, 144, 226), 0.2);
-  border-top: 3px solid var(--theme-color, #4a90e2);
+  border: 3px solid var(--theme-color-hover);
+  border-top: 3px solid var(--theme-color);
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
 
 @keyframes spin {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
-.image-content {
-  background-image: url('/login/g.png');
-  background-size: cover;
-  background-repeat: no-repeat;
-  background-position: center;
-  width: 50%;
-  min-height: 40rem;
-  border-top-left-radius: 25px;
-  border-bottom-left-radius: 25px;
-  position: relative;
-  overflow: hidden;
-}
-
-.image-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-}
-
-.floating-elements {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-}
-
-.floating-circle {
-  position: absolute;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.1);
-  animation: float 6s ease-in-out infinite;
-}
-
-.circle-1 {
-  width: 100px;
-  height: 100px;
-  top: 20%;
-  left: 20%;
-  animation-delay: 0s;
-}
-
-.circle-2 {
-  width: 60px;
-  height: 60px;
-  top: 60%;
-  right: 30%;
-  animation-delay: 2s;
-}
-
-.circle-3 {
-  width: 80px;
-  height: 80px;
-  bottom: 20%;
-  left: 40%;
-  animation-delay: 4s;
-}
-
-@keyframes float {
-  0%,
-  100% {
-    transform: translateY(0px) rotate(0deg);
-  }
-  50% {
-    transform: translateY(-20px) rotate(180deg);
-  }
-}
-
-.form-container {
-  width: 50%;
+.login-form-section {
   padding: 3rem 2.5rem;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  align-items: center;
-  min-height: 40rem;
-  position: relative;
+  background-color: #fff;
 }
 
-.form-nav {
-  border-radius: 20px;
-  background: linear-gradient(145deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.85) 100%);
-  backdrop-filter: blur(15px);
-  box-shadow:
-    0 10px 40px rgba(0, 0, 0, 0.08),
-    0 4px 15px rgba(0, 0, 0, 0.06),
-    inset 0 1px 0 rgba(255, 255, 255, 0.5);
-  width: 100%;
+.login-header {
+  margin-bottom: 2.5rem;
+  text-align: center;
+}
+
+.login-title {
   display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  padding: 2.5rem;
-  min-height: 500px;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  position: relative;
-  overflow: hidden;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.form-nav::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: linear-gradient(
-    90deg,
-    var(--theme-color, #4a90e2) 0%,
-    var(--secundary-color, #9c27b0) 50%,
-    var(--theme-color, #4a90e2) 100%
-  );
-  border-top-left-radius: 20px;
-  border-top-right-radius: 20px;
-}
-
-.form-header {
-  text-align: left;
-  margin-bottom: 2rem;
-}
-
-.welcome-text {
-  color: #6c757d;
-  font-size: 1rem;
-  font-weight: 500;
-  margin: 0 0 0.5rem 0;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
-  opacity: 0;
-  animation: slideInUp 0.6s ease forwards;
-}
-
-.main-title {
-  color: #2c3e50;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
   font-size: 2.5rem;
   font-weight: 700;
-  margin: 0;
-  line-height: 1.2;
-  background: linear-gradient(
-    135deg,
-    var(--secundary-color, #9c27b0) 0%,
-    var(--theme-color, #4a90e2) 100%
-  );
+  color: var(--secundary-color);
+  margin: 0 0 0.5rem 0;
+  background: var(--badge-gradient);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  opacity: 0;
-  animation: slideInUp 0.6s ease 0.2s forwards;
 }
 
-@keyframes slideInUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.login-subtitle {
+  font-size: 1.1rem;
+  color: #718096;
+  margin: 0;
 }
 
-.form-content {
+.login-form {
   width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-  flex: 1;
 }
 
-.input-group {
+.form-fields {
+  margin-bottom: 1.5rem;
+}
+
+.field-group {
+  margin-bottom: 1.5rem;
+}
+
+.field-label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 0.5rem;
+}
+
+.input-wrapper {
   position: relative;
-  opacity: 0;
-  animation: slideInUp 0.6s ease 0.4s forwards;
 }
 
-.input-group:nth-child(2) {
-  animation-delay: 0.5s;
+.form-input {
+  width: 100%;
+  padding: 0.875rem 1rem;
+  font-size: 1rem;
+  border: 2px solid var(--grey-color);
+  border-radius: 12px;
+  background-color: var(--white-color);
+  color: var(--secundary-color);
+  transition: all 0.3s ease;
+  outline: none;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
-.input-group:nth-child(3) {
-  animation-delay: 0.6s;
+.form-input::placeholder {
+  color: var(--grey-light);
 }
 
-.input-group:nth-child(4) {
-  animation-delay: 0.7s;
+.form-input:focus {
+  border-color: var(--theme-color);
+  box-shadow: 0 0 0 3px var(--theme-color-hover), 0 4px 12px rgba(188, 31, 27, 0.15);
+  transform: translateY(-1px);
+}
+
+.form-input:hover:not(:focus) {
+  border-color: var(--grey-dark);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.password-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
 }
 
 .password-toggle {
+  position: absolute;
+  right: 1rem;
   background: none;
   border: none;
   cursor: pointer;
   padding: 0.5rem;
   color: #6c757d;
   transition: color 0.3s ease;
+  font-size: 1.2rem;
 }
 
 .password-toggle:hover {
-  color: var(--theme-color, #4a90e2);
+  color: var(--theme-color);
+}
+
+.error-text {
+  display: block;
+  color: var(--danger-color);
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
 }
 
 .checkbox-group {
-  opacity: 0;
-  animation: slideInUp 0.6s ease 0.6s forwards;
+  margin: 1rem 0;
 }
 
 .checkbox-label {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.5rem;
   cursor: pointer;
   user-select: none;
 }
 
 .checkbox-input {
-  position: absolute;
-  opacity: 0;
-  cursor: pointer;
-}
-
-.checkbox-custom {
   width: 18px;
   height: 18px;
-  border: 2px solid #ddd;
-  border-radius: 4px;
-  position: relative;
-  transition: all 0.3s ease;
-  background: white;
-}
-
-.checkbox-input:checked + .checkbox-custom {
-  background: var(--theme-color, #4a90e2);
-  border-color: var(--theme-color, #4a90e2);
-}
-
-.checkbox-input:checked + .checkbox-custom::after {
-  content: '✓';
-  position: absolute;
-  color: white;
-  font-size: 12px;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  cursor: pointer;
 }
 
 .checkbox-text {
   font-size: 0.9rem;
-  color: #6c757d;
+  color: var(--grey-dark);
+}
+
+.form-actions {
+  margin-bottom: 1.5rem;
+}
+
+.btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 12px;
+  font-family: inherit;
+  font-weight: 500;
+  line-height: 1.4;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  outline: none;
+  user-select: none;
+}
+
+.btn-medium {
+  padding: 0.75rem 1rem;
+  font-size: 0.9rem;
+  min-height: 40px;
+  gap: 0.5rem;
+}
+
+.btn-primary {
+  background: var(--theme-color);
+  color: white;
+  border: 1px solid rgba(188, 31, 27, 0.3);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #9a1916;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(188, 31, 27, 0.3);
+}
+
+.btn-secondary {
+  background: white;
+  color: #5e5e5e;
+  border: 2px solid #e0e0e0;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: #f5f5f5;
+  transform: translateY(-1px);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .login-button {
-  margin-top: 1rem;
-  opacity: 0;
-  animation: slideInUp 0.6s ease 0.7s forwards;
+  width: 100%;
+  padding: 0.875rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
 }
 
 .divider {
   position: relative;
   text-align: center;
   margin: 1rem 0;
-  opacity: 0;
-  animation: slideInUp 0.6s ease 0.8s forwards;
 }
 
 .divider::before {
@@ -1053,15 +907,14 @@ export default {
 .divider span {
   background: white;
   padding: 0 1rem;
-  color: #6c757d;
+  color: var(--grey-dark);
   font-size: 0.9rem;
   position: relative;
   z-index: 2;
 }
 
 .microsoft-button {
-  opacity: 0;
-  animation: slideInUp 0.6s ease 0.9s forwards;
+  width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1076,6 +929,7 @@ export default {
 .error-message {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 0.5rem;
   padding: 0.75rem 1rem;
   background: rgba(220, 53, 69, 0.1);
@@ -1083,27 +937,23 @@ export default {
   border-radius: 8px;
   color: #dc3545;
   font-size: 0.9rem;
-  margin-top: 0.5rem;
-  opacity: 0;
-  animation: slideInUp 0.3s ease forwards;
-}
-
-.form-container-footer {
+  margin-top: 1rem;
   text-align: center;
-  padding-top: 1.5rem;
-  border-top: 1px solid rgba(0, 0, 0, 0.06);
-  opacity: 0;
-  animation: slideInUp 0.6s ease 1s forwards;
 }
 
-.form-container-footer p {
+.form-footer {
+  text-align: center;
+  margin-top: 1.5rem;
+}
+
+.form-footer p {
   font-size: 0.9rem;
-  color: #6c757d;
-  margin: 0 0 0.5rem 0;
+  color: var(--grey-dark);
+  margin: 0;
 }
 
 .access-link {
-  color: var(--theme-color, #4a90e2);
+  color: var(--theme-color);
   text-decoration: none;
   font-weight: 500;
   transition: color 0.3s ease;
@@ -1111,14 +961,51 @@ export default {
 }
 
 .access-link:hover {
-  color: var(--secundary-color, #9c27b0);
+  color: #9a1916;
   text-decoration: underline;
 }
 
-.version-info {
-  font-size: 0.8rem;
-  color: #adb5bd;
-  margin-top: 0.5rem;
+.login-image-section {
+  position: relative;
+  background-image: url('/login/1.png');
+  background-position: center;
+  background-size: cover;
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.login-image-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.75);
+  z-index: 1;
+}
+
+.login-image-section > * {
+  position: relative;
+  color: var(--white-color);
+  z-index: 2;
+  text-align: center;
+}
+
+.login-image-section h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.login-image-section p {
+  font-size: 1.1rem;
+  margin: 0;
+  opacity: 0.9;
 }
 
 .success-toast {
@@ -1158,8 +1045,9 @@ export default {
 }
 
 .pending-content h3 {
-  color: var(--theme-color);
+  color: var(--purple-color);
   margin-bottom: 1rem;
+  font-size: 1.5rem;
 }
 
 .pending-content p {
@@ -1170,59 +1058,84 @@ export default {
 
 .pending-actions {
   margin-top: 1.5rem;
+  display: flex;
+  justify-content: center;
 }
 
 /* Responsive Design */
-@media (max-width: 768px) {
+@media (max-width: 968px) {
   .login-container {
-    flex-direction: column;
-    max-width: 100%;
+    grid-template-columns: 1fr;
+    max-width: 500px;
     min-height: auto;
   }
 
-  .image-content {
-    width: 100%;
-    height: 200px;
+  .login-image-section {
+    order: -1;
     min-height: 200px;
-    border-radius: 25px 25px 0 0;
   }
 
-  .form-container {
-    width: 100%;
-    min-height: auto;
+  .login-form-section {
     padding: 2rem 1.5rem;
   }
 
-  .main-title {
+  .login-title {
     font-size: 2rem;
+  }
+
+  .login-image-section h1 {
+    font-size: 2rem;
+  }
+
+  .login-image-section p {
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .form-input {
+    padding: 0.75rem 0.875rem;
+    font-size: 0.9rem;
+  }
+
+  .field-label {
+    font-size: 0.8rem;
   }
 }
 
 @media (max-width: 480px) {
-  .login-bg {
+  .login-page {
     padding: 0.5rem;
   }
 
-  .form-container {
+  .login-form-section {
     padding: 1.5rem 1rem;
   }
 
-  .main-title {
-    font-size: 1.6rem;
+  .login-title {
+    font-size: 1.75rem;
+    gap: 10px;
   }
 
-  .form-nav {
-    padding: 2rem 1.5rem;
+  .login-title img {
+    height: 28px;
   }
-}
 
-@media (hover: hover) {
-  .form-nav:hover {
-    transform: translateY(-2px);
-    box-shadow:
-      0 20px 60px rgba(0, 0, 0, 0.12),
-      0 8px 25px rgba(0, 0, 0, 0.08),
-      inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  .field-group {
+    margin-bottom: 1.25rem;
+  }
+
+  .login-image-section h1 {
+    font-size: 1.5rem;
+  }
+
+  .login-image-section p {
+    font-size: 0.9rem;
+  }
+
+  .copy {
+    font-size: 10px;
+    padding: 0.5rem;
   }
 }
 </style>
