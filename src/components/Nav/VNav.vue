@@ -2,19 +2,6 @@
   <nav class="navbar" :class="{ 'navbar-collapsed': isCollapsed }">
     <div class="navbar-content">
       <div class="navbar-actions">
-        <div class="search-container" v-if="showSearch">
-          <div class="search-input-wrapper">
-            <FontAwesomeIcon icon="search" class="search-icon" />
-            <input
-              type="text"
-              placeholder="Pesquisar..."
-              class="search-input"
-              v-model="searchQuery"
-              @input="onSearch"
-            />
-          </div>
-        </div>
-
         <div class="action-buttons">
           <!-- Indicador de conexão WebSocket -->
           <div class="connection-status" :class="{ connected: isConnected }">
@@ -350,10 +337,6 @@ export default {
       type: Boolean,
       default: false,
     },
-    showSearch: {
-      type: Boolean,
-      default: true,
-    },
     showNotifications: {
       type: Boolean,
       default: true,
@@ -368,11 +351,10 @@ export default {
     },
   },
 
-  emits: ['search', 'profile-action', 'notification-click', 'notification-remove'],
+  emits: ['profile-action', 'notification-click', 'notification-remove'],
 
   data() {
     return {
-      searchQuery: '',
       showNotificationsDropdown: false,
       showProfileDropdown: false,
       showNotificationOffcanvas: false,
@@ -462,10 +444,6 @@ export default {
   },
 
   methods: {
-    onSearch() {
-      this.$emit('search', this.searchQuery)
-    },
-
     toggleNotifications() {
       this.showNotificationsDropdown = !this.showNotificationsDropdown
       this.showProfileDropdown = false

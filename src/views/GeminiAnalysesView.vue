@@ -128,19 +128,19 @@ export default {
   margin-top: -15px;
 }
 .gemini-result {
-  background: #f0fdf4;
-  border-left: 4px solid #22c55e;
+  background: #eff6ff;              
+  border-left: 4px solid #3b82f6;   
   padding: 16px;
   border-radius: 8px;
 }
 .gemini-title {
   margin: 0 0 8px 0;
-  color: #166534;
+  color: #1e40af;                   
 }
 .gemini-text {
   margin: 0;
   font-size: 15px;
   line-height: 1.6;
-  color: #15803d;
+  color: #1d4ed8;                   
 }
 </style>

@@ -126,7 +126,7 @@ app.config.globalProperties.$showToast = window.showToast || (() => {})
 app.config.globalProperties.$showConfirm = window.showConfirm || (() => Promise.resolve(false))
 
 if (typeof window !== 'undefined') {
-  const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://192.168.0.7:8000'
+  const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://192.168.195.162:8000' //http://192.168.0.7:8000
   window.API_BASE_URL = API_BASE_URL
 
   if (import.meta.env.DEV) {

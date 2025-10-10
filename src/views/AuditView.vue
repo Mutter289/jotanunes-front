@@ -198,7 +198,58 @@
             </div>
           </div>
         </div>
+        
+        <!-- Seção de Observações -->
+          <div class="detail-section">
+            <h3 class="section-title">Observações</h3>
+            
+            <!-- Lista de observações existentes -->
+            <div v-if="isLoadingObservations" class="loading-observations">
+              <div class="spinner-small"></div>
+              <p>Carregando observações...</p>
+            </div>
+            
+            <div v-else-if="observations.length > 0" class="observations-list">
+              <div 
+                v-for="obs in observations" 
+                :key="obs.id"
+                class="observation-item"
+              >
+                <div class="observation-header">
+                  <span class="observation-author">{{ obs.usuario || 'Usuário' }}</span>
+                  <span class="observation-date">{{ formatDate(obs.data_criacao || obs.createdAt) }}</span>
+                </div>
+                <div class="observation-text">{{ obs.observacao || obs.texto }}</div>
+              </div>
+            </div>
+            
+            <div v-else class="no-observations">
+              <p>Nenhuma observação registrada ainda.</p>
+            </div>
+            
+            <!-- Formulário para nova observação -->
+            <div class="observation-form">
+              <h4 class="form-subtitle">Adicionar nova observação</h4>
+              <textarea
+                v-model="observationText"
+                class="observation-textarea"
+                placeholder="Digite sua observação..."
+                rows="3"
+                @input="autoResize"
+                ref="observationTextarea"
+              ></textarea>
+              <div class="observation-actions">
+                <VButton 
+                  @click="saveObservation" 
+                  variant="primary" 
+                  text="Adicionar Observação"
+                  :disabled="!observationText.trim() || isSavingObservation"
+                />
+              </div>
+            </div>
+          </div>
       </div>
+
       <div v-else class="loading-state">
         <div class="spinner"></div>
         <p>Carregando detalhes...</p>
@@ -256,6 +307,12 @@ export default {
       selectedRow: null,
       selectedRowId: null,
       tableData: [],
+
+      //OBSERVAÇÕES
+      observations: [],           
+      observationText: '',
+      isSavingObservation: false,
+      isLoadingObservations: false,
 
       // Novos dados para análise do Gemini
       geminiAnalysis: null,
@@ -468,28 +525,90 @@ export default {
           return null
       }
     },
+    
+        async saveObservation() {
+        if (!this.observationText.trim() || !this.selectedRow) return
+        
+        this.isSavingObservation = true
+        
+        try {
+          const endpoint = this.endpoints[this.tableActive]
+          const rowId = this.getRowId(this.selectedRow)
+          
+          const newObservation = await this.useFetch(`${endpoint}${rowId}/observacao`, {
+            method: 'POST',
+            body: JSON.stringify({
+              observacao: this.observationText.trim()
+            })
+          })
+          
+          // Adiciona a nova observação ao array
+          if (newObservation) {
+            this.observations.unshift(newObservation)
+          }
+          
+          // Limpa o campo de texto
+          this.observationText = ''
+          this.$toast?.success('Observação salva com sucesso')
+          
+        } catch (e) {
+          console.error('Erro ao salvar observação:', e)
+          this.$toast?.error('Erro ao salvar observação')
+        } finally {
+          this.isSavingObservation = false
+        }
+      },
 
-    async handleRowClick(row) {
-      console.log('Linha clicada:', row)
-      this.selectedRow = row
-      this.selectedRowId = this.getRowId(row)
-      this.showOffcanvas = true
+      async loadObservations(rowId) {
+        if (!rowId) return
+        
+        this.isLoadingObservations = true
+        try {
+          const endpoint = this.endpoints[this.tableActive]
+          const data = await this.useFetch(`${endpoint}${rowId}/observacoes`)
+          
+          if (data && Array.isArray(data)) {
+            this.observations = data
+          } else {
+            this.observations = []
+          }
+        } catch (e) {
+          console.error('Erro ao carregar observações:', e)
+          this.observations = []
+        } finally {
+          this.isLoadingObservations = false
+        }
+      },
+         
+      autoResize(event) {
+        const textarea = event.target
+        textarea.style.height = 'auto'
+        textarea.style.height = textarea.scrollHeight + 'px'
+      },
 
-      // Limpa a análise anterior
-      this.geminiAnalysis = null
+        async handleRowClick(row) {
+          console.log('Linha clicada:', row)
+          this.selectedRow = row
+          this.selectedRowId = this.getRowId(row)
+          this.showOffcanvas = true
+          
+          // Limpa dados anteriores
+          this.geminiAnalysis = null
+          this.observationText = ''
+          this.observations = []  // Limpa observações anteriores
 
-      // Se a tabela for SQL, busca a análise do Gemini
-      if (this.tableActive === 'audsql') {
-        await this.loadGeminiAnalysis(this.selectedRowId)
-      }
+          // Se a tabela for SQL, busca a análise do Gemini
+          if (this.tableActive === 'audsql') {
+            await this.loadGeminiAnalysis(this.selectedRowId)
+          }
 
-      // Carregar detalhes específicos se necessário
-      const rowId = this.getRowId(row)
-      if (rowId) {
-        await this.loadRowDetails(rowId)
-      }
-    },
-
+          // Carregar detalhes e observações
+          const rowId = this.getRowId(row)
+          if (rowId) {
+            await this.loadRowDetails(rowId)
+            await this.loadObservations(rowId)  // Carrega observações
+          }
+        },
     async loadGeminiAnalysis(codSentenca) {
       if (!codSentenca) return
       this.isLoadingAnalysis = true
@@ -855,22 +974,229 @@ export default {
 
 .gemini-result-offcanvas {
   margin-top: 16px;
-  background: #f0fdf4;
-  border-left: 4px solid #22c55e;
+  background: #eff6ff;              
+  border-left: 4px solid #3b82f6;   
   padding: 16px;
   border-radius: 8px;
 }
 
 .gemini-title-offcanvas {
   margin: 0 0 8px 0;
-  color: #166534;
+  color: #1e40af;                   
   font-size: 16px;
 }
 
 .gemini-result-offcanvas p {
   margin: 0;
   line-height: 1.6;
-  color: #15803d;
+  color: #1d4ed8;                   
+}
+
+/* Estilos para Observações */
+.observations-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 20px;
+  max-height: 400px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.observation-item {
+  background: #f8fafc;
+  border-left: 3px solid #667eea;
+  padding: 12px;
+  border-radius: 6px;
+}
+
+.observation-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.observation-author {
+  font-weight: 600;
+  color: #1e293b;
+  font-size: 13px;
+}
+
+.observation-date {
+  font-size: 12px;
+  color: #64748b;
+}
+
+.observation-text {
+  color: #334155;
+  font-size: 14px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.no-observations {
+  text-align: center;
+  padding: 20px;
+  background: #f8fafc;
+  border-radius: 6px;
+  color: #64748b;
+  font-size: 14px;
+  margin-bottom: 20px;
+}
+
+.no-observations p {
+  margin: 0;
+}
+
+.loading-observations {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 20px;
+  color: #64748b;
+  margin-bottom: 20px;
+}
+
+.spinner-small {
+  width: 20px;
+  height: 20px;
+  border: 3px solid #e5e7eb;
+  border-top-color: #667eea;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.observation-form {
+  background: #ffffff;
+  border: 2px dashed #cbd5e1;
+  border-radius: 8px;
+  padding: 16px;
+  margin-top: 24px;
+}
+
+.form-subtitle {
+  margin: 0 0 12px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #475569;
+}
+
+.observations-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.observations-list::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 3px;
+}
+
+.observations-list::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+.observations-list::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+.observation-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.observation-textarea {
+  resize: none;
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #1f2937;
+  min-height: 80px;
+  max-height: 300px;
+  overflow-y: auto;
+  transition: border-color 0.2s, height 0.1s ease;
+}
+
+.observation-textarea:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.observation-textarea::placeholder {
+resize: none;
+  color: #9ca3af;
+}
+
+.observation-actions {
+  display: right;
+  justify-content: right;
+  margin-top: 1px;
+  padding-top: 16px;
+  border-top: none;
+}
+
+.observation-actions :deep(.v-button) {
+  min-width: 180px;
+  font-weight: 600;
+  padding: 12px 24px;
+  font-size: 14px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.observation-actions :deep(.v-button::before) {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transition: left 0.5s;
+}
+
+.observation-actions :deep(.v-button:hover:not(:disabled)) {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+}
+
+.observation-actions :deep(.v-button:hover:not(:disabled)::before) {
+  left: 100%;
+}
+
+.observation-actions :deep(.v-button:active:not(:disabled)) {
+  transform: translateY(-1px);
+  box-shadow: 0 3px 10px rgba(102, 126, 234, 0.4);
+}
+
+.observation-actions :deep(.v-button:disabled) {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%);
+  box-shadow: none;
+}
+
+.save-feedback {
+  color: #10b981;
+  font-size: 14px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 /* Loading State */
