@@ -1046,7 +1046,7 @@ export default {
           // Create new dependency
           const body = {
             tabela_origem: this.newDependency.tabela_origem,
-            id_origem: String(this.newDependency.id_origem || ''), // ✅ Cast para string
+            id_origem: parseInt(this.newDependency.id_origem) || 0, // ✅ Cast para integer
             nome: this.newDependency.nome,
             descricao: this.newDependency.descricao,
             versao: this.newDependency.versao,
@@ -1205,7 +1205,7 @@ export default {
       if (tabela === 'AUD_FV') {
         return list.filter((it) => {
           const ativo = it.ATIVO === true || it.ativo === true || it.ativo === 1
-          const notSelf = !(this.newDependency.tabela_origem === 'AUD_FV' && String(it.id) === String(this.newDependency.id_origem))
+          const notSelf = !(this.newDependency.tabela_origem === 'AUD_FV' && it.id === this.newDependency.id_origem)
           return ativo && notSelf
         })
       }
@@ -1291,7 +1291,7 @@ export default {
         nome: '',
         versao: '',
         tabela_origem: 'AUD_FV',
-        id_origem: '', //  String vazia em vez de null
+        id_origem: null, //  null em vez de string vazia
         criador: '',
         descricao: '',
         dependencias: [],
