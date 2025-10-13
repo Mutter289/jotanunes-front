@@ -6,7 +6,9 @@ export function toMermaidFlowchart(model) {
 
   const lines = []
   // Aumenta escala em ~3x via fontSize e espaçamentos
-  lines.push("%%{init: { 'themeVariables': { 'fontSize': '36px' }, 'flowchart': { 'nodeSpacing': 100, 'rankSpacing': 140 } }}%%")
+  lines.push(
+    "%%{init: { 'themeVariables': { 'fontSize': '36px' }, 'flowchart': { 'nodeSpacing': 100, 'rankSpacing': 140 } }}%%",
+  )
   lines.push('flowchart LR')
   // Estilos por tipo de tabela
   lines.push('  classDef fv fill:#fff,stroke:#e91e63,stroke-width:2px') // rosa
@@ -30,7 +32,9 @@ export function toMermaidFlowchart(model) {
   // Dependências em colunas (AUD_SQLS ao centro, AUD_REPORT(S) à direita)
   const deps = Array.isArray(model.dependencias) ? model.dependencias.filter(Boolean) : []
   const sqls = deps.filter((d) => (d.tabela || '').toUpperCase() === 'AUD_SQLS')
-  const reports = deps.filter((d) => ['AUD_REPORT', 'AUD_REPORTS'].includes((d.tabela || '').toUpperCase()))
+  const reports = deps.filter((d) =>
+    ['AUD_REPORT', 'AUD_REPORTS'].includes((d.tabela || '').toUpperCase()),
+  )
   const others = deps.filter((d) => !sqls.includes(d) && !reports.includes(d))
 
   const sqlIds = []

@@ -9,10 +9,14 @@
       <div class="login-form-section">
         <div class="login-header">
           <h1 class="login-title">
-            <img src="/logo/Logo-Preta.png" alt="logo" width="auto" height="66px">
+            <img src="/logo/Logo-Preta.png" alt="logo" width="auto" height="66px" />
           </h1>
           <p class="login-subtitle">
-            {{ currentMode === 'login' ? 'Entre em sua conta para continuar' : 'Preencha os dados para criar sua conta' }}
+            {{
+              currentMode === 'login'
+                ? 'Entre em sua conta para continuar'
+                : 'Preencha os dados para criar sua conta'
+            }}
           </p>
         </div>
 
@@ -60,8 +64,7 @@
                     @click="togglePassword"
                     :disabled="isLoading"
                     tabindex="-1"
-                  >
-                  </button>
+                  ></button>
                 </div>
                 <span v-if="errors.userPassword" class="error-text">{{ errors.userPassword }}</span>
               </div>
@@ -81,7 +84,11 @@
           </div>
 
           <div class="form-actions">
-            <button type="submit" class="btn btn-primary btn-medium login-button" :disabled="isLoading">
+            <button
+              type="submit"
+              class="btn btn-primary btn-medium login-button"
+              :disabled="isLoading"
+            >
               Entrar
             </button>
           </div>
@@ -107,7 +114,9 @@
           <div class="form-footer">
             <p>
               Não tem uma conta?
-              <a href="#" @click.prevent="switchMode('register')" class="access-link">Criar conta</a>
+              <a href="#" @click.prevent="switchMode('register')" class="access-link"
+                >Criar conta</a
+              >
             </p>
           </div>
         </form>
@@ -169,8 +178,7 @@
                     @click="togglePassword"
                     :disabled="isLoading"
                     tabindex="-1"
-                  >
-                  </button>
+                  ></button>
                 </div>
                 <span v-if="errors.senha" class="error-text">{{ errors.senha }}</span>
               </div>
@@ -195,7 +203,11 @@
           </div>
 
           <div class="form-actions">
-            <button type="submit" class="btn btn-primary btn-medium login-button" :disabled="isLoading">
+            <button
+              type="submit"
+              class="btn btn-primary btn-medium login-button"
+              :disabled="isLoading"
+            >
               Criar Conta
             </button>
           </div>
@@ -216,7 +228,13 @@
       <div class="login-image-section">
         <p>{{ welcomeMessage }}</p>
         <h1>Seja bem-vindo!</h1>
-        <p>{{ currentMode === 'login' ? 'Acesse o portal para continuar' : 'Cadastre-se para ter acesso aos sistemas' }}</p>
+        <p>
+          {{
+            currentMode === 'login'
+              ? 'Acesse o portal para continuar'
+              : 'Cadastre-se para ter acesso aos sistemas'
+          }}
+        </p>
       </div>
     </div>
 
@@ -620,7 +638,6 @@ export default {
 </script>
 
 <style scoped>
-
 .login-page {
   min-height: 100vh;
   display: flex;
@@ -649,7 +666,9 @@ export default {
   background: white;
   border-radius: 20px;
   overflow: hidden;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  box-shadow:
+    0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
   position: relative;
 }
 
@@ -683,8 +702,12 @@ export default {
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .login-form-section {
@@ -764,7 +787,9 @@ export default {
 
 .form-input:focus {
   border-color: var(--theme-color);
-  box-shadow: 0 0 0 3px var(--theme-color-hover), 0 4px 12px rgba(188, 31, 27, 0.15);
+  box-shadow:
+    0 0 0 3px var(--theme-color-hover),
+    0 4px 12px rgba(188, 31, 27, 0.15);
   transform: translateY(-1px);
 }
 

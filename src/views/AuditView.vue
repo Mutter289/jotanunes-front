@@ -198,56 +198,54 @@
             </div>
           </div>
         </div>
-        
+
         <!-- Seção de Observações -->
-          <div class="detail-section">
-            <h3 class="section-title">Observações</h3>
-            
-            <!-- Lista de observações existentes -->
-            <div v-if="isLoadingObservations" class="loading-observations">
-              <div class="spinner-small"></div>
-              <p>Carregando observações...</p>
-            </div>
-            
-            <div v-else-if="observations.length > 0" class="observations-list">
-              <div 
-                v-for="obs in observations" 
-                :key="obs.id"
-                class="observation-item"
-              >
-                <div class="observation-header">
-                  <span class="observation-author">{{ obs.usuario || 'Usuário' }}</span>
-                  <span class="observation-date">{{ formatDate(obs.data_criacao || obs.createdAt) }}</span>
-                </div>
-                <div class="observation-text">{{ obs.observacao || obs.texto }}</div>
+        <div class="detail-section">
+          <h3 class="section-title">Observações</h3>
+
+          <!-- Lista de observações existentes -->
+          <div v-if="isLoadingObservations" class="loading-observations">
+            <div class="spinner-small"></div>
+            <p>Carregando observações...</p>
+          </div>
+
+          <div v-else-if="observations.length > 0" class="observations-list">
+            <div v-for="obs in observations" :key="obs.id" class="observation-item">
+              <div class="observation-header">
+                <span class="observation-author">{{ obs.usuario || 'Usuário' }}</span>
+                <span class="observation-date">{{
+                  formatDate(obs.data_criacao || obs.createdAt)
+                }}</span>
               </div>
-            </div>
-            
-            <div v-else class="no-observations">
-              <p>Nenhuma observação registrada ainda.</p>
-            </div>
-            
-            <!-- Formulário para nova observação -->
-            <div class="observation-form">
-              <h4 class="form-subtitle">Adicionar nova observação</h4>
-              <textarea
-                v-model="observationText"
-                class="observation-textarea"
-                placeholder="Digite sua observação..."
-                rows="3"
-                @input="autoResize"
-                ref="observationTextarea"
-              ></textarea>
-              <div class="observation-actions">
-                <VButton 
-                  @click="saveObservation" 
-                  variant="primary" 
-                  text="Adicionar Observação"
-                  :disabled="!observationText.trim() || isSavingObservation"
-                />
-              </div>
+              <div class="observation-text">{{ obs.observacao || obs.texto }}</div>
             </div>
           </div>
+
+          <div v-else class="no-observations">
+            <p>Nenhuma observação registrada ainda.</p>
+          </div>
+
+          <!-- Formulário para nova observação -->
+          <div class="observation-form">
+            <h4 class="form-subtitle">Adicionar nova observação</h4>
+            <textarea
+              v-model="observationText"
+              class="observation-textarea"
+              placeholder="Digite sua observação..."
+              rows="3"
+              @input="autoResize"
+              ref="observationTextarea"
+            ></textarea>
+            <div class="observation-actions">
+              <VButton
+                @click="saveObservation"
+                variant="primary"
+                text="Adicionar Observação"
+                :disabled="!observationText.trim() || isSavingObservation"
+              />
+            </div>
+          </div>
+        </div>
       </div>
 
       <div v-else class="loading-state">
@@ -309,7 +307,7 @@ export default {
       tableData: [],
 
       //OBSERVAÇÕES
-      observations: [],           
+      observations: [],
       observationText: '',
       isSavingObservation: false,
       isLoadingObservations: false,
@@ -525,90 +523,89 @@ export default {
           return null
       }
     },
-    
-        async saveObservation() {
-        if (!this.observationText.trim() || !this.selectedRow) return
-        
-        this.isSavingObservation = true
-        
-        try {
-          const endpoint = this.endpoints[this.tableActive]
-          const rowId = this.getRowId(this.selectedRow)
-          
-          const newObservation = await this.useFetch(`${endpoint}${rowId}/observacao`, {
-            method: 'POST',
-            body: JSON.stringify({
-              observacao: this.observationText.trim()
-            })
-          })
-          
-          // Adiciona a nova observação ao array
-          if (newObservation) {
-            this.observations.unshift(newObservation)
-          }
-          
-          // Limpa o campo de texto
-          this.observationText = ''
-          this.$toast?.success('Observação salva com sucesso')
-          
-        } catch (e) {
-          console.error('Erro ao salvar observação:', e)
-          this.$toast?.error('Erro ao salvar observação')
-        } finally {
-          this.isSavingObservation = false
-        }
-      },
 
-      async loadObservations(rowId) {
-        if (!rowId) return
-        
-        this.isLoadingObservations = true
-        try {
-          const endpoint = this.endpoints[this.tableActive]
-          const data = await this.useFetch(`${endpoint}${rowId}/observacoes`)
-          
-          if (data && Array.isArray(data)) {
-            this.observations = data
-          } else {
-            this.observations = []
-          }
-        } catch (e) {
-          console.error('Erro ao carregar observações:', e)
+    async saveObservation() {
+      if (!this.observationText.trim() || !this.selectedRow) return
+
+      this.isSavingObservation = true
+
+      try {
+        const endpoint = this.endpoints[this.tableActive]
+        const rowId = this.getRowId(this.selectedRow)
+
+        const newObservation = await this.useFetch(`${endpoint}${rowId}/observacao`, {
+          method: 'POST',
+          body: JSON.stringify({
+            observacao: this.observationText.trim(),
+          }),
+        })
+
+        // Adiciona a nova observação ao array
+        if (newObservation) {
+          this.observations.unshift(newObservation)
+        }
+
+        // Limpa o campo de texto
+        this.observationText = ''
+        this.$toast?.success('Observação salva com sucesso')
+      } catch (e) {
+        console.error('Erro ao salvar observação:', e)
+        this.$toast?.error('Erro ao salvar observação')
+      } finally {
+        this.isSavingObservation = false
+      }
+    },
+
+    async loadObservations(rowId) {
+      if (!rowId) return
+
+      this.isLoadingObservations = true
+      try {
+        const endpoint = this.endpoints[this.tableActive]
+        const data = await this.useFetch(`${endpoint}${rowId}/observacoes`)
+
+        if (data && Array.isArray(data)) {
+          this.observations = data
+        } else {
           this.observations = []
-        } finally {
-          this.isLoadingObservations = false
         }
-      },
-         
-      autoResize(event) {
-        const textarea = event.target
-        textarea.style.height = 'auto'
-        textarea.style.height = textarea.scrollHeight + 'px'
-      },
+      } catch (e) {
+        console.error('Erro ao carregar observações:', e)
+        this.observations = []
+      } finally {
+        this.isLoadingObservations = false
+      }
+    },
 
-        async handleRowClick(row) {
-          console.log('Linha clicada:', row)
-          this.selectedRow = row
-          this.selectedRowId = this.getRowId(row)
-          this.showOffcanvas = true
-          
-          // Limpa dados anteriores
-          this.geminiAnalysis = null
-          this.observationText = ''
-          this.observations = []  // Limpa observações anteriores
+    autoResize(event) {
+      const textarea = event.target
+      textarea.style.height = 'auto'
+      textarea.style.height = textarea.scrollHeight + 'px'
+    },
 
-          // Se a tabela for SQL, busca a análise do Gemini
-          if (this.tableActive === 'audsql') {
-            await this.loadGeminiAnalysis(this.selectedRowId)
-          }
+    async handleRowClick(row) {
+      console.log('Linha clicada:', row)
+      this.selectedRow = row
+      this.selectedRowId = this.getRowId(row)
+      this.showOffcanvas = true
 
-          // Carregar detalhes e observações
-          const rowId = this.getRowId(row)
-          if (rowId) {
-            await this.loadRowDetails(rowId)
-            await this.loadObservations(rowId)  // Carrega observações
-          }
-        },
+      // Limpa dados anteriores
+      this.geminiAnalysis = null
+      this.observationText = ''
+      this.observations = [] // Limpa observações anteriores
+
+      // Se a tabela for SQL, busca a análise do Gemini
+      if (this.tableActive === 'audsql') {
+        await this.loadGeminiAnalysis(this.selectedRowId)
+      }
+
+      // Carregar detalhes e observações
+      const rowId = this.getRowId(row)
+      if (rowId) {
+        await this.loadRowDetails(rowId)
+        await this.loadObservations(rowId) // Carrega observações
+      }
+    },
     async loadGeminiAnalysis(codSentenca) {
       if (!codSentenca) return
       this.isLoadingAnalysis = true
@@ -974,22 +971,22 @@ export default {
 
 .gemini-result-offcanvas {
   margin-top: 16px;
-  background: #eff6ff;              
-  border-left: 4px solid #3b82f6;   
+  background: #eff6ff;
+  border-left: 4px solid #3b82f6;
   padding: 16px;
   border-radius: 8px;
 }
 
 .gemini-title-offcanvas {
   margin: 0 0 8px 0;
-  color: #1e40af;                   
+  color: #1e40af;
   font-size: 16px;
 }
 
 .gemini-result-offcanvas p {
   margin: 0;
   line-height: 1.6;
-  color: #1d4ed8;                   
+  color: #1d4ed8;
 }
 
 /* Estilos para Observações */
@@ -1123,7 +1120,9 @@ export default {
   min-height: 80px;
   max-height: 300px;
   overflow-y: auto;
-  transition: border-color 0.2s, height 0.1s ease;
+  transition:
+    border-color 0.2s,
+    height 0.1s ease;
 }
 
 .observation-textarea:focus {
@@ -1133,7 +1132,7 @@ export default {
 }
 
 .observation-textarea::placeholder {
-resize: none;
+  resize: none;
   color: #9ca3af;
 }
 

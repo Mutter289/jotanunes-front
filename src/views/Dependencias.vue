@@ -963,8 +963,10 @@ export default {
       if (Array.isArray(dep.dependencias)) {
         dep.dependencias.forEach((d) => {
           if (d.tabela_dependente === 'AUD_FV') this.depSelecionada.fv.push(String(d.id_dependente))
-          else if (d.tabela_dependente === 'AUD_SQLS') this.depSelecionada.sql.push(String(d.id_dependente))
-          else if (d.tabela_dependente === 'AUD_REPORT' || d.tabela_dependente === 'AUD_REPORTS') this.depSelecionada.report.push(String(d.id_dependente))
+          else if (d.tabela_dependente === 'AUD_SQLS')
+            this.depSelecionada.sql.push(String(d.id_dependente))
+          else if (d.tabela_dependente === 'AUD_REPORT' || d.tabela_dependente === 'AUD_REPORTS')
+            this.depSelecionada.report.push(String(d.id_dependente))
         })
         this.newDependency.dependencias = dep.dependencias.map((d) => ({ ...d }))
       }
@@ -976,7 +978,12 @@ export default {
 
     async removeDependency(dep) {
       if (!dep) return
-      if (!confirm(`Remover definitivamente a alteração "${dep.nome}" e tudo que foi criado no banco?`)) return
+      if (
+        !confirm(
+          `Remover definitivamente a alteração "${dep.nome}" e tudo que foi criado no banco?`,
+        )
+      )
+        return
       try {
         const usuario = prompt('Digite seu nome de usuário:')
         if (!usuario) return
@@ -1072,7 +1079,7 @@ export default {
         dependencias: [],
       }
       this.depSelecionada = { fv: [], sql: [], report: [] }
-      
+
       // Não carregar draft para nova criação
       this.draftKey = this.getDraftKey()
     },
@@ -1130,7 +1137,10 @@ export default {
       }
 
       // SQL múltiplos
-      if (Array.isArray(this.depSelecionada.sql) && this.newDependency.tabela_origem !== 'AUD_SQLS') {
+      if (
+        Array.isArray(this.depSelecionada.sql) &&
+        this.newDependency.tabela_origem !== 'AUD_SQLS'
+      ) {
         this.depSelecionada.sql.forEach((idSel) => {
           const item = this.itensPorTabela.AUD_SQLS.find((s) => String(s.id) === String(idSel))
           if (item) {
@@ -1144,7 +1154,10 @@ export default {
       }
 
       // REPORT múltiplos
-      if (Array.isArray(this.depSelecionada.report) && this.newDependency.tabela_origem !== 'AUD_REPORT') {
+      if (
+        Array.isArray(this.depSelecionada.report) &&
+        this.newDependency.tabela_origem !== 'AUD_REPORT'
+      ) {
         this.depSelecionada.report.forEach((idSel) => {
           const item = this.itensPorTabela.AUD_REPORT.find((r) => String(r.id) === String(idSel))
           if (item) {
@@ -1185,7 +1198,9 @@ export default {
       if (tabela === 'AUD_FV') {
         return list.filter((it) => {
           const ativo = it.ATIVO === true || it.ativo === true || it.ativo === 1
-          const notSelf = !(this.newDependency.tabela_origem === 'AUD_FV' && it.id === this.newDependency.id_origem)
+          const notSelf = !(
+            this.newDependency.tabela_origem === 'AUD_FV' && it.id === this.newDependency.id_origem
+          )
           return ativo && notSelf
         })
       }
