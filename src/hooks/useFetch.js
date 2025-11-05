@@ -107,28 +107,28 @@ export async function useFetch(
   }
 }
 
-function mockResponse(endpoint) {
-  try {
-    if (
-      endpoint &&
-      endpoint.startsWith('/api/v2/dependencias/itens/') &&
-      endpoint.endsWith('/json-model')
-    ) {
-      return {
-        titulo_dependencia: 'Titulo',
-        versao: 'v1.0.0',
-        criado: 'Gustavo Trindade',
-        origem: {
-          tabela: 'AUD_SQLS',
-          item: 'SELECT * FROM AUD_SQLS',
-          id: 'COD2201.0001',
-        },
-        descricao: 'aqui vai ter uma descrição',
-        dependencias: [
-          { tabela: 'AUD_FVS', item: 'alguma coisa vaivim aqui', id: 1 },
-          { tabela: 'AUD_REPORTS', item: 'alguma coisa vaivim aqui', id: 1 },
-        ],
-      }
-    }
-  } catch {}
-}
+// function mockResponse(endpoint) {
+//   try {
+//     if (
+//       endpoint &&
+//       endpoint.startsWith('/api/v2/dependencias/itens/') &&
+//       endpoint.endsWith('/json-model')
+//     ) {
+//       return {
+//         titulo_dependencia: 'Titulo',
+//         versao: 'v1.0.0',
+//         criado: 'Gustavo Trindade',
+//         origem: {
+//           tabela: 'AUD_SQLS',
+//           item: 'SELECT * FROM AUD_SQLS',
+//           id: 'COD2201.0001',
+//         },
+//         descricao: 'aqui vai ter uma descrição',
+//         dependencias: [
+//           { tabela: 'AUD_FVS', item: 'alguma coisa vaivim aqui', id: 1 },
+//           { tabela: 'AUD_REPORTS', item: 'alguma coisa vaivim aqui', id: 1 },
+//         ],
+//       }
+//     }
+//   } catch {}
+// }

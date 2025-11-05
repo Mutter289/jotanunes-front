@@ -132,8 +132,8 @@
           </svg>
         </div>
         <div class="stat-content">
-          <h3 class="stat-value">{{ stats.total_alteracoes }}</h3>
-          <p class="stat-label">Total de Alterações</p>
+          <h3 class="stat-value">{{ stats.total_itens }}</h3>
+          <p class="stat-label">Total de Itens</p>
         </div>
       </div>
       <div class="stat-card">
@@ -228,7 +228,7 @@
               <span class="tag">{{ dep.criador }}</span>
             </div>
             <div class="dep-actions">
-              <button class="action-btn" @click.stop="openDiagram(dep)" title="Abrir Diagrama">
+              <!-- <button class="action-btn" @click.stop="openDiagram(dep)" title="Abrir Diagrama">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <rect x="3" y="3" width="7" height="7" />
                   <path d="M10 6h4" />
@@ -237,7 +237,7 @@
                   <rect x="3" y="14" width="7" height="7" />
                   <path d="M10 18h4M18 14v7" />
                 </svg>
-              </button>
+              </button> -->
               <button class="action-btn" @click.stop="editDependency(dep)" title="Editar">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
@@ -381,7 +381,7 @@
             />
           </div>
           <div class="form-group">
-            <label>Tabela de Origem</label>
+            <label>Tabela de Origem</label> <!-- Consertando -->
             <select
               v-model="newDependency.tabela_origem"
               class="form-select"
@@ -418,19 +418,19 @@
           <div class="form-group">
             <label>Dependências</label>
             <div class="dep-chooser grid-2">
-              <div class="dep-chooser-col" v-if="newDependency.tabela_origem !== 'AUD_FV'">
+              <div class="dep-chooser-col" v-if="newDependency.tabela_origem !== 'AUD_FVS'">
                 <div class="dep-col-header">Forma Visual</div>
-                <div class="option-list" @mouseenter="ensureItens('AUD_FV')">
+                <div class="option-list" @mouseenter="ensureItens('AUD_FVS')">
                   <div
-                    v-for="fv in availableOptions('AUD_FV')"
+                    v-for="fv in itensPorTabela.AUD_FVS"
                     :key="fv.id"
                     class="option-item"
-                    :class="{ selected: isSelected('AUD_FV', String(fv.id)) }"
-                    @click="toggleOption('AUD_FV', String(fv.id))"
+                    :class="{ selected: isSelected('AUD_FVS', String(fv.id)) }"
+                    @click="toggleOption('AUD_FVS', String(fv.id))"
                     role="button"
                     tabindex="0"
                   >
-                    {{ fv.nome }}
+                    {{ fv.nome}}
                   </div>
                 </div>
               </div>
@@ -446,7 +446,7 @@
                     role="button"
                     tabindex="0"
                   >
-                    {{ s.nome }}
+                    {{ s.nome}}
                   </div>
                 </div>
               </div>
@@ -462,12 +462,12 @@
                     role="button"
                     tabindex="0"
                   >
-                    {{ r.nome }}
+                    {{ r.nome}}
                   </div>
                 </div>
               </div>
             </div>
-            <div class="dep-actions-row">
+            <!-- <div class="dep-actions-row"> Não tá funcionando por conflito de manipulação de id
               <button class="btn-secondary" @click="adicionarSequencia">adicionar sequência</button>
               <button class="btn-secondary" @click="limparSelecao">limpar seleção</button>
             </div>
@@ -482,7 +482,7 @@
                   <small><strong>Observações:</strong> {{ d.observacoes }}</small>
                 </div>
               </div>
-            </div>
+            </div> -->
           </div>
         </div>
         <div class="modal-footer">
@@ -494,7 +494,7 @@
       </div>
     </div>
 
-    <div v-if="showDiagram" class="modal-overlay" @click.self="showDiagram = false">
+    <!-- <div v-if="showDiagram" class="modal-overlay" @click.self="showDiagram = false">
       <div class="modal large-modal">
         <div class="modal-header">
           <h2>Diagrama de Dependências: {{ diagramData?.nome }}</h2>
@@ -529,7 +529,7 @@
           <button class="btn-primary" @click="downloadDiagram">Download PNG</button>
         </div>
       </div>
-    </div>
+    </div> -->
 
     <transition name="slide">
       <div v-if="selectedDep" class="sidebar">
@@ -602,7 +602,7 @@
                 Editar Alteração
               </button>
               <button class="btn-secondary full-width" @click="viewHistory(selectedDep)">
-                Ver Histórico
+                Ver Histórico (em breve)
               </button>
               <button class="btn-danger full-width" @click="removeDependency(selectedDep)">
                 Remover Alteração
@@ -633,26 +633,26 @@ export default {
   components: {
     VMermaid,
   },
-  watch: {
-    newDependency: {
-      handler() {
-        this.saveDraft()
-      },
-      deep: true,
-    },
-    depSelecionada: {
-      handler() {
-        this.saveDraft()
-      },
-      deep: true,
-    },
-    'newDependency.dependencias': {
-      handler() {
-        this.saveDraft()
-      },
-      deep: true,
-    },
-  },
+  // watch: {
+  //   newDependency: {
+  //     handler() {
+  //       this.saveDraft()
+  //     },
+  //     deep: true,
+  //   },
+  //   depSelecionada: {
+  //     handler() {
+  //       this.saveDraft()
+  //     },
+  //     deep: true,
+  //   },
+  //   'newDependency.dependencias': {
+  //     handler() {
+  //       this.saveDraft()
+  //     },
+  //     deep: true,
+  //   },
+  // },
   data() {
     return {
       projectName: 'JotaNunes Construtora',
@@ -679,7 +679,7 @@ export default {
       ],
 
       stats: {
-        total_alteracoes: 0,
+        total_itens: 0,
         total_dependencias: 0,
         distribuicao_risco: {
           'Sem risco': 0,
@@ -693,7 +693,7 @@ export default {
 
       dependencyTree: [
         {
-          name: 'AUD_FV',
+          name: 'AUD_FVS',
           expanded: true,
           items: [],
         },
@@ -717,21 +717,20 @@ export default {
       newDependency: {
         nome: '',
         versao: '',
-        tabela_origem: 'AUD_FV',
+        tabela_origem: '',
         id_origem: null,
         criador: '',
         descricao: '',
         dependencias: [],
       },
 
-      tabelasDisponiveis: ['AUD_FV', 'AUD_SQLS', 'AUD_REPORT'],
+      tabelasDisponiveis: ['AUD_FVS', 'AUD_SQLS', 'AUD_REPORT'],
       itensOrigem: [],
-      itensPorTabela: { AUD_FV: [], AUD_SQLS: [], AUD_REPORT: [] },
+      itensPorTabela: { AUD_FVS: [], AUD_SQLS: [], AUD_REPORT: [] },
       depSelecionada: { fv: [], sql: [], report: [] }, // seleção múltipla por clique
 
       toasts: [],
       nowTick: Date.now(),
-      draftKey: null,
     }
   },
 
@@ -767,7 +766,7 @@ export default {
     this._timeInterval = setInterval(() => {
       this.nowTick = Date.now()
     }, 60000)
-  },
+  },  
 
   beforeUnmount() {
     if (this.websocket) {
@@ -937,17 +936,11 @@ export default {
     },
 
     async editDependency(dep) {
+      console.log('editDependency CALLED with dep =', dep);
       this.editingDependency = dep
       this.showAddModal = true
 
-      // Carregar itens disponíveis para as tabelas
-      await this.loadTabelas()
-      await this.loadOrigemItens()
-      await this.ensureItens('AUD_FV')
-      await this.ensureItens('AUD_SQLS')
-      await this.ensureItens('AUD_REPORT')
-
-      // Definir dados do item
+       // Definir dados do item
       this.newDependency = {
         nome: dep.nome,
         versao: dep.versao,
@@ -957,12 +950,24 @@ export default {
         descricao: dep.descricao || '',
         dependencias: [],
       }
-
+      console.log('⏳ Carregando tabelas e itens...');
+      // Carregar itens disponíveis para as tabelas
+      await this.loadTabelas()
+      await this.loadOrigemItens()
+      await this.ensureItens('AUD_FVS')
+      await this.ensureItens('AUD_SQLS')
+      await this.ensureItens('AUD_REPORT')
+      console.log('✅ Depois de carregar:');
+      console.log('newDependency:', this.newDependency);
+      console.log('itensPorTabela.AUD_FVS sample:', this.itensPorTabela?.AUD_FVS?.slice?.(0,5));
+      console.log('itensPorTabela.AUD_SQLS sample:', this.itensPorTabela?.AUD_SQLS?.slice?.(0,5));
+      console.log('itensPorTabela.AUD_REPORT sample:', this.itensPorTabela?.AUD_REPORT?.slice?.(0,5));
+      console.log('dep.dependencias (raw):', dep.dependencias);
       // Pré-carrega seleções e lista
       this.depSelecionada = { fv: [], sql: [], report: [] }
       if (Array.isArray(dep.dependencias)) {
         dep.dependencias.forEach((d) => {
-          if (d.tabela_dependente === 'AUD_FV') this.depSelecionada.fv.push(String(d.id_dependente))
+          if (d.tabela_dependente === 'AUD_FVS') this.depSelecionada.fv.push(String(d.id_dependente))
           else if (d.tabela_dependente === 'AUD_SQLS')
             this.depSelecionada.sql.push(String(d.id_dependente))
           else if (d.tabela_dependente === 'AUD_REPORT' || d.tabela_dependente === 'AUD_REPORTS')
@@ -972,8 +977,8 @@ export default {
       }
 
       // Rascunho (carregar APÓS definir os dados)
-      this.draftKey = this.getDraftKey()
-      this.loadDraft()
+      // this.draftKey = this.getDraftKey()
+      // this.loadDraft()
     },
 
     async removeDependency(dep) {
@@ -1010,7 +1015,7 @@ export default {
         this.showToast('Preencha todos os campos obrigatórios', 'error')
         return
       }
-
+   
       this.isSaving = true
       try {
         if (this.editingDependency) {
@@ -1025,6 +1030,11 @@ export default {
                 versao: this.newDependency.versao,
                 descricao: this.newDependency.descricao,
                 tabela_origem: this.newDependency.tabela_origem,
+                dependencias: Object.entries(this.newDependency.dependencias)
+                .flatMap(([tabela, lista]) => lista.map(id => ({
+                  tabela_dependente: tabela,
+                  id_dependente: id,
+                }))),
               },
             },
           )
@@ -1033,7 +1043,7 @@ export default {
           // Create new dependency
           const body = {
             tabela_origem: this.newDependency.tabela_origem,
-            id_origem: parseInt(this.newDependency.id_origem) || 0, // ✅ Cast para integer
+            id_origem: String(this.newDependency.id_origem), // ✅ string
             nome: this.newDependency.nome,
             descricao: this.newDependency.descricao,
             versao: this.newDependency.versao,
@@ -1061,9 +1071,10 @@ export default {
 
     async openCreateModal() {
       this.showAddModal = true
+      this.editingDependency = null
       await this.loadTabelas()
       await this.loadOrigemItens()
-      await this.ensureItens('AUD_FV')
+      await this.ensureItens('AUD_FVS')
       await this.ensureItens('AUD_SQLS')
       await this.ensureItens('AUD_REPORT')
 
@@ -1072,7 +1083,7 @@ export default {
       this.newDependency = {
         nome: '',
         versao: '',
-        tabela_origem: 'AUD_FV',
+        tabela_origem: '',
         id_origem: null,
         criador: '',
         descricao: '',
@@ -1081,7 +1092,34 @@ export default {
       this.depSelecionada = { fv: [], sql: [], report: [] }
 
       // Não carregar draft para nova criação
-      this.draftKey = this.getDraftKey()
+      // this.draftKey = this.getDraftKey()
+      // Metódo provavelmente melhor ak embaixo, depois testarei melhor
+      //       async openCreateModal() {
+      //   // 🔹 Primeiro: limpar dados antigos
+      //   this.showAddModal = true
+      //   this.editingDependency = null
+      //   this.newDependency = {
+      //     nome: '',
+      //     versao: '',
+      //     tabela_origem: '',
+      //     id_origem: null,
+      //     criador: '',
+      //     descricao: '',
+      //     dependencias: [],
+      //   }
+      //   this.depSelecionada = { fv: [], sql: [], report: [] }
+
+      //   // 🔹 Agora sim, carregar dados
+      //   await this.loadTabelas()
+      //   await this.loadOrigemItens()
+      //   await this.ensureItens('AUD_FVS')
+      //   await this.ensureItens('AUD_SQLS')
+      //   await this.ensureItens('AUD_REPORT')
+
+      //   // 🔹 Não carregar draft para nova criação
+      //   // this.draftKey = this.getDraftKey()
+      // }
+
     },
 
     async loadTabelas() {
@@ -1092,17 +1130,31 @@ export default {
     },
 
     async loadOrigemItens() {
+      const t = this.newDependency.tabela_origem
+      if (!t) {
+        this.itensOrigem = []
+        return
+      }
+
       try {
-        const t = this.newDependency.tabela_origem
         const itens = await this.useFetch(
           `/api/v2/dependencias/tabelas/${encodeURIComponent(t)}/itens`,
         )
-        this.itensOrigem = itens
-        // ✅ Não forçar id_origem - deixar usuário escolher no select
+        this.itensOrigem = itens || []
+
+        // Se já existir um id_origem, tentar reencontrar ele na lista
+        if (this.newDependency.id_origem) {
+          const found = this.itensOrigem.find(
+            i => i.id === this.newDependency.id_origem
+          )
+          if (found) this.newDependency.id_origem = found.id
+        }
       } catch (e) {
+        console.error('Erro ao carregar itens da origem:', e)
         this.itensOrigem = []
       }
     },
+
 
     async ensureItens(tabela) {
       if (this.itensPorTabela[tabela] && this.itensPorTabela[tabela].length) {
@@ -1114,79 +1166,99 @@ export default {
           `/api/v2/dependencias/tabelas/${encodeURIComponent(tabela)}/itens`,
         )
         this.itensPorTabela[tabela] = itens
+        console.log('Itens carregados para', tabela, itens);
       } catch (error) {
         console.error('Erro ao carregar itens:', error)
       }
     },
 
-    adicionarSequencia() {
-      // Não limpar dependências já adicionadas; apenas acrescentar
+    // adicionarSequencia() {
+    //   // Não limpar dependências já adicionadas; apenas acrescentar
 
-      // FV múltiplos (aplica regra de negócio nos disponíveis; aqui apenas adiciona os selecionados)
-      if (Array.isArray(this.depSelecionada.fv) && this.newDependency.tabela_origem !== 'AUD_FV') {
-        this.depSelecionada.fv.forEach((idSel) => {
-          const item = this.availableOptions('AUD_FV').find((x) => String(x.id) === String(idSel))
-          if (item) {
-            this.newDependency.dependencias.push({
-              tabela_dependente: 'AUD_FV',
-              id_dependente: idSel,
-              nome_dependente: item.nome,
-            })
-          }
-        })
-      }
+    //   // FV múltiplos (aplica regra de negócio nos disponíveis; aqui apenas adiciona os selecionados)
+    //   if (Array.isArray(this.depSelecionada.fv) && this.newDependency.tabela_origem !== 'AUD_FVS') {
+    //     this.depSelecionada.fv.forEach((idSel) => {
+    //       const item = this.availableOptions('AUD_FVS').find((x) => String(x.id) === String(idSel))
+    //       if (item) {
+    //         this.newDependency.dependencias.push({
+    //           tabela_dependente: 'AUD_FVS',
+    //           id_dependente: idSel,
+    //           nome_dependente: item.nome,
+    //         })
+    //       }
+    //     })
+    //   }
 
-      // SQL múltiplos
-      if (
-        Array.isArray(this.depSelecionada.sql) &&
-        this.newDependency.tabela_origem !== 'AUD_SQLS'
-      ) {
-        this.depSelecionada.sql.forEach((idSel) => {
-          const item = this.itensPorTabela.AUD_SQLS.find((s) => String(s.id) === String(idSel))
-          if (item) {
-            this.newDependency.dependencias.push({
-              tabela_dependente: 'AUD_SQLS',
-              id_dependente: idSel,
-              nome_dependente: item.nome,
-            })
-          }
-        })
-      }
+    //   // SQL múltiplos
+    //   if (
+    //     Array.isArray(this.depSelecionada.sql) &&
+    //     this.newDependency.tabela_origem !== 'AUD_SQLS'
+    //   ) {
+    //     this.depSelecionada.sql.forEach((idSel) => {
+    //       const item = this.itensPorTabela.AUD_SQLS.find((s) => String(s.id) === String(idSel))
+    //       if (item) {
+    //         this.newDependency.dependencias.push({
+    //           tabela_dependente: 'AUD_SQLS',
+    //           id_dependente: idSel,
+    //           nome_dependente: item.nome,
+    //         })
+    //       }
+    //     })
+    //   }
 
-      // REPORT múltiplos
-      if (
-        Array.isArray(this.depSelecionada.report) &&
-        this.newDependency.tabela_origem !== 'AUD_REPORT'
-      ) {
-        this.depSelecionada.report.forEach((idSel) => {
-          const item = this.itensPorTabela.AUD_REPORT.find((r) => String(r.id) === String(idSel))
-          if (item) {
-            this.newDependency.dependencias.push({
-              tabela_dependente: 'AUD_REPORT',
-              id_dependente: idSel,
-              nome_dependente: item.nome,
-            })
-          }
-        })
-      }
+    //   // REPORT múltiplos
+    //   if (
+    //     Array.isArray(this.depSelecionada.report) &&
+    //     this.newDependency.tabela_origem !== 'AUD_REPORT'
+    //   ) {
+    //     this.depSelecionada.report.forEach((idSel) => {
+    //       const item = this.itensPorTabela.AUD_REPORT.find((r) => String(r.id) === String(idSel))
+    //       if (item) {
+    //         this.newDependency.dependencias.push({
+    //           tabela_dependente: 'AUD_REPORT',
+    //           id_dependente: idSel,
+    //           nome_dependente: item.nome,
+    //         })
+    //       }
+    //     })
+    //   }
 
-      // Mantém seleções para permitir adicionar mais; se preferir limpar após adicionar, descomente a linha abaixo
-      // this.depSelecionada = { fv: [], sql: [], report: [] }
-      this.showToast('Dependências adicionadas à sequência (duplicatas permitidas).', 'info')
-    },
-
+    //   // Mantém seleções para permitir adicionar mais; se preferir limpar após adicionar, descomente a linha abaixo
+    //   // this.depSelecionada = { fv: [], sql: [], report: [] }
+    //   this.showToast('Dependências adicionadas à sequência (duplicatas permitidas).', 'info')
+    // },
     toggleOption(tabela, idSel) {
-      const key = tabela === 'AUD_SQLS' ? 'sql' : tabela === 'AUD_REPORT' ? 'report' : 'fv'
-      const arr = this.depSelecionada[key]
-      const i = arr.findIndex((x) => String(x) === String(idSel))
-      if (i >= 0) arr.splice(i, 1)
-      else arr.push(String(idSel))
+      if (!this.newDependency) this.newDependency = { dependencias: { AUD_FVS: [], AUD_SQLS: [], AUD_REPORT: [] } }
+      if (!this.newDependency.dependencias) this.newDependency.dependencias = { AUD_FVS: [], AUD_SQLS: [], AUD_REPORT: [] }
+
+      if (!this.newDependency.dependencias[tabela]) {
+        this.newDependency.dependencias = { ...this.newDependency.dependencias, [tabela]: [] }
+      }
+
+      const idStr = String(idSel)
+      const lista = this.newDependency.dependencias[tabela]
+      const idx = lista.indexOf(idStr)
+
+      if (idx >= 0) {
+        const nova = [...lista.slice(0, idx), ...lista.slice(idx + 1)]
+        this.newDependency.dependencias = { ...this.newDependency.dependencias, [tabela]: nova }
+        console.log(`[toggleOption] Removido ${idStr} de ${tabela}`)
+      } else {
+        const nova = [...lista, idStr]
+        this.newDependency.dependencias = { ...this.newDependency.dependencias, [tabela]: nova }
+        console.log(`[toggleOption] Adicionado ${idStr} a ${tabela}`)
+      }
+
+      console.log('dependencias agora:', this.newDependency.dependencias)
     },
 
     isSelected(tabela, idSel) {
-      const key = tabela === 'AUD_SQLS' ? 'sql' : tabela === 'AUD_REPORT' ? 'report' : 'fv'
-      return this.depSelecionada[key].some((x) => String(x) === String(idSel))
+      if (!this.newDependency || !this.newDependency.dependencias) return false
+      const lista = this.newDependency.dependencias[tabela] || []
+      return lista.includes(String(idSel))
     },
+
+
 
     limparSelecao() {
       this.depSelecionada = { fv: [], sql: [], report: [] }
@@ -1195,11 +1267,11 @@ export default {
     // Regras de negócio: quais FVs aparecem na seleção
     availableOptions(tabela) {
       const list = this.itensPorTabela[tabela] || []
-      if (tabela === 'AUD_FV') {
+      if (tabela === 'AUD_FVS') {
         return list.filter((it) => {
           const ativo = it.ATIVO === true || it.ativo === true || it.ativo === 1
           const notSelf = !(
-            this.newDependency.tabela_origem === 'AUD_FV' && it.id === this.newDependency.id_origem
+            this.newDependency.tabela_origem === 'AUD_FVS' && it.id === this.newDependency.id_origem
           )
           return ativo && notSelf
         })
@@ -1207,77 +1279,77 @@ export default {
       return list
     },
 
-    // Draft helpers
-    getDraftKey() {
-      const id = this.editingDependency?.id
-      return id ? `dep_draft_${id}` : 'dep_draft_new'
-    },
+    // // Draft helpers
+    // getDraftKey() {
+    //   const id = this.editingDependency?.id
+    //   return id ? `dep_draft_${id}` : 'dep_draft_new'
+    // },
 
-    saveDraft() {
-      try {
-        if (!this.showAddModal) return
-        if (!this.draftKey) this.draftKey = this.getDraftKey()
-        const payload = {
-          newDependency: this.newDependency,
-          depSelecionada: this.depSelecionada,
-        }
-        localStorage.setItem(this.draftKey, JSON.stringify(payload))
-      } catch {}
-    },
+    // saveDraft() {
+    //   try {
+    //     if (!this.showAddModal) return
+    //     if (!this.draftKey) this.draftKey = this.getDraftKey()
+    //     const payload = {
+    //       newDependency: this.newDependency,
+    //       depSelecionada: this.depSelecionada,
+    //     }
+    //     localStorage.setItem(this.draftKey, JSON.stringify(payload))
+    //   } catch {}
+    // },
 
-    loadDraft() {
-      try {
-        if (!this.draftKey) return
-        const raw = localStorage.getItem(this.draftKey)
-        if (!raw) return
-        const parsed = JSON.parse(raw)
-        if (parsed?.newDependency) {
-          this.newDependency = { ...this.newDependency, ...parsed.newDependency }
-        }
-        if (parsed?.depSelecionada) {
-          this.depSelecionada = { fv: [], sql: [], report: [], ...parsed.depSelecionada }
-        }
-      } catch {}
-    },
+    // loadDraft() {
+    //   try {
+    //     if (!this.draftKey) return
+    //     const raw = localStorage.getItem(this.draftKey)
+    //     if (!raw) return
+    //     const parsed = JSON.parse(raw)
+    //     if (parsed?.newDependency) {
+    //       this.newDependency = { ...this.newDependency, ...parsed.newDependency }
+    //     }
+    //     if (parsed?.depSelecionada) {
+    //       this.depSelecionada = { fv: [], sql: [], report: [], ...parsed.depSelecionada }
+    //     }
+    //   } catch {}
+    // },
 
-    clearDraft() {
-      try {
-        if (!this.draftKey) this.draftKey = this.getDraftKey()
-        localStorage.removeItem(this.draftKey)
-      } catch {}
-    },
+    // clearDraft() {
+    //   try {
+    //     if (!this.draftKey) this.draftKey = this.getDraftKey()
+    //     localStorage.removeItem(this.draftKey)
+    //   } catch {}
+    // },
 
     removerDependencia(index) {
       this.newDependency.dependencias.splice(index, 1)
     },
 
-    async openDiagram(dep) {
-      try {
-        this.showDiagram = true
-        this.mermaidDiagram = ''
-        this.diagramData = dep
+    // async openDiagram(dep) {
+    //   try {
+    //     this.showDiagram = true
+    //     this.mermaidDiagram = ''
+    //     this.diagramData = dep
 
-        console.log('Abrindo diagrama para:', dep)
-        console.log('ID do item:', dep.id)
-        console.log('URL completa:', `/api/v2/dependencias/itens/${dep.id}/json-model`)
+    //     console.log('Abrindo diagrama para:', dep)
+    //     console.log('ID do item:', dep.id)
+    //     console.log('URL completa:', `/api/v2/dependencias/itens/${dep.id}/json-model`)
 
-        // Busca JSON pronto no backend
-        const model = await this.useFetch(`/api/v2/dependencias/itens/${dep.id}/json-model`)
-        console.log('Modelo recebido:', model)
+    //     // Busca JSON pronto no backend
+    //     const model = await this.useFetch(`/api/v2/dependencias/itens/${dep.id}/json-model`)
+    //     console.log('Modelo recebido:', model)
 
-        this.mermaidDiagram = toMermaidFlowchart(model)
-        console.log('Diagrama Mermaid gerado:', this.mermaidDiagram)
-      } catch (e) {
-        console.error('Erro ao gerar diagrama:', e)
-        this.showToast('Erro ao gerar diagrama', 'error')
-        this.showDiagram = false
-      }
-    },
+    //     this.mermaidDiagram = toMermaidFlowchart(model)
+    //     console.log('Diagrama Mermaid gerado:', this.mermaidDiagram)
+    //   } catch (e) {
+    //     console.error('Erro ao gerar diagrama:', e)
+    //     this.showToast('Erro ao gerar diagrama', 'error')
+    //     this.showDiagram = false
+    //   }
+    // },
 
-    downloadDiagram() {
-      // Implementar download do diagrama como PNG
-      this.showToast('Funcionalidade de download em desenvolvimento', 'info')
-    },
+    // downloadDiagram() {
+    //   // Implementar download do diagrama como PNG
+    //   this.showToast('Funcionalidade de download em desenvolvimento', 'info')
+    // },
 
     closeModal() {
       this.showAddModal = false
@@ -1285,7 +1357,7 @@ export default {
       this.newDependency = {
         nome: '',
         versao: '',
-        tabela_origem: 'AUD_FV',
+        tabela_origem: '',
         id_origem: null, //  null em vez de string vazia
         criador: '',
         descricao: '',
@@ -1631,6 +1703,10 @@ export default {
   position: relative;
 }
 
+.search-box input, ::placeholder{
+  color: black;
+}
+
 .search-icon {
   position: absolute;
   left: 1rem;
@@ -1868,6 +1944,7 @@ export default {
   display: flex;
   align-items: center;
   gap: 0.25rem;
+  white-space: nowrap; /* Para resolver quebra que deixa feio */
 }
 
 .dep-status.sem-risco {
@@ -2046,6 +2123,7 @@ export default {
   font-size: 0.75rem;
   font-weight: 600;
   display: inline-block;
+  white-space: nowrap; /* Resolvendo quebra chata */
 }
 
 .status-badge.sem-risco {
@@ -2447,6 +2525,8 @@ export default {
 
 .detail-section {
   margin-bottom: 2rem;
+  border: 0; 
+  /* Tirei essa borda */
 }
 
 .detail-section h3 {
@@ -2479,6 +2559,7 @@ export default {
   color: #475569;
   line-height: 1.6;
   margin-bottom: 1rem;
+  padding: 0.2rem;
 }
 
 .sub-dependencies {

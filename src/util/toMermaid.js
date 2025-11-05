@@ -96,7 +96,7 @@ function buildLabel(entry) {
 
 function nodeClass(tabelaRaw) {
   const t = String(tabelaRaw || '').toUpperCase()
-  if (t === 'AUD_FV') return 'fv'
+  if (t === 'AUD_FVS') return 'fv'
   if (t === 'AUD_SQLS') return 'sql'
   if (t === 'AUD_REPORT' || t === 'AUD_REPORTS') return 'rep'
   return 'other'

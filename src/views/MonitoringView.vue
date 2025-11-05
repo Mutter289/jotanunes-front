@@ -931,6 +931,10 @@ export default {
   position: relative;
 }
 
+.search-input-wrapper input, ::placeholder {
+  color: black;
+}
+
 .search-icon {
   position: absolute;
   left: 1rem;
