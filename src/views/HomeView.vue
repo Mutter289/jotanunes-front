@@ -992,7 +992,7 @@ export default {
 
 .login-image-section {
   position: relative;
-  background-image: url('/login/1.png');
+  background-image: url('/login/1.jpg');
   background-position: center;
   background-size: cover;
   display: flex;
@@ -1010,7 +1010,6 @@ export default {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.75);
   z-index: 1;
 }
 
