@@ -94,7 +94,7 @@ export async function useFetch(
       throw error
     }
 
-    return data.data ?? data
+    return data?.data ?? data
   } catch (error) {
     // Se for um erro de rede ou outro erro não relacionado ao HTTP
     if (!error.status) {
