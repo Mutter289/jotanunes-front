@@ -982,7 +982,7 @@ export default {
         this.loadDependencies()
       }
     },
-
+    
     async refreshDependencies() {
       this.isRefreshing = true
       try {

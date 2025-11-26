@@ -156,7 +156,7 @@ const notificationStore = {
         console.log(`Tentando marcar notificação ${backendId} como lida...`)
 
         const response = await fetch(
-          `http://192.168.195.162:8000/notifications/read/${backendId}`,
+          `http://localhost:8000/notifications/read/${backendId}`,
           {
             method: 'POST',
           },

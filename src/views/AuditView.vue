@@ -535,9 +535,9 @@ export default {
 
         const newObservation = await this.useFetch(`${endpoint}${rowId}/observacao`, {
           method: 'POST',
-          body: JSON.stringify({
+          body: {
             observacao: this.observationText.trim(),
-          }),
+          },
         })
 
         // Adiciona a nova observação ao array
