@@ -831,6 +831,7 @@ export default {
   overflow-x: auto;
   background: white;
   position: relative;
+  min-height: 500px;
 }
 
 .v-table {
@@ -1075,10 +1076,11 @@ export default {
 
 /* Empty State */
 .empty-state {
-  padding: 48px 16px;
+  padding: 200px 16px;
   text-align: center;
   color: var(--grey-dark);
   background: linear-gradient(135deg, transparent, var(--theme-color-hover), transparent);
+  height: 100%;
 }
 
 .empty-content p {

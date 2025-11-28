@@ -1,15 +1,19 @@
 <template>
   <div class="audit">
-    <VSelect
-      v-model="tableActive"
-      label="Tabelas"
-      placeholder="Selecione a tabela"
-      :options="listTable"
-      option-label="text"
-      option-value="value"
-      style="flex: 1"
-      @change="onTableChange"
-    />
+    <div class="table-filter-container">
+      <div class="table-tabs">
+        <button
+          v-for="table in listTable"
+          :key="table.value"
+          :class="['table-tab', { active: tableActive === table.value }]"
+          @click="selectTable(table.value)"
+        >
+          <span class="tab-text">{{ table.text }}</span>
+          <span v-if="tableActive === table.value" class="tab-indicator"></span>
+        </button>
+      </div>
+    </div>
+
     <VTable
       @row-click="handleRowClick"
       @selection-change="handleSelection"
@@ -402,6 +406,12 @@ export default {
   methods: {
     useFetch,
 
+    async selectTable(tableValue) {
+      if (this.tableActive === tableValue) return
+      this.tableActive = tableValue
+      await this.onTableChange()
+    },
+
     async onTableChange() {
       console.log('Tabela alterada para:', this.tableActive)
       this.tableData = []
@@ -765,8 +775,140 @@ export default {
 .audit {
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 24px;
   margin-left: 20px;
+}
+
+.table-filter-container {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow:
+    0 10px 40px rgba(102, 126, 234, 0.3),
+    0 4px 12px rgba(102, 126, 234, 0.2);
+  animation: slideDown 0.5s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.table-tabs {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.table-tab {
+  position: relative;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  padding: 18px 24px;
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.table-tab::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  transition: left 0.6s;
+}
+
+.table-tab:hover {
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.4);
+  transform: translateY(-4px);
+  box-shadow:
+    0 8px 20px rgba(0, 0, 0, 0.2),
+    0 0 20px rgba(255, 255, 255, 0.3);
+}
+
+.table-tab:hover::before {
+  left: 100%;
+}
+
+.table-tab.active {
+  background: #ffffff;
+  border-color: #ffffff;
+  color: #667eea;
+  transform: translateY(-2px) scale(1.05);
+  box-shadow:
+    0 12px 28px rgba(0, 0, 0, 0.25),
+    0 0 0 4px rgba(255, 255, 255, 0.2);
+  animation: tabPulse 0.4s ease-out;
+}
+
+@keyframes tabPulse {
+  0% {
+    transform: translateY(-2px) scale(1);
+  }
+  50% {
+    transform: translateY(-2px) scale(1.08);
+  }
+  100% {
+    transform: translateY(-2px) scale(1.05);
+  }
+}
+
+.table-tab:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.tab-text {
+  font-size: 15px;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+}
+
+.tab-indicator {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60%;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, #764ba2, transparent);
+  border-radius: 2px 2px 0 0;
+  animation: indicatorSlide 0.4s ease-out;
+}
+
+@keyframes indicatorSlide {
+  from {
+    width: 0%;
+    opacity: 0;
+  }
+  to {
+    width: 60%;
+    opacity: 1;
+  }
 }
 
 /* Estilos do conteúdo do Offcanvas */
@@ -1225,6 +1367,18 @@ export default {
 
 /* Responsividade */
 @media (max-width: 768px) {
+  .table-tabs {
+    grid-template-columns: 1fr;
+  }
+
+  .table-tab {
+    padding: 16px;
+  }
+
+  .tab-text {
+    font-size: 14px;
+  }
+
   .detail-grid {
     grid-template-columns: 1fr;
   }
