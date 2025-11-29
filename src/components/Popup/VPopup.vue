@@ -1,8 +1,8 @@
 <template>
   <div
     :class="['popup-notification', popupClass, { 'popup--visible': visible, 'popup-modal': $slots.footer }]"
-    @mouseenter="pauseAutoClose"
-    @mouseleave="resumeAutoClose"
+    @mouseenter="handleMouseEnter"
+    @mouseleave="handleMouseLeave"
   >
     <header class="popup-header">
       <div class="popup-title">
@@ -121,8 +121,18 @@ export default {
       this.clearAutoClose()
     },
     resumeAutoClose() {
-      if (this.visible) {
+      if (this.visible && this.autoClose > 0 && !this.$slots.footer) {
         this.startAutoClose()
+      }
+    },
+    handleMouseEnter() {
+      if (!this.$slots.footer) {
+        this.pauseAutoClose()
+      }
+    },
+    handleMouseLeave() {
+      if (!this.$slots.footer) {
+        this.resumeAutoClose()
       }
     },
   },

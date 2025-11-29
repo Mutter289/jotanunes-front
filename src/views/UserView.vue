@@ -257,15 +257,9 @@
           </label>
           <div class="input-wrapper">
             <select v-model="userForm.status" class="form-select">
-              <option value="PENDENTE">
-                <span>⏳</span> Pendente
-              </option>
-              <option value="ATIVO">
-                <span>✅</span> Ativo
-              </option>
-              <option value="BLOQUEADO">
-                <span>🚫</span> Bloqueado
-              </option>
+              <option value="PENDENTE">Pendente</option>
+              <option value="ATIVO">Ativo</option>
+              <option value="BLOQUEADO">Bloqueado</option>
             </select>
             <div class="select-arrow">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
