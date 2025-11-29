@@ -58,7 +58,7 @@ const routes = [
   {
     path: '/dashboard',
     name: 'dashboard',
-    component: () => import('../views/DashboardView.vue'),
+    component: () => import('../views/MainView.vue'),
     meta: {
       requiresAuth: true,
       title: 'Dashboard - Sistema Auditoria',
