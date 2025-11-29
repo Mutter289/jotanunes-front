@@ -122,7 +122,7 @@ function handleAuthSuccess() {
 
   // Redirecionar após 3 segundos
   redirectTimer = setTimeout(() => {
-    router.push('/dashboard')
+    router.push('/main')
   }, 3000)
 }
 
