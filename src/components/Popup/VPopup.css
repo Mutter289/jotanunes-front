@@ -16,6 +16,21 @@
   overflow: hidden;
 }
 
+/* Overlay escuro para modais */
+.popup-notification.popup-modal::after {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  z-index: -1;
+  animation: fadeIn 0.3s ease-out;
+  pointer-events: none;
+}
+
 /* Modal de formulário (quando tem footer slot) */
 .popup-notification.popup-modal {
   position: fixed;
@@ -30,6 +45,7 @@
   max-height: 90vh;
   overflow-y: auto;
   background: #ffffff !important;
+  z-index: 10000;
   box-shadow:
     0 25px 50px -12px rgba(0, 0, 0, 0.25),
     0 0 0 1px rgba(0, 0, 0, 0.05);
@@ -39,22 +55,22 @@
   transform: translate(-50%, -50%) scale(1);
 }
 
-.popup-notification.popup-modal::before {
-  content: '';
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(4px);
-  z-index: -2;
-  animation: fadeIn 0.3s ease-out;
-  pointer-events: none;
-}
-
 /* Fallback usando :has() para navegadores que suportam */
 @supports selector(:has(*)) {
+  .popup-notification:has(.popup-footer)::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    z-index: -1;
+    animation: fadeIn 0.3s ease-out;
+    pointer-events: none;
+  }
+
   .popup-notification:has(.popup-footer) {
     position: fixed;
     top: 50%;
@@ -68,6 +84,7 @@
     max-height: 90vh;
     overflow-y: auto;
     background: #ffffff !important;
+    z-index: 10000;
     box-shadow:
       0 25px 50px -12px rgba(0, 0, 0, 0.25),
       0 0 0 1px rgba(0, 0, 0, 0.05);
@@ -75,20 +92,6 @@
 
   .popup-notification:has(.popup-footer).popup--visible {
     transform: translate(-50%, -50%) scale(1);
-  }
-
-  .popup-notification:has(.popup-footer)::before {
-    content: '';
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(4px);
-    z-index: -2;
-    animation: fadeIn 0.3s ease-out;
-    pointer-events: none;
   }
 
   .popup-notification:has(.popup-footer):hover {
