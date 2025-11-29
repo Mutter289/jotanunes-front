@@ -121,47 +121,6 @@
       </div>
     </div>
 
-    <div class="stats-grid">
-      <div class="stat-card" :class="{ selected: filters.find(f => f.id === 'Baixo').active }" @click="toggleFilter('Baixo')">
-        <div class="stat-icon green">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-            <polyline points="22 4 12 14.01 9 11.01" />
-          </svg>
-        </div>
-        <div class="stat-content">
-          <h3 class="stat-value">{{ stats.distribuicao_risco.Baixo }}</h3>
-          <p class="stat-label">Risco Baixo</p>
-        </div>
-      </div>
-      <div class="stat-card" :class="{ selected: filters.find(f => f.id === 'Médio').active }" @click="toggleFilter('Médio')">
-        <div class="stat-icon orange">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-            <line x1="12" y1="7" x2="12" y2="14"/>
-            <circle cx="12" cy="17" r="0.4"/>
-          </svg>
-        </div>
-        <div class="stat-content">
-          <h3 class="stat-value">{{ stats.distribuicao_risco.Médio }}</h3>
-          <p class="stat-label">Risco Médio</p>
-        </div>
-      </div>
-      <div class="stat-card" :class="{ selected: filters.find(f => f.id === 'Alto').active }" @click="toggleFilter('Alto')">
-        <div class="stat-icon red">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polygon points="7 2 17 2 22 7 22 17 17 22 7 22 2 17 2 7 7 2"/>
-            <line x1="12" y1="5" x2="12" y2="14"/>
-            <circle cx="12" cy="17" r="0.4"/>
-          </svg>
-        </div>
-        <div class="stat-content">
-          <h3 class="stat-value">{{ stats.distribuicao_risco.Alto  }}</h3>
-          <p class="stat-label">Risco Alto</p>
-        </div>
-      </div>
-    </div>
-
     <div class="dependencies-container">
       <div v-if="isLoading" class="loading-state">
         <div class="loading-spinner"></div> 
@@ -1826,80 +1785,6 @@ export default {
   color: #6366f1;
 }
 
-/* Stats Grid */
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 1.5rem;
-  max-width: 1400px;
-  margin: 0 auto 2rem;
-  padding: 0 2rem;
-}
-
-.stat-card {
-  cursor: pointer;
-  background: white;
-  padding: 1.5rem;
-  border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  transition: all 0.3s;
-}
-
-.stat-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-}
-
-.stat-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.stat-icon.blue {
-  background: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%);
-}
-
-.stat-icon.green {
-  background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
-}
-
-.stat-icon.orange {
-  background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
-}
-
-.stat-icon.red {
-  background: linear-gradient(135deg, #ef4444 0%, #f87171 100%);
-}
-
-.stat-icon svg {
-  width: 24px;
-  height: 24px;
-  color: white;
-}
-
-.stat-content {
-  flex: 1;
-}
-
-.stat-value {
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: #1a202c;
-  margin-bottom: 0.25rem;
-}
-
-.stat-label {
-  font-size: 0.875rem;
-  color: #64748b;
-}
-
 /* Dependencies Container */
 .dependencies-container {
   max-width: 1400px;
@@ -2512,57 +2397,6 @@ export default {
   transform: translateX(100%);
 }
 
-/* Responsive */
-@media (max-width: 768px) {
-  .stats-grid {
-    grid-template-columns: 1fr 1fr;
-    gap: 1rem;
-  }
-
-  .grid-view {
-    grid-template-columns: 1fr;
-  }
-
-  .sidebar {
-    width: 100%;
-  }
-
-  .search-filter-bar {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 1rem;
-  }
-
-  .filter-chips {
-    overflow-x: auto;
-    padding-bottom: 0.5rem;
-  }
-
-  .header-content {
-    flex-direction: column;
-    gap: 1rem;
-    align-items: stretch;
-  }
-
-  .header-right {
-    justify-content: space-between;
-  }
-
-  .modal {
-    width: 95%;
-    margin: 1rem;
-  }
-
-  .toast-container {
-    left: 1rem;
-    right: 1rem;
-  }
-
-  .toast {
-    max-width: none;
-  }
-}
-
 .btn-remove {
   background: #dc3545;
   color: white;
@@ -2582,25 +2416,6 @@ export default {
   background: #c82333;
 }
 
-@media (max-width: 480px) {
-  .stats-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .dep-card {
-    padding: 1rem;
-  }
-
-  .dep-card-footer {
-    flex-direction: column;
-    gap: 1rem;
-    align-items: stretch;
-  }
-
-  .dep-actions {
-    justify-content: center;
-  }
-}
 /* ----------------------- */
 /* --------------------------
    OVERLAY & CONTAINER
@@ -2823,11 +2638,6 @@ export default {
   background: #6f39ef;
   border-color: #6f39ef;
   box-shadow: inset 0 0 0 4px #fff;
-}
-.stat-card.selected {
-  border: 2px solid #6366f1; /* Roxinho Tailwind Indigo-500 */
-  box-shadow: 0 0 0 2px rgba(99,102,241,0.2);
-  border-radius: 12px;
 }
 
 
