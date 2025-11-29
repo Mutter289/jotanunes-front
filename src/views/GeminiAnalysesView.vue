@@ -1,10 +1,12 @@
 <template>
-  <div class="page-header">
-    <div class="header-content">
-      <h1>Análises de Alterações (Gemini)</h1>
-      <p>Histórico de todas as análises de alterações em sentenças SQL</p>
+    <div class="page-header">
+      <div class="header-content">
+        <h1>Análises de Alterações (Gemini)</h1>
+        <p>Histórico de todas as análises de alterações em sentenças SQL</p>
+      </div>
     </div>
-  </div>
+</template>
+
     <VTable
       @row-click="handleRowClick"
       :data="analyses"
