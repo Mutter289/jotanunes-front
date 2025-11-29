@@ -194,135 +194,81 @@
             <td v-if="hasActions" class="actions-column">
               <div class="actions-wrapper">
                 <slot name="actions" :row="row">
+                  <!-- Ação Editar -->
                   <button
-                    v-for="action in actions"
-                    :key="action.key"
-                    @click.stop="handleAction(action, row)"
+                    v-if="actions.find(a => a.key === 'edit')"
+                    @click.stop="handleAction(actions.find(a => a.key === 'edit'), row)"
                     :class="[
                       'action-btn',
-                      action.className,
-                      action.variant && `action-btn-${action.variant}`,
+                      'action-btn-edit',
+                      actions.find(a => a.key === 'edit').className,
+                      actions.find(a => a.key === 'edit').variant && `action-btn-${actions.find(a => a.key === 'edit').variant}`,
                     ]"
-                    :disabled="action.disabled && action.disabled(row)"
+                    :disabled="actions.find(a => a.key === 'edit').disabled && actions.find(a => a.key === 'edit').disabled(row)"
                   >
-                    <div class="action-tooltip">
-                      {{ action.label || action.tooltip }}
-                    </div>
-                    <!-- Built-in icons -->
-                    <svg
-                      v-if="action.icon === 'lock'"
-                      class="action-icon"
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                    >
+                    <div class="action-tooltip">Editar</div>
+                    <svg class="action-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                    </svg>
+                  </button>
+
+                  <!-- Ação Bloquear -->
+                  <button
+                    v-if="actions.find(a => a.key === 'block')"
+                    @click.stop="handleAction(actions.find(a => a.key === 'block'), row)"
+                    :class="[
+                      'action-btn',
+                      'action-btn-block',
+                      actions.find(a => a.key === 'block').className,
+                      actions.find(a => a.key === 'block').variant && `action-btn-${actions.find(a => a.key === 'block').variant}`,
+                    ]"
+                    :disabled="actions.find(a => a.key === 'block').disabled && actions.find(a => a.key === 'block').disabled(row)"
+                  >
+                    <div class="action-tooltip">Bloquear</div>
+                    <svg class="action-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                       <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                      <path d="M7 11V7a5 5 0 0110 0v4"></path>
+                      <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
                     </svg>
-                    <svg
-                      v-else-if="action.icon === 'unlock'"
-                      class="action-icon"
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                    >
-                      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                      <path d="M7 11V7a5 5 0 019.9-1"></path>
+                  </button>
+
+                  <!-- Ação Aprovar -->
+                  <button
+                    v-if="actions.find(a => a.key === 'approve')"
+                    @click.stop="handleAction(actions.find(a => a.key === 'approve'), row)"
+                    :class="[
+                      'action-btn',
+                      'action-btn-approve',
+                      actions.find(a => a.key === 'approve').className,
+                      actions.find(a => a.key === 'approve').variant && `action-btn-${actions.find(a => a.key === 'approve').variant}`,
+                    ]"
+                    :disabled="actions.find(a => a.key === 'approve').disabled && actions.find(a => a.key === 'approve').disabled(row)"
+                  >
+                    <div class="action-tooltip">Aprovar</div>
+                    <svg class="action-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <polyline points="20 6 9 17 4 12"></polyline>
                     </svg>
-                    <svg
-                      v-else-if="action.icon === 'link'"
-                      class="action-icon"
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                    >
-                      <path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"></path>
-                      <path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"></path>
-                    </svg>
-                    <svg
-                      v-else-if="action.icon === 'trash'"
-                      class="action-icon"
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                    >
+                  </button>
+
+                  <!-- Ação Excluir -->
+                  <button
+                    v-if="actions.find(a => a.key === 'delete')"
+                    @click.stop="handleAction(actions.find(a => a.key === 'delete'), row)"
+                    :class="[
+                      'action-btn',
+                      'action-btn-delete',
+                      actions.find(a => a.key === 'delete').className,
+                      actions.find(a => a.key === 'delete').variant && `action-btn-${actions.find(a => a.key === 'delete').variant}`,
+                    ]"
+                    :disabled="actions.find(a => a.key === 'delete').disabled && actions.find(a => a.key === 'delete').disabled(row)"
+                  >
+                    <div class="action-tooltip">Excluir</div>
+                    <svg class="action-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                       <polyline points="3 6 5 6 21 6"></polyline>
-                      <path
-                        d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"
-                      ></path>
+                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
                     </svg>
-                    <svg
-                      v-else-if="action.icon === 'edit'"
-                      class="action-icon"
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                    >
-                      <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"></path>
-                      <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                    </svg>
-                    <svg
-                      v-else-if="action.icon === 'view'"
-                      class="action-icon"
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                    >
-                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                      <circle cx="12" cy="12" r="3"></circle>
-                    </svg>
-                    <svg
-                      v-else-if="action.icon === 'download'"
-                      class="action-icon"
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                    >
-                      <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"></path>
-                      <polyline points="7 10 12 15 17 10"></polyline>
-                      <line x1="12" y1="15" x2="12" y2="3"></line>
-                    </svg>
-                    <!-- Custom component icon -->
-                    <component
-                      v-else-if="action.icon && typeof action.icon !== 'string'"
-                      :is="action.icon"
-                      class="action-icon"
-                    />
                   </button>
                 </slot>
-                <button
-                  v-if="showMoreActions"
-                  class="action-btn more-btn"
-                  @click.stop="toggleMoreMenu(row)"
-                >
-                  <div class="action-tooltip">Mais ações</div>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <circle cx="12" cy="5" r="1"></circle>
-                    <circle cx="12" cy="12" r="1"></circle>
-                    <circle cx="12" cy="19" r="1"></circle>
-                  </svg>
-                </button>
               </div>
             </td>
           </tr>
