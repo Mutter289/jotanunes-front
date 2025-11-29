@@ -41,7 +41,7 @@ export default {
         {
           name: 'Dashboard',
           description: "KPI's de gestão",
-          link: '/main',
+          link: '/dashboard',
           icon: ['fas', 'chart-pie'],
         },
         {
