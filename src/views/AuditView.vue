@@ -424,8 +424,8 @@ export default {
         audfv: `<svg viewBox="0 0 24 24" fill="currentColor">
           <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
         </svg>`,
-        audsql: `<svg viewBox="0 0 24 24" fill="currentColor">
-          <path d="M12 3L1 9l4 2.18v6L12 21l7-3.82v-6l2-1.09V17h2V9L12 3zm6.82 6L12 12.72 5.18 9 12 5.28 18.82 9zM17 15.99l-5 2.73-5-2.73v-3.72L12 15l5-2.73v3.72z"/>
+        audsql: `<svg viewBox="0 0 448 512" fill="currentColor">
+          <path d="M448 80v48c0 44.2-100.3 80-224 80S0 172.2 0 128V80C0 35.8 100.3 0 224 0S448 35.8 448 80zM393.2 214.7c20.8-7.4 39.9-16.9 54.8-28.6V288c0 44.2-100.3 80-224 80S0 332.2 0 288V186.1c14.9 11.8 34 21.2 54.8 28.6C99.7 230.7 159.5 240 224 240s124.3-9.3 169.2-25.3zM0 346.1c14.9 11.8 34 21.2 54.8 28.6C99.7 390.7 159.5 400 224 400s124.3-9.3 169.2-25.3c20.8-7.4 39.9-16.9 54.8-28.6V432c0 44.2-100.3 80-224 80S0 476.2 0 432V346.1z"/>
         </svg>`,
         audreport: `<svg viewBox="0 0 24 24" fill="currentColor">
           <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/>
@@ -818,34 +818,12 @@ export default {
 
 .table-filter-container {
   background: linear-gradient(135deg, #bc1f1b 0%, #8b1714 100%);
-  border-radius: 20px;
-  padding: 32px;
-  box-shadow:
-    0 20px 60px rgba(188, 31, 27, 0.4),
-    0 8px 24px rgba(188, 31, 27, 0.3);
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   animation: slideDown 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
   position: relative;
   overflow: hidden;
-}
-
-.table-filter-container::before {
-  content: '';
-  position: absolute;
-  top: -50%;
-  right: -50%;
-  width: 100%;
-  height: 100%;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
-  animation: float 8s ease-in-out infinite;
-}
-
-@keyframes float {
-  0%, 100% {
-    transform: translate(0, 0) rotate(0deg);
-  }
-  50% {
-    transform: translate(-20px, 20px) rotate(180deg);
-  }
 }
 
 @keyframes slideDown {
@@ -861,32 +839,32 @@ export default {
 
 .filter-header {
   text-align: center;
-  margin-bottom: 28px;
+  margin-bottom: 20px;
   position: relative;
   z-index: 1;
 }
 
 .filter-title {
-  margin: 0 0 8px 0;
-  font-size: 28px;
+  margin: 0 0 6px 0;
+  font-size: 22px;
   font-weight: 700;
   color: #ffffff;
-  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
-  letter-spacing: -0.5px;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  letter-spacing: -0.3px;
 }
 
 .filter-description {
   margin: 0;
-  font-size: 14px;
+  font-size: 13px;
   color: rgba(255, 255, 255, 0.9);
   font-weight: 400;
-  letter-spacing: 0.2px;
+  letter-spacing: 0.1px;
 }
 
 .table-tabs {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px;
   position: relative;
   z-index: 1;
 }
@@ -894,17 +872,17 @@ export default {
 .table-tab {
   position: relative;
   background: rgba(255, 255, 255, 0.95);
-  border: 3px solid rgba(255, 255, 255, 0.3);
-  border-radius: 16px;
-  padding: 24px 20px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 12px;
+  padding: 18px 16px;
   color: #bc1f1b;
   cursor: pointer;
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 14px;
   overflow: hidden;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .table-tab::before {
@@ -979,14 +957,14 @@ export default {
 }
 
 .tab-icon {
-  width: 48px;
-  height: 48px;
+  width: 40px;
+  height: 40px;
   flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.15));
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.12));
 }
 
 .tab-icon svg {
@@ -1003,14 +981,14 @@ export default {
 }
 
 .tab-title {
-  font-size: 17px;
+  font-size: 15px;
   font-weight: 700;
   letter-spacing: -0.2px;
   line-height: 1.2;
 }
 
 .tab-subtitle {
-  font-size: 12px;
+  font-size: 11px;
   opacity: 0.85;
   font-weight: 500;
   line-height: 1.3;
@@ -1022,8 +1000,8 @@ export default {
 }
 
 .tab-active-indicator {
-  width: 28px;
-  height: 28px;
+  width: 24px;
+  height: 24px;
   flex-shrink: 0;
   background: #ffffff;
   border-radius: 50%;
@@ -1031,13 +1009,13 @@ export default {
   align-items: center;
   justify-content: center;
   color: #bc1f1b;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   animation: checkmarkAppear 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .tab-active-indicator svg {
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
   animation: checkmarkDraw 0.4s ease-out;
 }
 
@@ -1520,47 +1498,47 @@ export default {
 /* Responsividade */
 @media (max-width: 768px) {
   .table-filter-container {
-    padding: 24px 20px;
+    padding: 20px 16px;
   }
 
   .filter-title {
-    font-size: 22px;
+    font-size: 20px;
   }
 
   .filter-description {
-    font-size: 13px;
+    font-size: 12px;
   }
 
   .table-tabs {
     grid-template-columns: 1fr;
-    gap: 12px;
+    gap: 10px;
   }
 
   .table-tab {
-    padding: 20px 16px;
+    padding: 16px 14px;
   }
 
   .tab-icon {
-    width: 40px;
-    height: 40px;
+    width: 36px;
+    height: 36px;
   }
 
   .tab-title {
-    font-size: 16px;
+    font-size: 14px;
   }
 
   .tab-subtitle {
-    font-size: 11px;
+    font-size: 10px;
   }
 
   .tab-active-indicator {
-    width: 24px;
-    height: 24px;
+    width: 22px;
+    height: 22px;
   }
 
   .tab-active-indicator svg {
-    width: 16px;
-    height: 16px;
+    width: 14px;
+    height: 14px;
   }
 
   .detail-grid {
