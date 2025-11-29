@@ -793,23 +793,58 @@ export default {
 }
 
 .stat-card.total {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #bc1f1b 0%, #8b1714 100%);
   color: white;
+  border: 2px solid #bc1f1b;
+  box-shadow: 0 8px 25px rgba(188, 31, 27, 0.3);
 }
 
 .stat-card.pending {
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  background: linear-gradient(135deg, #eab308 0%, #ca8a04 100%);
   color: white;
+  border: 2px solid #eab308;
+  box-shadow: 0 8px 25px rgba(234, 179, 8, 0.3);
 }
 
 .stat-card.active {
-  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
   color: white;
+  border: 2px solid #16a34a;
+  box-shadow: 0 8px 25px rgba(22, 163, 74, 0.3);
 }
 
 .stat-card.blocked {
-  background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
   color: white;
+  border: 2px solid #dc2626;
+  box-shadow: 0 8px 25px rgba(220, 38, 38, 0.3);
+}
+
+.stat-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.6s;
+}
+
+.stat-card:hover::after {
+  left: 100%;
+}
+
+.stat-card:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 
+    0 15px 35px rgba(0, 0, 0, 0.2),
+    0 5px 15px rgba(0, 0, 0, 0.1);
 }
 
 .stat-icon {
