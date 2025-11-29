@@ -159,7 +159,7 @@
 
           <div class="card-footer">
             <div class="card-tags">
-              <span class="tag tag-table">{{ getTabelaOrigem(dep) }}</span>
+              <span class="tag tag-table">{{ formatTableName(getTabelaOrigem(dep)) }}</span>
               <span class="tag tag-user">{{ dep.nome_criador }}</span>
             </div>
             <div class="card-actions">
@@ -215,7 +215,7 @@
                 <td>{{ formatDate(dep.criado_em) }}</td>
                 <td>{{ dep.qtd_itens }}</td>
                 <td>
-                  <span class="table-tag">{{ getTabelaOrigem(dep) }}</span>
+                  <span class="table-tag">{{ formatTableName(getTabelaOrigem(dep)) }}</span>
                 </td>
                 <td class="actions-column">
                   <div class="table-actions">
@@ -254,7 +254,7 @@
               >
                 <polyline points="9 18 15 12 9 6" />
               </svg>
-              <span class="category-name">{{ category.name }}</span>
+              <span class="category-name">{{ formatTableName(category.name) }}</span>
               <span class="category-count">{{ category.items.length }}</span>
             </div>
             <div v-if="category.expanded" class="category-items">
@@ -363,7 +363,7 @@
             :key="table.name"
             class="modal-table-column"
           >
-            <h4 class="modal-table-title">{{ table.name }}</h4>
+            <h4 class="modal-table-title">{{ formatTableName(table.name) }}</h4>
             <div
               class="modal-table-list"
               :ref="el => tableRefs[table.name] = el"
@@ -491,7 +491,7 @@
               </div>
               <div class="detail-item">
                 <label>Tabela de Origem:</label>
-                <span>{{ getTabelaOrigem(selectedDep) }}</span>
+                <span>{{ formatTableName(getTabelaOrigem(selectedDep)) }}</span>
               </div>
             </div>
           </div>
@@ -509,7 +509,7 @@
                   <strong>{{ item.titulo || 'Item sem nome' }}</strong>
                   <span v-if="item.is_item_principal" class="principal-badge">Principal</span>
                 </div>
-                <small>{{ item.tabela }} - ID: {{ item.origem_id }}</small>
+                <small>{{ formatTableName(item.tabela) }} - ID: {{ item.origem_id }}</small>
               </div>
             </div>
           </div>
@@ -907,6 +907,15 @@ export default {
       return icons[filterId] || icons.all
     },
 
+    formatTableName(tableName) {
+      const tableNames = {
+        'AUD_FVS': 'Formas Visuais',
+        'AUD_SQLS': 'Códigos SQL',
+        'AUD_REPORTS': 'Relatórios'
+      }
+      return tableNames[tableName] || tableName
+    },
+
     formatDate(input) {
       void this.nowTick
       if (!input) return 'N/A'
@@ -1125,12 +1134,14 @@ export default {
 <style scoped>
 /* Global Styles */
 .dependencies {
-  max-width: 1600px;
-  margin: 0 auto;
-  padding: 2rem;
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  padding: 2rem 3rem;
   display: flex;
   flex-direction: column;
   gap: 24px;
+  min-height: 100vh;
 }
 
 /* Page Header */
@@ -1508,8 +1519,9 @@ export default {
 /* Grid View */
 .grid-view {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+  gap: 24px;
+  width: 100%;
 }
 
 .dependency-card {
@@ -2603,9 +2615,25 @@ export default {
 }
 
 /* Responsive */
+@media (min-width: 1920px) {
+  .grid-view {
+    grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
+  }
+}
+
+@media (max-width: 1400px) {
+  .grid-view {
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  }
+}
+
 @media (max-width: 1200px) {
   .grid-view {
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  }
+
+  .dependencies {
+    padding: 2rem;
   }
 }
 
