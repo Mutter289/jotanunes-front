@@ -5,7 +5,6 @@
         <p>Histórico de todas as análises de alterações em sentenças SQL</p>
       </div>
     </div>
-</template>
 
     <VTable
       @row-click="handleRowClick"
