@@ -1,30 +1,30 @@
 <template>
   <div class="dependency-manager">
-      <div class="page-header">
-        <div class="header-content">
-          <h1>Gestão de Alterações</h1>
-          <p>Administre dependências, impactos e riscos do sistema</p>
-        </div>
-        <div class="header-actions">
-          <button class="btn-primary" @click="openCreateModal">
-            <svg class="btn-icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <line x1="12" y1="5" x2="12" y2="19" />
-              <line x1="5" y1="12" x2="19" y2="12" />
-            </svg>
-            Criar Alteração
-          </button>
-          <button class="btn-secondary" @click="refreshDependencies" :class="{ rotating: isRefreshing }">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M21 2v6h-6" />
-              <path d="M3 12a9 9 0 0 1 15-6.7L21 8" />
-              <path d="M3 22v-6h6" />
-              <path d="M21 12a9 9 0 0 1-15 6.7L3 16" />
-            </svg>
-            Atualizar
-          </button>
-        </div>
+    <!-- NOVO HEADER -->
+    <div class="page-header">
+      <div class="header-content">
+        <h1>Gestão de Alterações</h1>
+        <p>Administre dependências, impactos e riscos do sistema</p>
       </div>
-    </header>
+      <div class="header-actions">
+        <button class="btn-primary" @click="openCreateModal">
+          <svg class="btn-icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="12" y1="5" x2="12" y2="19" />
+            <line x1="5" y1="12" x2="19" y2="12" />
+          </svg>
+          Criar Alteração
+        </button>
+        <button class="btn-secondary" @click="refreshDependencies" :class="{ rotating: isRefreshing }">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 2v6h-6" />
+            <path d="M3 12a9 9 0 0 1 15-6.7L21 8" />
+            <path d="M3 22v-6h6" />
+            <path d="M21 12a9 9 0 0 1-15 6.7L3 16" />
+          </svg>
+          Atualizar
+        </button>
+      </div>
+    </div>
 
     <div class="search-filter-bar">
       <div class="search-box">
@@ -442,10 +442,7 @@
         <button class="btn-cancel" @click="closeModal">Cancelar</button>
         <button class="btn-confirm" @click="modal_submitNew">Salvar</button>
       </div>
-
-</VModal>
-
-
+    </VModal>
 
     <transition name="slide">
       <div v-if="selectedDep" class="sidebar">
@@ -530,7 +527,6 @@
         </div>
       </div>
     </transition>
-
 
     <div class="toast-container">
       <div v-for="toast in toasts" :key="toast.id" class="toast" :class="toast.type">
