@@ -1,6 +1,6 @@
 <template>
-  <div class="monitoring">
-    <!-- Header -->
+  <div class="pm2-monitor">
+    <!-- Page Header -->
     <div class="page-header">
       <div class="header-content">
         <h1>Monitoramento de Serviços</h1>
@@ -39,7 +39,7 @@
 
     <!-- Stats Grid -->
     <div class="stats-grid">
-      <div class="stat-card online-card" @click="filterByStatus('online')">
+      <div class="stat-card online-card">
         <div class="stat-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="12" cy="12" r="10" />
@@ -55,7 +55,7 @@
         <div class="stat-pulse"></div>
       </div>
 
-      <div class="stat-card stopped-card" @click="filterByStatus('stopped')">
+      <div class="stat-card stopped-card">
         <div class="stat-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <rect x="6" y="4" width="4" height="16" />
@@ -134,166 +134,180 @@
       </div>
     </div>
 
-    <!-- Search Bar -->
-    <div class="search-container">
-      <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <circle cx="11" cy="11" r="8" />
-        <path d="m21 21-4.35-4.35" />
-      </svg>
-      <input
-        v-model="searchTerm"
-        type="text"
-        placeholder="Buscar por nome do serviço, PID ou status..."
-        class="search-input"
-      />
-      <button
-        v-if="searchTerm || statusFilter"
-        @click="clearFilters"
-        class="clear-btn"
-        title="Limpar filtros"
-      >
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <line x1="18" y1="6" x2="6" y2="18" />
-          <line x1="6" y1="6" x2="18" y2="18" />
+    <!-- Controls Section -->
+    <div class="controls-section">
+      <div class="search-container">
+        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8" />
+          <path d="m21 21-4.35-4.35" />
         </svg>
-      </button>
+        <input
+          v-model="searchTerm"
+          type="text"
+          placeholder="Buscar serviço..."
+          class="search-input"
+        />
+      </div>
     </div>
 
-    <!-- Services Grid -->
-    <div class="content-area">
-      <!-- Loading State -->
-      <div v-if="loading && services.length === 0" class="loading-state">
-        <div class="spinner"></div>
-        <p>Carregando serviços...</p>
-      </div>
-
-        <!-- Empty State -->
-      <div v-else-if="filteredServices.length === 0" class="empty-state">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
-          <circle cx="12" cy="12" r="10" />
-          <path d="M16 16s-1.5-2-4-2-4 2-4 2" />
-          <line x1="9" y1="9" x2="9.01" y2="9" />
-          <line x1="15" y1="9" x2="15.01" y2="9" />
-        </svg>
-        <p>Nenhum serviço encontrado</p>
-        <button v-if="searchTerm || statusFilter" @click="clearFilters" class="btn-clear-filters">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="18" y1="6" x2="6" y2="18" />
-            <line x1="6" y1="6" x2="18" y2="18" />
-          </svg>
-          Limpar filtros
-        </button>
-      </div>
-
-      <!-- Services Grid -->
-      <div v-else class="services-grid">
-        <div
-          v-for="service in filteredServices"
-          :key="service.service_name"
-          class="service-card"
-          :class="[service.status]"
-          @click="viewWorkers(service)"
-        >
-          <div class="card-header">
-            <div class="service-name-area">
-              <h3>{{ service.service_name }}</h3>
-              <p class="service-state">{{ service.active_state }} / {{ service.sub_state }}</p>
-            </div>
-            <div class="status-badge" :class="service.status">
-              <span class="status-dot"></span>
-              {{ getStatusText(service.status) }}
-            </div>
-          </div>
-
-          <div class="card-metrics">
-            <div class="metric-row">
-              <div class="metric-item">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <rect x="4" y="4" width="16" height="16" rx="2" ry="2" />
-                  <rect x="9" y="9" width="6" height="6" />
-                  <line x1="9" y1="1" x2="9" y2="4" />
-                  <line x1="15" y1="1" x2="15" y2="4" />
-                  <line x1="9" y1="20" x2="9" y2="23" />
-                  <line x1="15" y1="20" x2="15" y2="23" />
-                </svg>
-                <div class="metric-content">
-                  <span class="metric-label">CPU</span>
-                  <span class="metric-value">{{ (service.cpu_percent || 0).toFixed(1) }}%</span>
+    <!-- Table Container -->
+    <div class="table-container">
+      <div class="table-wrapper">
+        <table class="processes-table">
+          <thead>
+            <tr>
+              <th @click="sort('status')" class="sortable">
+                <div class="th-content">
+                  Status
+                  <svg class="sort-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="6 9 12 15 18 9" />
+                  </svg>
                 </div>
-                <div class="metric-bar">
-                  <div class="metric-fill cpu-fill" :style="{ width: Math.min(service.cpu_percent || 0, 100) + '%' }"></div>
+              </th>
+              <th @click="sort('service_name')" class="sortable">
+                <div class="th-content">
+                  Serviço
+                  <svg class="sort-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="6 9 12 15 18 9" />
+                  </svg>
                 </div>
-              </div>
-
-              <div class="metric-item">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
-                  <line x1="8" y1="21" x2="16" y2="21" />
-                  <line x1="12" y1="17" x2="12" y2="21" />
-                </svg>
-                <div class="metric-content">
-                  <span class="metric-label">Memória</span>
-                  <span class="metric-value">{{ formatMemory(service.memory_mb) }}</span>
+              </th>
+              <th @click="sort('main_pid')" class="sortable">
+                <div class="th-content">
+                  PID
+                  <svg class="sort-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="6 9 12 15 18 9" />
+                  </svg>
                 </div>
-                <div class="metric-bar">
-                  <div class="metric-fill memory-fill" :style="{ width: Math.min(service.memory_percent || 0, 100) + '%' }"></div>
+              </th>
+              <th @click="sort('cpu_percent')" class="sortable">
+                <div class="th-content">
+                  CPU
+                  <svg class="sort-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="6 9 12 15 18 9" />
+                  </svg>
                 </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="card-footer">
-            <div class="footer-info">
-              <div class="info-item">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              </th>
+              <th @click="sort('memory_mb')" class="sortable">
+                <div class="th-content">
+                  Memória
+                  <svg class="sort-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="6 9 12 15 18 9" />
+                  </svg>
+                </div>
+              </th>
+              <th @click="sort('uptime')" class="sortable">
+                <div class="th-content">
+                  Uptime
+                  <svg class="sort-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="6 9 12 15 18 9" />
+                  </svg>
+                </div>
+              </th>
+              <th>Workers</th>
+              <th>Requisições</th>
+              <th>Erros</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-if="loading && services.length === 0">
+              <td colspan="10" class="loading-row">
+                <div class="loading-spinner"></div>
+                Carregando serviços...
+              </td>
+            </tr>
+            <tr v-else-if="filteredServices.length === 0">
+              <td colspan="10" class="empty-row">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
                   <circle cx="12" cy="12" r="10" />
-                  <polyline points="12 6 12 12 16 14" />
+                  <path d="M16 16s-1.5-2-4-2-4 2-4 2" />
+                  <line x1="9" y1="9" x2="9.01" y2="9" />
+                  <line x1="15" y1="9" x2="15.01" y2="9" />
                 </svg>
-                <span>{{ service.uptime || '-' }}</span>
-              </div>
-              <div class="info-item">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                  <circle cx="9" cy="7" r="4" />
-                  <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-                  <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-                </svg>
-                <span>{{ service.num_workers }} Workers</span>
-              </div>
-              <div class="info-item">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M12 2v20M2 12h20" />
-                </svg>
-                <span>PID: {{ service.main_pid || '-' }}</span>
-              </div>
-            </div>
-            <div class="card-actions">
-              <button
-                class="action-btn"
-                @click.stop="viewWorkers(service)"
-                title="Ver Workers"
-              >
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                  <circle cx="12" cy="12" r="3" />
-                </svg>
-              </button>
-              <button
-                class="action-btn action-btn-restart"
-                @click.stop="restartService(service.service_name)"
-                title="Reiniciar"
-                :disabled="service.status !== 'online'"
-              >
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M21 2v6h-6" />
-                  <path d="M3 12a9 9 0 0 1 15-6.7L21 8" />
-                  <path d="M3 22v-6h6" />
-                  <path d="M21 12a9 9 0 0 1-15 6.7L3 16" />
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
+                Nenhum serviço encontrado
+              </td>
+            </tr>
+            <tr
+              v-else
+              v-for="service in filteredServices"
+              :key="service.service_name"
+              class="process-row"
+            >
+              <td>
+                <div :class="['status-badge', service.status]">
+                  <div class="status-dot"></div>
+                  <span>{{ getStatusText(service.status) }}</span>
+                </div>
+              </td>
+              <td class="process-name">
+                <div class="name-cell">
+                  <strong>{{ service.service_name }}</strong>
+                  <div class="process-id">{{ service.active_state }} / {{ service.sub_state }}</div>
+                </div>
+              </td>
+              <td class="pid">{{ service.main_pid || '-' }}</td>
+              <td class="cpu">
+                <div class="metric-cell">
+                  <div class="metric-bar">
+                    <div
+                      class="metric-fill cpu-fill"
+                      :style="{ width: Math.min(service.cpu_percent, 100) + '%' }"
+                    ></div>
+                  </div>
+                  <span>{{ service.cpu_percent?.toFixed(1) || 0 }}%</span>
+                </div>
+              </td>
+              <td class="memory">
+                <div class="metric-cell">
+                  <div class="metric-bar">
+                    <div
+                      class="metric-fill memory-fill"
+                      :style="{ width: Math.min(service.memory_percent || 0, 100) + '%' }"
+                    ></div>
+                  </div>
+                  <span>{{ formatMemory(service.memory_mb) }}</span>
+                </div>
+              </td>
+              <td class="uptime">{{ service.uptime || '-' }}</td>
+              <td class="instances">
+                <span class="instance-count">{{ service.num_workers }}</span>
+              </td>
+              <td class="requests">
+                <span class="metric-value">{{ service.total_requests || '-' }}</span>
+              </td>
+              <td class="errors">
+                <span :class="['error-count', { high: service.errors > 0 }]">
+                  {{ service.errors || 0 }}
+                </span>
+              </td>
+              <td class="actions">
+                <div class="action-buttons">
+                  <button @click="viewWorkers(service)" class="action-btn view" title="Ver Workers">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                      <circle cx="12" cy="12" r="3" />
+                    </svg>
+                  </button>
+                  <button
+                    @click="restartService(service.service_name)"
+                    class="action-btn restart"
+                    title="Reiniciar"
+                    :disabled="service.status !== 'online'"
+                  >
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <polyline points="23 4 23 10 17 10" />
+                      <polyline points="1 20 1 14 7 14" />
+                      <path
+                        d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"
+                      />
+                    </svg>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
 
@@ -301,65 +315,29 @@
     <VModal
       v-model="showWorkersModal"
       size="large"
-      background-color="white"
       :title="`Workers - ${selectedService?.service_name}`"
-      :show-footer="false"
     >
       <div v-if="selectedService" class="workers-content">
         <div class="workers-grid">
-          <div
-            v-for="worker in selectedService.workers"
-            :key="worker.pid"
-            class="worker-card"
-            :class="worker.status"
-          >
+          <div v-for="worker in selectedService.workers" :key="worker.pid" class="worker-card">
             <div class="worker-header">
-              <div class="worker-pid-badge">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M12 2v20M2 12h20" />
-                </svg>
-                PID: {{ worker.pid }}
-              </div>
-              <span class="worker-status" :class="worker.status">
-                {{ worker.status }}
-              </span>
+              <span class="worker-pid">PID: {{ worker.pid }}</span>
+              <span :class="['worker-status', worker.status]">{{ worker.status }}</span>
             </div>
             <div class="worker-metrics">
               <div class="worker-metric">
-                <div class="metric-icon cpu-icon">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <rect x="4" y="4" width="16" height="16" rx="2" ry="2" />
-                    <rect x="9" y="9" width="6" height="6" />
-                  </svg>
-                </div>
-                <div class="metric-details">
-                  <span class="metric-label">CPU</span>
-                  <span class="metric-value">{{ worker.cpu_percent.toFixed(1) }}%</span>
-                </div>
+                <span class="metric-label">CPU:</span>
+                <span class="metric-value">{{ worker.cpu_percent.toFixed(1) }}%</span>
               </div>
               <div class="worker-metric">
-                <div class="metric-icon memory-icon">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
-                    <line x1="8" y1="21" x2="16" y2="21" />
-                  </svg>
-                </div>
-                <div class="metric-details">
-                  <span class="metric-label">Memória</span>
-                  <span class="metric-value">{{ formatMemory(worker.memory_mb) }}</span>
-                </div>
+                <span class="metric-label">Memória:</span>
+                <span class="metric-value">{{ formatMemory(worker.memory_mb) }}</span>
               </div>
             </div>
           </div>
         </div>
         <div v-if="selectedService.workers.length === 0" class="no-workers">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
-            <circle cx="12" cy="12" r="10" />
-            <path d="M16 16s-1.5-2-4-2-4 2-4 2" />
-            <line x1="9" y1="9" x2="9.01" y2="9" />
-            <line x1="15" y1="9" x2="15.01" y2="9" />
-          </svg>
-          <p>Nenhum worker ativo</p>
+          Nenhum worker ativo
         </div>
       </div>
     </VModal>
@@ -380,7 +358,7 @@
       mark="warning"
       :auto-close="0"
     >
-      <p>Aguarde enquanto estabelecemos a conexão SSE com o servidor...</p>
+      <p>Aguarde alguns segundos enquanto estabelecemos a conexão SSE com o servidor...</p>
     </VPopup>
   </div>
 </template>
@@ -414,9 +392,10 @@ export default {
         total_memory_mb: 0,
       },
       searchTerm: '',
-      statusFilter: '',
       loading: false,
       lastUpdate: null,
+      sortField: 'service_name',
+      sortDirection: 'asc',
       sseConnected: false,
       eventSource: null,
       showWorkersModal: false,
@@ -429,12 +408,6 @@ export default {
     filteredServices() {
       let filtered = [...this.services]
 
-      // Apply status filter
-      if (this.statusFilter) {
-        filtered = filtered.filter(service => service.status === this.statusFilter)
-      }
-
-      // Apply search filter
       if (this.searchTerm.trim()) {
         const term = this.searchTerm.toLowerCase()
         filtered = filtered.filter(
@@ -444,6 +417,22 @@ export default {
             (service.main_pid && service.main_pid.toString().includes(term)),
         )
       }
+
+      filtered.sort((a, b) => {
+        let aVal = a[this.sortField]
+        let bVal = b[this.sortField]
+
+        if (typeof aVal === 'string') {
+          aVal = aVal.toLowerCase()
+          bVal = bVal?.toLowerCase() || ''
+        }
+
+        if (this.sortDirection === 'asc') {
+          return aVal > bVal ? 1 : -1
+        } else {
+          return aVal < bVal ? 1 : -1
+        }
+      })
 
       return filtered
     },
@@ -551,6 +540,15 @@ export default {
       await this.fetchInitialData()
     },
 
+    sort(field) {
+      if (this.sortField === field) {
+        this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc'
+      } else {
+        this.sortField = field
+        this.sortDirection = 'asc'
+      }
+    },
+
     viewWorkers(service) {
       this.selectedService = service
       this.showWorkersModal = true
@@ -577,15 +575,6 @@ export default {
           text: error.message,
         })
       }
-    },
-
-    filterByStatus(status) {
-      this.statusFilter = this.statusFilter === status ? '' : status
-    },
-
-    clearFilters() {
-      this.searchTerm = ''
-      this.statusFilter = ''
     },
 
     formatMemory(mb) {
@@ -651,7 +640,7 @@ export default {
 
 <style scoped>
 /* Global Styles */
-.monitoring {
+.pm2-monitor {
   width: 100%;
   max-width: 100%;
   margin: 0;
@@ -912,7 +901,11 @@ export default {
   font-weight: 500;
 }
 
-/* Search Container */
+/* Controls Section */
+.controls-section {
+  margin: 0;
+}
+
 .search-container {
   background: white;
   border: 2px solid #e9ecef;
@@ -922,7 +915,6 @@ export default {
   align-items: center;
   gap: 12px;
   transition: all 0.3s;
-  position: relative;
 }
 
 .search-container:focus-within {
@@ -949,196 +941,92 @@ export default {
   color: #94a3b8;
 }
 
-.clear-btn {
-  width: 32px;
-  height: 32px;
-  border: none;
-  background: #f1f5f9;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+/* Table Container */
+.table-container {
+  background: white;
+  backdrop-filter: blur(20px);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border: 2px solid #e9ecef;
+}
+
+.table-wrapper {
+  overflow-x: auto;
+}
+
+.processes-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.processes-table th {
+  background: #f8fafc;
+  padding: 16px;
+  text-align: left;
+  font-weight: 700;
+  color: #475569;
+  font-size: 13px;
+  border-bottom: 2px solid #e2e8f0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.processes-table th.sortable {
   cursor: pointer;
-  transition: all 0.2s;
+  user-select: none;
+  transition: background 0.2s ease;
 }
 
-.clear-btn:hover {
-  background: #fee2e2;
+.processes-table th.sortable:hover {
+  background: #f1f5f9;
 }
 
-.clear-btn svg {
-  width: 16px;
-  height: 16px;
-  color: #64748b;
-}
-
-.clear-btn:hover svg {
-  color: #dc2626;
-}
-
-/* Content Area */
-.content-area {
-  min-height: 400px;
-}
-
-/* Loading State */
-.loading-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 4rem 2rem;
-  gap: 16px;
-}
-
-.spinner {
-  width: 40px;
-  height: 40px;
-  border: 4px solid #e5e7eb;
-  border-top-color: #bc1f1b;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-.loading-state p {
-  color: #64748b;
-  font-size: 14px;
-}
-
-/* Empty State */
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 4rem 2rem;
-  gap: 16px;
-  color: #94a3b8;
-}
-
-.empty-state svg {
-  width: 64px;
-  height: 64px;
-  color: #cbd5e0;
-}
-
-.empty-state p {
-  font-size: 16px;
-  color: #64748b;
-  margin-bottom: 8px;
-}
-
-.btn-clear-filters {
+.th-content {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 12px 24px;
-  background: linear-gradient(135deg, #bc1f1b 0%, #8b1714 100%);
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-weight: 600;
-  font-size: 14px;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 4px 15px rgba(188, 31, 27, 0.3);
 }
 
-.btn-clear-filters:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(188, 31, 27, 0.4);
-}
-
-.btn-clear-filters svg {
+.sort-icon {
   width: 16px;
   height: 16px;
+  opacity: 0.5;
+  transition: opacity 0.2s ease;
 }
 
-/* Services Grid */
-.services-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
-  gap: 24px;
+.processes-table th.sortable:hover .sort-icon {
+  opacity: 1;
 }
 
-.service-card {
-  background: white;
-  border-radius: 12px;
-  border: 2px solid #e9ecef;
-  padding: 20px;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  animation: fadeIn 0.5s ease-out;
+.processes-table td {
+  padding: 16px;
+  border-bottom: 1px solid #f1f5f9;
+  vertical-align: middle;
 }
 
-.service-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
+.process-row {
+  transition: all 0.2s ease;
 }
 
-.service-card.online {
-  border-left: 4px solid #48bb78;
+.process-row:hover {
+  background: rgba(188, 31, 27, 0.03);
 }
 
-.service-card.stopped {
-  border-left: 4px solid #a0aec0;
-}
-
-.service-card.errored {
-  border-left: 4px solid #f56565;
-}
-
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 16px;
-  gap: 12px;
-}
-
-.service-name-area h3 {
-  font-size: 18px;
-  font-weight: 700;
-  color: #1e293b;
-  margin: 0 0 4px 0;
-  line-height: 1.3;
-}
-
-.service-state {
-  font-size: 12px;
-  color: #64748b;
-  margin: 0;
-  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+.process-row:last-child td {
+  border-bottom: none;
 }
 
 .status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   padding: 6px 12px;
   border-radius: 20px;
   font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  white-space: nowrap;
   letter-spacing: 0.3px;
-}
-
-.status-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: currentColor;
-  animation: pulse-dot 2s infinite;
-}
-
-@keyframes pulse-dot {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
 }
 
 .status-badge.online {
@@ -1156,59 +1044,49 @@ export default {
   color: #991b1b;
 }
 
-/* Card Metrics */
-.card-metrics {
-  margin-bottom: 16px;
+.status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  animation: pulse-dot 2s infinite;
 }
 
-.metric-row {
+@keyframes pulse-dot {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.name-cell {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 4px;
 }
 
-.metric-item {
-  display: grid;
-  grid-template-columns: 24px 1fr auto;
-  align-items: center;
-  gap: 10px;
-  padding: 10px;
-  background: #f8fafc;
-  border-radius: 8px;
-  transition: background 0.2s;
-}
-
-.metric-item:hover {
-  background: #f1f5f9;
-}
-
-.metric-item svg {
-  width: 18px;
-  height: 18px;
-  color: #64748b;
-}
-
-.metric-content {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex: 1;
-}
-
-.metric-label {
-  font-size: 12px;
-  color: #64748b;
+.process-name strong {
+  color: #1e293b;
+  font-size: 14px;
   font-weight: 600;
 }
 
-.metric-value {
-  font-size: 13px;
-  font-weight: 700;
-  color: #1e293b;
+.process-id {
+  font-size: 12px;
+  color: #64748b;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+}
+
+.metric-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .metric-bar {
-  width: 80px;
+  width: 60px;
   height: 6px;
   background: #e2e8f0;
   border-radius: 3px;
@@ -1229,35 +1107,43 @@ export default {
   background: linear-gradient(90deg, #9f7aea, #805ad5);
 }
 
-/* Card Footer */
-.card-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding-top: 16px;
-  border-top: 1px solid #f1f5f9;
+.metric-cell span {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1e293b;
+  min-width: 50px;
 }
 
-.footer-info {
-  display: flex;
-  gap: 16px;
-  flex-wrap: wrap;
-}
-
-.info-item {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px;
+.error-count {
+  font-weight: 600;
   color: #64748b;
 }
 
-.info-item svg {
-  width: 14px;
-  height: 14px;
+.error-count.high {
+  color: #dc2626;
+  font-weight: 700;
 }
 
-.card-actions {
+.metric-value {
+  font-weight: 600;
+  color: #64748b;
+}
+
+.instance-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  height: 32px;
+  padding: 0 8px;
+  background: linear-gradient(135deg, #4299e1, #3182ce);
+  color: white;
+  border-radius: 50%;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.action-buttons {
   display: flex;
   gap: 8px;
 }
@@ -1292,31 +1178,77 @@ export default {
   color: #64748b;
 }
 
-.action-btn-restart:hover:not(:disabled) {
+.action-btn.restart:hover:not(:disabled) {
   background: #fef2f2;
   border-color: #fca5a5;
 }
 
-.action-btn-restart:hover:not(:disabled) svg {
+.action-btn.restart:hover:not(:disabled) svg {
   color: #dc2626;
+}
+
+.loading-row,
+.empty-row {
+  text-align: center;
+  padding: 3rem 1.5rem;
+  color: #64748b;
+}
+
+.loading-row {
+  background: linear-gradient(90deg, transparent, rgba(188, 31, 27, 0.03), transparent);
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.loading-spinner {
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  border: 3px solid #e5e7eb;
+  border-top-color: #bc1f1b;
+  border-radius: 50%;
+  animation: spin 1s ease-in-out infinite;
+  margin-right: 1rem;
+  vertical-align: middle;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.empty-row svg {
+  display: block;
+  margin: 0 auto 1rem;
+  width: 48px;
+  height: 48px;
+  color: #cbd5e0;
 }
 
 /* Workers Modal */
 .workers-content {
-  padding: 20px 0;
+  padding: 1rem 0;
 }
 
 .workers-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
   gap: 16px;
 }
 
 .worker-card {
   background: white;
-  border: 2px solid #e9ecef;
   border-radius: 12px;
   padding: 16px;
+  border: 2px solid #e9ecef;
   transition: all 0.3s;
 }
 
@@ -1325,30 +1257,18 @@ export default {
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
 }
 
-.worker-card.online {
-  border-left: 4px solid #48bb78;
-}
-
 .worker-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 14px;
+  margin-bottom: 12px;
 }
 
-.worker-pid-badge {
-  display: flex;
-  align-items: center;
-  gap: 6px;
+.worker-pid {
   font-size: 13px;
   font-weight: 600;
   color: #475569;
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-}
-
-.worker-pid-badge svg {
-  width: 14px;
-  height: 14px;
 }
 
 .worker-status {
@@ -1367,80 +1287,34 @@ export default {
 .worker-metrics {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
 }
 
 .worker-metric {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 12px;
-  padding: 10px;
+  padding: 8px;
   background: #f8fafc;
   border-radius: 8px;
 }
 
-.metric-icon {
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.metric-icon svg {
-  width: 18px;
-  height: 18px;
-  color: white;
-}
-
-.cpu-icon {
-  background: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%);
-}
-
-.memory-icon {
-  background: linear-gradient(135deg, #9f7aea 0%, #805ad5 100%);
-}
-
-.metric-details {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex: 1;
-}
-
-.metric-details .metric-label {
+.worker-metric .metric-label {
   font-size: 12px;
   color: #64748b;
   font-weight: 600;
 }
 
-.metric-details .metric-value {
-  font-size: 14px;
+.worker-metric .metric-value {
+  font-size: 13px;
   font-weight: 700;
   color: #1e293b;
 }
 
 .no-workers {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 3rem 2rem;
-  gap: 12px;
+  text-align: center;
+  padding: 2rem;
   color: #94a3b8;
-}
-
-.no-workers svg {
-  width: 48px;
-  height: 48px;
-  color: #cbd5e0;
-}
-
-.no-workers p {
-  font-size: 14px;
-  color: #64748b;
   font-style: italic;
 }
 
@@ -1467,13 +1341,13 @@ export default {
 
 /* Responsive */
 @media (max-width: 1200px) {
-  .services-grid {
-    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  .stats-grid {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   }
 }
 
 @media (max-width: 768px) {
-  .monitoring {
+  .pm2-monitor {
     padding: 1.5rem 2rem;
   }
 
@@ -1491,11 +1365,7 @@ export default {
   }
 
   .stats-grid {
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  }
-
-  .services-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   }
 
   .workers-grid {
@@ -1504,7 +1374,7 @@ export default {
 }
 
 @media (max-width: 480px) {
-  .monitoring {
+  .pm2-monitor {
     padding: 1rem;
   }
 
@@ -1514,11 +1384,6 @@ export default {
 
   .stat-value {
     font-size: 1.5rem;
-  }
-
-  .footer-info {
-    flex-direction: column;
-    gap: 8px;
   }
 }
 </style>
