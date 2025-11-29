@@ -1,6 +1,11 @@
 <template>
   <div class="audit">
     <div class="table-filter-container">
+      <div class="filter-header">
+        <h2 class="filter-title">Auditoria de Dados</h2>
+        <p class="filter-description">Selecione o tipo de registro para visualizar</p>
+      </div>
+
       <div class="table-tabs">
         <button
           v-for="table in listTable"
@@ -8,8 +13,16 @@
           :class="['table-tab', { active: tableActive === table.value }]"
           @click="selectTable(table.value)"
         >
-          <span class="tab-text">{{ table.text }}</span>
-          <span v-if="tableActive === table.value" class="tab-indicator"></span>
+          <div class="tab-icon" v-html="getTableIcon(table.value)"></div>
+          <div class="tab-content">
+            <span class="tab-title">{{ table.text }}</span>
+            <span class="tab-subtitle">{{ getTableSubtitle(table.value) }}</span>
+          </div>
+          <div v-if="tableActive === table.value" class="tab-active-indicator">
+            <svg viewBox="0 0 24 24" fill="none">
+              <path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
         </button>
       </div>
     </div>
@@ -406,6 +419,30 @@ export default {
   methods: {
     useFetch,
 
+    getTableIcon(tableValue) {
+      const icons = {
+        audfv: `<svg viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
+        </svg>`,
+        audsql: `<svg viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 3L1 9l4 2.18v6L12 21l7-3.82v-6l2-1.09V17h2V9L12 3zm6.82 6L12 12.72 5.18 9 12 5.28 18.82 9zM17 15.99l-5 2.73-5-2.73v-3.72L12 15l5-2.73v3.72z"/>
+        </svg>`,
+        audreport: `<svg viewBox="0 0 24 24" fill="currentColor">
+          <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/>
+        </svg>`
+      }
+      return icons[tableValue] || ''
+    },
+
+    getTableSubtitle(tableValue) {
+      const subtitles = {
+        audfv: 'Interfaces e componentes visuais',
+        audsql: 'Consultas e comandos SQL',
+        audreport: 'Documentos e relatórios'
+      }
+      return subtitles[tableValue] || ''
+    },
+
     async selectTable(tableValue) {
       if (this.tableActive === tableValue) return
       this.tableActive = tableValue
@@ -780,19 +817,41 @@ export default {
 }
 
 .table-filter-container {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 16px;
-  padding: 20px;
+  background: linear-gradient(135deg, #bc1f1b 0%, #8b1714 100%);
+  border-radius: 20px;
+  padding: 32px;
   box-shadow:
-    0 10px 40px rgba(102, 126, 234, 0.3),
-    0 4px 12px rgba(102, 126, 234, 0.2);
-  animation: slideDown 0.5s ease-out;
+    0 20px 60px rgba(188, 31, 27, 0.4),
+    0 8px 24px rgba(188, 31, 27, 0.3);
+  animation: slideDown 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.table-filter-container::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -50%;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+  animation: float 8s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+  50% {
+    transform: translate(-20px, 20px) rotate(180deg);
+  }
 }
 
 @keyframes slideDown {
   from {
     opacity: 0;
-    transform: translateY(-20px);
+    transform: translateY(-30px);
   }
   to {
     opacity: 1;
@@ -800,30 +859,52 @@ export default {
   }
 }
 
+.filter-header {
+  text-align: center;
+  margin-bottom: 28px;
+  position: relative;
+  z-index: 1;
+}
+
+.filter-title {
+  margin: 0 0 8px 0;
+  font-size: 28px;
+  font-weight: 700;
+  color: #ffffff;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+  letter-spacing: -0.5px;
+}
+
+.filter-description {
+  margin: 0;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 400;
+  letter-spacing: 0.2px;
+}
+
 .table-tabs {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+  position: relative;
+  z-index: 1;
 }
 
 .table-tab {
   position: relative;
-  background: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(10px);
-  border: 2px solid rgba(255, 255, 255, 0.2);
-  border-radius: 12px;
-  padding: 18px 24px;
-  color: #ffffff;
-  font-size: 15px;
-  font-weight: 600;
+  background: rgba(255, 255, 255, 0.95);
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-radius: 16px;
+  padding: 24px 20px;
+  color: #bc1f1b;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 10px;
+  gap: 16px;
   overflow: hidden;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
 }
 
 .table-tab::before {
@@ -833,81 +914,152 @@ export default {
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255, 255, 255, 0.2),
-    transparent
-  );
-  transition: left 0.6s;
-}
-
-.table-tab:hover {
-  background: rgba(255, 255, 255, 0.25);
-  border-color: rgba(255, 255, 255, 0.4);
-  transform: translateY(-4px);
-  box-shadow:
-    0 8px 20px rgba(0, 0, 0, 0.2),
-    0 0 20px rgba(255, 255, 255, 0.3);
+  background: linear-gradient(90deg, transparent, rgba(188, 31, 27, 0.1), transparent);
+  transition: left 0.5s;
 }
 
 .table-tab:hover::before {
   left: 100%;
 }
 
-.table-tab.active {
-  background: #ffffff;
-  border-color: #ffffff;
-  color: #667eea;
-  transform: translateY(-2px) scale(1.05);
+.table-tab:hover {
+  transform: translateY(-6px) scale(1.02);
   box-shadow:
-    0 12px 28px rgba(0, 0, 0, 0.25),
-    0 0 0 4px rgba(255, 255, 255, 0.2);
-  animation: tabPulse 0.4s ease-out;
+    0 16px 40px rgba(0, 0, 0, 0.25),
+    0 0 30px rgba(188, 31, 27, 0.2);
+  border-color: rgba(188, 31, 27, 0.4);
 }
 
-@keyframes tabPulse {
+.table-tab:hover .tab-icon {
+  transform: scale(1.15) rotate(5deg);
+}
+
+.table-tab.active {
+  background: linear-gradient(135deg, #bc1f1b 0%, #8b1714 100%);
+  border-color: #bc1f1b;
+  color: #ffffff;
+  transform: translateY(-4px) scale(1.03);
+  box-shadow:
+    0 20px 50px rgba(188, 31, 27, 0.4),
+    0 0 0 4px rgba(255, 255, 255, 0.3);
+  animation: tabActivate 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes tabActivate {
   0% {
-    transform: translateY(-2px) scale(1);
+    transform: translateY(-4px) scale(1);
   }
   50% {
-    transform: translateY(-2px) scale(1.08);
+    transform: translateY(-4px) scale(1.06);
   }
   100% {
-    transform: translateY(-2px) scale(1.05);
+    transform: translateY(-4px) scale(1.03);
+  }
+}
+
+.table-tab.active .tab-icon {
+  animation: iconPulse 0.6s ease-out;
+  color: #ffffff;
+}
+
+@keyframes iconPulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  30% {
+    transform: scale(1.3) rotate(-10deg);
+  }
+  60% {
+    transform: scale(0.9) rotate(5deg);
   }
 }
 
 .table-tab:active {
-  transform: translateY(0) scale(0.98);
+  transform: translateY(-2px) scale(0.98);
 }
 
-.tab-text {
-  font-size: 15px;
-  letter-spacing: 0.3px;
-  white-space: nowrap;
+.tab-icon {
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.15));
 }
 
-.tab-indicator {
-  position: absolute;
-  bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 60%;
-  height: 3px;
-  background: linear-gradient(90deg, transparent, #764ba2, transparent);
-  border-radius: 2px 2px 0 0;
-  animation: indicatorSlide 0.4s ease-out;
+.tab-icon svg {
+  width: 100%;
+  height: 100%;
 }
 
-@keyframes indicatorSlide {
+.tab-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: left;
+}
+
+.tab-title {
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+  line-height: 1.2;
+}
+
+.tab-subtitle {
+  font-size: 12px;
+  opacity: 0.85;
+  font-weight: 500;
+  line-height: 1.3;
+  letter-spacing: 0.1px;
+}
+
+.table-tab.active .tab-subtitle {
+  opacity: 0.95;
+}
+
+.tab-active-indicator {
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  background: #ffffff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #bc1f1b;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  animation: checkmarkAppear 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.tab-active-indicator svg {
+  width: 18px;
+  height: 18px;
+  animation: checkmarkDraw 0.4s ease-out;
+}
+
+@keyframes checkmarkAppear {
   from {
-    width: 0%;
+    transform: scale(0) rotate(-180deg);
     opacity: 0;
   }
   to {
-    width: 60%;
+    transform: scale(1) rotate(0deg);
     opacity: 1;
+  }
+}
+
+@keyframes checkmarkDraw {
+  from {
+    stroke-dasharray: 100;
+    stroke-dashoffset: 100;
+  }
+  to {
+    stroke-dasharray: 100;
+    stroke-dashoffset: 0;
   }
 }
 
@@ -1367,16 +1519,48 @@ export default {
 
 /* Responsividade */
 @media (max-width: 768px) {
+  .table-filter-container {
+    padding: 24px 20px;
+  }
+
+  .filter-title {
+    font-size: 22px;
+  }
+
+  .filter-description {
+    font-size: 13px;
+  }
+
   .table-tabs {
     grid-template-columns: 1fr;
+    gap: 12px;
   }
 
   .table-tab {
-    padding: 16px;
+    padding: 20px 16px;
   }
 
-  .tab-text {
-    font-size: 14px;
+  .tab-icon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .tab-title {
+    font-size: 16px;
+  }
+
+  .tab-subtitle {
+    font-size: 11px;
+  }
+
+  .tab-active-indicator {
+    width: 24px;
+    height: 24px;
+  }
+
+  .tab-active-indicator svg {
+    width: 16px;
+    height: 16px;
   }
 
   .detail-grid {
