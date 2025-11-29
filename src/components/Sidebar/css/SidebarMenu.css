@@ -48,7 +48,7 @@
   background: linear-gradient(
     to right,
     transparent,
-    var(--theme-color-hover),
+    rgba(255, 255, 255, 0.3),
     transparent
   );
   margin: 16px 8px;

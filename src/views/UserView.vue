@@ -12,43 +12,82 @@
       </div>
     </div>
 
-    <!-- Filtros -->
-    <div class="filters-section">
-      <div class="filter-group">
-        <label>Filtrar por Status:</label>
-        <select v-model="statusFilter" @change="applyFilters" class="filter-select">
-          <option value="">Todos</option>
-          <option value="ATIVO">Ativo</option>
-          <option value="PENDENTE">Pendente</option>
-          <option value="BLOQUEADO">Bloqueado</option>
-        </select>
-      </div>
-
-      <div class="filter-group">
-        <label>Tipo de Login:</label>
-        <select v-model="tipoFilter" @change="applyFilters" class="filter-select">
-          <option value="">Todos</option>
-          <option value="CREDENCIAIS">Email/Senha</option>
-          <option value="MICROSOFT">Microsoft OAuth</option>
-        </select>
-      </div>
-
-      <div class="stats-cards">
-        <div class="stat-card">
+    <!-- Estatísticas -->
+    <div class="stats-section">
+      <div class="stat-card total">
+        <div class="stat-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+            <circle cx="9" cy="7" r="4"></circle>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+          </svg>
+        </div>
+        <div class="stat-content">
           <span class="stat-number">{{ statistics.total_usuarios || 0 }}</span>
-          <span class="stat-label">Total</span>
+          <span class="stat-label">Total de Usuários</span>
         </div>
-        <div class="stat-card pending">
+        <div class="stat-bg-icon">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+            <circle cx="9" cy="7" r="4"></circle>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+          </svg>
+        </div>
+      </div>
+
+      <div class="stat-card pending">
+        <div class="stat-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polyline points="12 6 12 12 16 14"></polyline>
+          </svg>
+        </div>
+        <div class="stat-content">
           <span class="stat-number">{{ statistics.usuarios_pendentes || 0 }}</span>
-          <span class="stat-label">Pendentes</span>
+          <span class="stat-label">Aguardando Aprovação</span>
         </div>
-        <div class="stat-card active">
+        <div class="stat-bg-icon">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <circle cx="12" cy="12" r="10"></circle>
+          </svg>
+        </div>
+      </div>
+
+      <div class="stat-card active">
+        <div class="stat-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+          </svg>
+        </div>
+        <div class="stat-content">
           <span class="stat-number">{{ statistics.usuarios_ativos || 0 }}</span>
-          <span class="stat-label">Ativos</span>
+          <span class="stat-label">Usuários Ativos</span>
         </div>
-        <div class="stat-card blocked">
+        <div class="stat-bg-icon">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <circle cx="12" cy="12" r="10"></circle>
+          </svg>
+        </div>
+      </div>
+
+      <div class="stat-card blocked">
+        <div class="stat-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line>
+          </svg>
+        </div>
+        <div class="stat-content">
           <span class="stat-number">{{ statistics.usuarios_bloqueados || 0 }}</span>
-          <span class="stat-label">Bloqueados</span>
+          <span class="stat-label">Usuários Bloqueados</span>
+        </div>
+        <div class="stat-bg-icon">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <circle cx="12" cy="12" r="10"></circle>
+          </svg>
         </div>
       </div>
     </div>
@@ -245,8 +284,6 @@ export default {
       isLoading: false,
       isSaving: false,
       isExecuting: false,
-      statusFilter: '',
-      tipoFilter: '',
       showUserModal: false,
       isEditing: false,
       userForm: {
@@ -358,7 +395,7 @@ export default {
       this.isLoading = true
       try {
         this.users = await useFetch('/api/auth/admin/usuarios')
-        this.applyFilters()
+        this.filteredUsers = [...this.users]
       } catch (error) {
         console.error('Erro ao carregar usuários:', error)
         this.showToast('error', 'Erro', 'Falha ao carregar usuários')
@@ -373,20 +410,6 @@ export default {
       } catch (error) {
         console.error('Erro ao carregar estatísticas:', error)
       }
-    },
-
-    applyFilters() {
-      let filtered = [...this.users]
-
-      if (this.statusFilter) {
-        filtered = filtered.filter((user) => user.status === this.statusFilter)
-      }
-
-      if (this.tipoFilter) {
-        filtered = filtered.filter((user) => user.tipo_login === this.tipoFilter)
-      }
-
-      this.filteredUsers = filtered
     },
 
     // ==================== AÇÕES DA TABELA ====================
@@ -728,84 +751,151 @@ export default {
   gap: 1rem;
 }
 
-/* Filtros */
-.filters-section {
-  background: white;
-  padding: 1.5rem;
-  border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+/* Estatísticas */
+.stats-section {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
   margin-bottom: 2rem;
-  display: flex;
-  align-items: center;
-  gap: 2rem;
-  flex-wrap: wrap;
-}
-
-.filter-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.filter-group label {
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: #495057;
-}
-
-.filter-select {
-  padding: 0.5rem 1rem;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  font-size: 0.9rem;
-  min-width: 150px;
-}
-
-.stats-cards {
-  display: flex;
-  gap: 1rem;
-  margin-left: auto;
 }
 
 .stat-card {
+  position: relative;
   display: flex;
-  flex-direction: column;
   align-items: center;
-  padding: 1rem;
-  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-  border-radius: 8px;
-  min-width: 80px;
-  border: 2px solid transparent;
+  gap: 20px;
+  padding: 28px 24px;
+  border-radius: 16px;
+  overflow: hidden;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transition: left 0.6s;
+}
+
+.stat-card:hover::before {
+  left: 100%;
+}
+
+.stat-card:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+}
+
+.stat-card.total {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
 }
 
 .stat-card.pending {
-  border-color: #ffc107;
-  background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  color: white;
 }
 
 .stat-card.active {
-  border-color: #28a745;
-  background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  color: white;
 }
 
 .stat-card.blocked {
-  border-color: #dc3545;
-  background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+  background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+  color: white;
+}
+
+.stat-icon {
+  width: 64px;
+  height: 64px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+  border-radius: 12px;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  z-index: 2;
+}
+
+.stat-card:hover .stat-icon {
+  transform: scale(1.15) rotate(-5deg);
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.stat-icon svg {
+  width: 36px;
+  height: 36px;
+  stroke-width: 2;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+.stat-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  position: relative;
+  z-index: 2;
 }
 
 .stat-number {
-  font-size: 2rem;
-  font-weight: 700;
-  color: #2c3e50;
+  font-size: 2.5rem;
+  font-weight: 800;
   line-height: 1;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  animation: countUp 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes countUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .stat-label {
-  font-size: 0.8rem;
-  color: #6c757d;
-  font-weight: 500;
+  font-size: 13px;
+  font-weight: 600;
+  opacity: 0.95;
+  letter-spacing: 0.3px;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  line-height: 1;
+}
+
+.stat-bg-icon {
+  position: absolute;
+  right: -20px;
+  bottom: -20px;
+  width: 140px;
+  height: 140px;
+  opacity: 0.1;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 1;
+}
+
+.stat-card:hover .stat-bg-icon {
+  opacity: 0.15;
+  transform: scale(1.1) rotate(10deg);
+}
+
+.stat-bg-icon svg {
+  width: 100%;
+  height: 100%;
+  fill: white;
 }
 
 /* Status badges */
@@ -947,15 +1037,31 @@ export default {
     justify-content: flex-start;
   }
 
-  .filters-section {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 1rem;
+  .stats-section {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
   }
 
-  .stats-cards {
-    margin-left: 0;
-    justify-content: center;
+  .stat-card {
+    padding: 24px 20px;
+  }
+
+  .stat-icon {
+    width: 56px;
+    height: 56px;
+  }
+
+  .stat-icon svg {
+    width: 32px;
+    height: 32px;
+  }
+
+  .stat-number {
+    font-size: 2.2rem;
+  }
+
+  .stat-label {
+    font-size: 12px;
   }
 }
 
@@ -972,17 +1078,38 @@ export default {
     min-width: 300px;
   }
 
-  .stats-cards {
-    flex-wrap: wrap;
+  .stats-section {
+    grid-template-columns: 1fr;
+    gap: 12px;
   }
 
   .stat-card {
-    min-width: 70px;
-    padding: 0.75rem;
+    padding: 20px 18px;
+  }
+
+  .stat-icon {
+    width: 52px;
+    height: 52px;
+  }
+
+  .stat-icon svg {
+    width: 28px;
+    height: 28px;
   }
 
   .stat-number {
-    font-size: 1.5rem;
+    font-size: 2rem;
+  }
+
+  .stat-label {
+    font-size: 11px;
+  }
+
+  .stat-bg-icon {
+    width: 120px;
+    height: 120px;
+    right: -15px;
+    bottom: -15px;
   }
 }
 </style>

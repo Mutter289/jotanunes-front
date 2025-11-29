@@ -1,11 +1,15 @@
 <template>
   <div class="audit">
-    <div class="table-filter-container">
-      <div class="filter-header">
-        <h2 class="filter-title">Auditoria de Dados</h2>
-        <p class="filter-description">Selecione o tipo de registro para visualizar</p>
+    <!-- Header -->
+    <div class="page-header">
+      <div class="header-content">
+        <h1>Auditoria de Dados</h1>
+        <p>Selecione o tipo de registro para visualizar</p>
       </div>
+    </div>
 
+    <!-- Table Selector -->
+    <div class="table-filter-container">
       <div class="table-tabs">
         <button
           v-for="table in listTable"
@@ -810,20 +814,51 @@ export default {
 <style scoped>
 /* Container principal */
 .audit {
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 2rem;
   display: flex;
   flex-direction: column;
   gap: 24px;
-  margin-left: 20px;
 }
 
+/* Header */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 2px solid #e9ecef;
+}
+
+.header-content h1 {
+  margin: 0 0 0.5rem 0;
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #2c3e50;
+  background: var(--badge-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.header-content p {
+  margin: 0;
+  color: #6c757d;
+  font-size: 1.1rem;
+}
+
+/* Table Filter Container */
 .table-filter-container {
-  background: linear-gradient(135deg, #bc1f1b 0%, #8b1714 100%);
+  background: #ffffff;
   border-radius: 16px;
   padding: 24px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   animation: slideDown 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
   position: relative;
   overflow: hidden;
+  border: 2px solid #e9ecef;
 }
 
 @keyframes slideDown {
@@ -837,30 +872,6 @@ export default {
   }
 }
 
-.filter-header {
-  text-align: center;
-  margin-bottom: 20px;
-  position: relative;
-  z-index: 1;
-}
-
-.filter-title {
-  margin: 0 0 6px 0;
-  font-size: 22px;
-  font-weight: 700;
-  color: #ffffff;
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-  letter-spacing: -0.3px;
-}
-
-.filter-description {
-  margin: 0;
-  font-size: 13px;
-  color: rgba(255, 255, 255, 0.9);
-  font-weight: 400;
-  letter-spacing: 0.1px;
-}
-
 .table-tabs {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -871,18 +882,18 @@ export default {
 
 .table-tab {
   position: relative;
-  background: rgba(255, 255, 255, 0.95);
-  border: 2px solid rgba(255, 255, 255, 0.3);
+  background: #ffffff;
+  border: 2px solid #e9ecef;
   border-radius: 12px;
   padding: 18px 16px;
-  color: #bc1f1b;
+  color: #495057;
   cursor: pointer;
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   align-items: center;
   gap: 14px;
   overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
 .table-tab::before {
@@ -892,7 +903,7 @@ export default {
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(188, 31, 27, 0.1), transparent);
+  background: linear-gradient(90deg, transparent, rgba(188, 31, 27, 0.05), transparent);
   transition: left 0.5s;
 }
 
@@ -903,13 +914,15 @@ export default {
 .table-tab:hover {
   transform: translateY(-6px) scale(1.02);
   box-shadow:
-    0 16px 40px rgba(0, 0, 0, 0.25),
-    0 0 30px rgba(188, 31, 27, 0.2);
-  border-color: rgba(188, 31, 27, 0.4);
+    0 12px 30px rgba(0, 0, 0, 0.12),
+    0 0 20px rgba(188, 31, 27, 0.1);
+  border-color: rgba(188, 31, 27, 0.3);
+  color: #bc1f1b;
 }
 
 .table-tab:hover .tab-icon {
   transform: scale(1.15) rotate(5deg);
+  color: #bc1f1b;
 }
 
 .table-tab.active {
@@ -918,8 +931,8 @@ export default {
   color: #ffffff;
   transform: translateY(-4px) scale(1.03);
   box-shadow:
-    0 20px 50px rgba(188, 31, 27, 0.4),
-    0 0 0 4px rgba(255, 255, 255, 0.3);
+    0 12px 40px rgba(188, 31, 27, 0.35),
+    0 0 0 3px rgba(188, 31, 27, 0.15);
   animation: tabActivate 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
@@ -1496,17 +1509,45 @@ export default {
 }
 
 /* Responsividade */
+@media (max-width: 1024px) {
+  .audit {
+    padding: 1.5rem;
+  }
+
+  .page-header {
+    margin-bottom: 0.75rem;
+    padding-bottom: 1rem;
+  }
+
+  .header-content h1 {
+    font-size: 2rem;
+  }
+
+  .header-content p {
+    font-size: 1rem;
+  }
+}
+
 @media (max-width: 768px) {
+  .audit {
+    padding: 1rem;
+  }
+
+  .page-header {
+    margin-bottom: 0.5rem;
+    padding-bottom: 0.75rem;
+  }
+
+  .header-content h1 {
+    font-size: 1.75rem;
+  }
+
+  .header-content p {
+    font-size: 0.95rem;
+  }
+
   .table-filter-container {
     padding: 20px 16px;
-  }
-
-  .filter-title {
-    font-size: 20px;
-  }
-
-  .filter-description {
-    font-size: 12px;
   }
 
   .table-tabs {

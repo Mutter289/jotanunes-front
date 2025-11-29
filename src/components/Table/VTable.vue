@@ -73,8 +73,11 @@
       <div class="search-footer">
         <span class="results-info">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-            <circle cx="12" cy="7" r="4"></circle>
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <line x1="16" y1="13" x2="8" y2="13"></line>
+            <line x1="16" y1="17" x2="8" y2="17"></line>
+            <polyline points="10 9 9 9 8 9"></polyline>
           </svg>
           {{ filteredData.length }} de {{ data.length }} registros
         </span>
@@ -157,11 +160,6 @@
                   'truncate',
               ]"
               :style="column.maxWidth ? { maxWidth: column.maxWidth } : {}"
-              :title="
-                shouldShowTooltip(getNestedValue(row, column.key), column)
-                  ? getNestedValue(row, column.key)
-                  : ''
-              "
             >
               <div class="cell-content">
                 <!-- Custom slot for cell content -->
@@ -206,8 +204,10 @@
                       action.variant && `action-btn-${action.variant}`,
                     ]"
                     :disabled="action.disabled && action.disabled(row)"
-                    :title="action.tooltip"
                   >
+                    <div class="action-tooltip">
+                      {{ action.label || action.tooltip }}
+                    </div>
                     <!-- Built-in icons -->
                     <svg
                       v-if="action.icon === 'lock'"
@@ -309,7 +309,6 @@
                       :is="action.icon"
                       class="action-icon"
                     />
-                    <span v-if="action.label">{{ action.label }}</span>
                   </button>
                 </slot>
                 <button
@@ -317,6 +316,7 @@
                   class="action-btn more-btn"
                   @click.stop="toggleMoreMenu(row)"
                 >
+                  <div class="action-tooltip">Mais ações</div>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                     <circle cx="12" cy="5" r="1"></circle>
                     <circle cx="12" cy="12" r="1"></circle>
@@ -330,7 +330,11 @@
             <td :colspan="totalColumns" class="empty-state">
               <slot name="empty">
                 <div class="empty-content">
-                  <p>{{ emptyText }}</p>
+                  <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M9 13h6m-3-3v6m5 5H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5.586a1 1 0 0 1 .707.293l5.414 5.414a1 1 0 0 1 .293.707V19a2 2 0 0 1-2 2z"></path>
+                  </svg>
+                  <p class="empty-title">{{ emptyText }}</p>
+                  <p class="empty-subtitle">Nenhum registro encontrado</p>
                 </div>
               </slot>
             </td>
@@ -452,7 +456,7 @@ export default {
     },
     emptyText: {
       type: String,
-      default: 'No data available',
+      default: 'Sem dados para exibir',
     },
 
     // Filter options
@@ -1228,7 +1232,7 @@ export default {
 /* Actions Column */
 .actions-column {
   width: auto;
-  min-width: 120px;
+  min-width: fit-content;
   padding: 8px 12px;
   text-align: right;
   position: sticky;
@@ -1241,34 +1245,40 @@ export default {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 8px;
+  gap: 6px;
   flex-wrap: nowrap;
 }
 
 /* Action Buttons */
 .action-btn {
-  padding: 6px 12px;
+  position: relative;
+  padding: 8px;
   border: 1px solid transparent;
-  border-radius: 4px;
+  border-radius: 8px;
   background: transparent;
-  font-size: 13px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  justify-content: center;
   color: var(--grey-dark);
-  white-space: nowrap;
 }
 
 .action-btn:hover:not(:disabled) {
   background: var(--theme-color-hover);
   border-color: var(--theme-color);
-  transform: scale(1.05);
+  transform: translateY(-2px) scale(1.1);
+  box-shadow: 0 4px 8px rgba(188, 31, 27, 0.15);
+}
+
+.action-btn:hover:not(:disabled) .action-tooltip {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(-50%) translateX(-8px);
 }
 
 .action-btn:disabled {
-  opacity: 0.5;
+  opacity: 0.3;
   cursor: not-allowed;
 }
 
@@ -1310,63 +1320,92 @@ export default {
 }
 
 .action-icon {
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
   flex-shrink: 0;
+  stroke-width: 2.5;
+}
+
+.action-tooltip {
+  position: absolute;
+  right: calc(100% + 12px);
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(43, 37, 34, 0.95);
+  backdrop-filter: blur(8px);
+  color: var(--white-color);
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 1000;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.action-tooltip::after {
+  content: '';
+  position: absolute;
+  right: -4px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border-top: 4px solid transparent;
+  border-bottom: 4px solid transparent;
+  border-left: 4px solid rgba(43, 37, 34, 0.95);
 }
 
 .more-btn {
-  padding: 4px;
+  padding: 8px;
 }
 
-.more-btn:hover {
-  background: var(--theme-color-hover);
-  border-radius: 50%;
+.more-btn svg {
+  width: 18px;
+  height: 18px;
+  stroke-width: 2.5;
 }
 
 /* Empty State */
 .empty-state {
-  padding: 200px 16px;
+  padding: 80px 16px;
   text-align: center;
-  color: var(--grey-dark);
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.5), var(--theme-color-hover), rgba(255, 255, 255, 0.5));
+  background: linear-gradient(135deg, #fafafa 0%, #f5f5f5 100%);
   height: 100%;
   position: relative;
-  overflow: hidden;
 }
 
-.empty-state::before {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 200px;
-  height: 200px;
-  background: radial-gradient(circle, var(--theme-color-hover), transparent);
-  opacity: 0.3;
-  border-radius: 50%;
-  animation: breathe 3s ease-in-out infinite;
+.empty-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
 }
 
-@keyframes breathe {
-  0%, 100% {
-    transform: translate(-50%, -50%) scale(1);
-    opacity: 0.3;
-  }
-  50% {
-    transform: translate(-50%, -50%) scale(1.2);
-    opacity: 0.5;
-  }
+.empty-icon {
+  width: 64px;
+  height: 64px;
+  color: #d1d5db;
+  stroke-width: 1.5;
+  margin-bottom: 8px;
 }
 
-.empty-content p {
+.empty-title {
   margin: 0;
   font-size: 16px;
   font-weight: 600;
-  color: var(--secundary-color);
-  position: relative;
-  z-index: 1;
+  color: var(--grey-dark);
+}
+
+.empty-subtitle {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 400;
+  color: #9ca3af;
 }
 
 /* Pagination */
