@@ -1,7 +1,10 @@
 <template>
-  <div class="gemini-analyses">
-    <h1>Análises de Alterações (Gemini)</h1>
-    <p>Histórico de todas as análises de alterações em sentenças SQL.</p>
+  <div class="page-header">
+    <div class="header-content">
+      <h1>Análises de Alterações (Gemini)</h1>
+      <p>Histórico de todas as análises de alterações em sentenças SQL</p>
+    </div>
+  </div>
     <VTable
       @row-click="handleRowClick"
       :data="analyses"
@@ -676,7 +679,12 @@ Este relatório foi gerado automaticamente pelo sistema de auditoria Sentinela..
 
 <style scoped>
 .gemini-analyses {
-  margin-left: 20px;
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
 }
 
 .analysis-modal {
@@ -1460,4 +1468,63 @@ Este relatório foi gerado automaticamente pelo sistema de auditoria Sentinela..
 :deep(.offcanvas-backdrop) {
   z-index: 2000; /* Um valor alto para garantir que fique sobre o modal */
 }
+
+/* Header */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 2px solid #e9ecef;
+}
+
+.header-content h1 {
+  margin: 0 0 0.5rem 0;
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #2c3e50;
+  background: var(--badge-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.header-content p {
+  margin: 0;
+  color: #6c757d;
+  font-size: 1.1rem;
+}
+
+/* Responsividade */
+@media (max-width: 1024px) {
+  .page-header {
+    margin-bottom: 0.75rem;
+    padding-bottom: 1rem;
+  }
+
+  .header-content h1 {
+    font-size: 2rem;
+  }
+
+  .header-content p {
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .page-header {
+    margin-bottom: 0.5rem;
+    padding-bottom: 0.75rem;
+  }
+
+  .header-content h1 {
+    font-size: 1.75rem;
+  }
+
+  .header-content p {
+    font-size: 0.95rem;
+  }
+}
+
 </style>
