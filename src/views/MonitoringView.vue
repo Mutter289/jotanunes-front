@@ -1,15 +1,17 @@
 <template>
-  <div class="pm2-monitor">
-    <div class="monitor-header">
-      <div class="header-title">
-        <h1>Monitoramento de Serviços Gunicorn</h1>
-        <div class="connection-status">
-          <div
-            :class="['status-indicator', { connected: sseConnected, disconnected: !sseConnected }]"
-          ></div>
-          <span>{{ sseConnected ? 'Conectado (SSE)' : 'Desconectado' }}</span>
-        </div>
-      </div>
+  <!-- Header -->
+<div class="page-header">
+  <div class="header-content">
+    <h1>Monitoramento de Serviços Gunicorn</h1>
+    <p>Status em tempo real dos serviços e workers</p>
+  </div>
+  <div class="connection-status-header">
+    <div
+      :class="['status-indicator', { connected: sseConnected, disconnected: !sseConnected }]"
+    ></div>
+    <span>{{ sseConnected ? 'Conectado (SSE)' : 'Desconectado' }}</span>
+  </div>
+</div>
 
       <div class="stats-grid">
         <div class="stat-card">
@@ -783,42 +785,9 @@ export default {
   min-height: 100vh;
   padding: 2rem;
   width: 100%;
-  max-width: 100%;
-  margin: 0 auto;
+  max-width: 1600px; 
+  margin: 0 auto; 
   box-sizing: border-box;
-  margin: 1rem !important;
-}
-
-.monitor-header {
-  /* background: rgba(255, 255, 255, 0.95); */
-  backdrop-filter: blur(20px);
-  border-radius: 20px;
-  padding: 2rem;
-  margin-bottom: 2rem;
-  box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
-  border: 1px solid rgba(255, 255, 255, 0.18);
-}
-
-.header-title {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 2rem;
-}
-
-.header-title h1 {
-  margin: 0;
-  color: #2d3748;
-  font-size: 2rem;
-  font-weight: 700;
-}
-
-.connection-status {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.9rem;
-  color: #4a5568;
 }
 
 .status-indicator {
@@ -1505,4 +1474,101 @@ export default {
     width: 60px;
   }
 }
+
+/* Header */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 2px solid #e9ecef;
+}
+
+.header-content h1 {
+  margin: 0 0 0.5rem 0;
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #2c3e50;
+  background: var(--badge-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.header-content p {
+  margin: 0;
+  color: #6c757d;
+  font-size: 1.1rem;
+}
+
+.connection-status-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  color: #4a5568;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.status-indicator {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+.status-indicator.connected {
+  background: #48bb78;
+  box-shadow: 0 0 0 2px rgba(72, 187, 120, 0.3);
+}
+
+.status-indicator.disconnected {
+  background: #f56565;
+  box-shadow: 0 0 0 2px rgba(245, 101, 101, 0.3);
+}
+
+/* Responsividade */
+@media (max-width: 1024px) {
+  .page-header {
+    margin-bottom: 0.75rem;
+    padding-bottom: 1rem;
+  }
+
+  .header-content h1 {
+    font-size: 2rem;
+  }
+
+  .header-content p {
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .page-header {
+    margin-bottom: 0.5rem;
+    padding-bottom: 0.75rem;
+    flex-direction: column;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+
+  .header-content h1 {
+    font-size: 1.75rem;
+  }
+
+  .header-content p {
+    font-size: 0.95rem;
+  }
+
+  .connection-status-header {
+    align-self: flex-start;
+  }
+}
+
 </style>
