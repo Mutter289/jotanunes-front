@@ -1,157 +1,155 @@
 <template>
-  <!-- Header -->
-<div class="page-header">
-  <div class="header-content">
-    <h1>Monitoramento de Serviços Gunicorn</h1>
-    <p>Status em tempo real dos serviços e workers</p>
-  </div>
-  <div class="connection-status-header">
-    <div
-      :class="['status-indicator', { connected: sseConnected, disconnected: !sseConnected }]"
-    ></div>
-    <span>{{ sseConnected ? 'Conectado (SSE)' : 'Desconectado' }}</span>
-  </div>
-</div>
+  <div class="pm2-monitor">
+    <div class="page-header">
+      <div class="header-content">
+        <h1>Monitoramento de Serviços Gunicorn</h1>
+        <p>Status em tempo real dos serviços e workers</p>
+      </div>
+      <div class="connection-status-header">
+        <div
+          :class="['status-indicator', { connected: sseConnected, disconnected: !sseConnected }]"
+        ></div>
+        <span>{{ sseConnected ? 'Conectado (SSE)' : 'Desconectado' }}</span>
+      </div>
+    </div>
 
-      <div class="stats-grid">
-        <div class="stat-card">
-          <div class="stat-icon online">
-            <svg
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <circle cx="12" cy="12" r="10" />
-              <path d="M8 14s1.5 2 4 2 4-2 4-2" />
-              <line x1="9" y1="9" x2="9.01" y2="9" />
-              <line x1="15" y1="9" x2="15.01" y2="9" />
-            </svg>
-          </div>
-          <div class="stat-content">
-            <div class="stat-value">{{ stats.services_online || 0 }}</div>
-            <div class="stat-label">Online</div>
-          </div>
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon online">
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <circle cx="12" cy="12" r="10" />
+            <path d="M8 14s1.5 2 4 2 4-2 4-2" />
+            <line x1="9" y1="9" x2="9.01" y2="9" />
+            <line x1="15" y1="9" x2="15.01" y2="9" />
+          </svg>
         </div>
-
-        <div class="stat-card">
-          <div class="stat-icon stopped">
-            <svg
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <rect x="6" y="4" width="4" height="16" />
-              <rect x="14" y="4" width="4" height="16" />
-            </svg>
-          </div>
-          <div class="stat-content">
-            <div class="stat-value">{{ stats.services_offline || 0 }}</div>
-            <div class="stat-label">Offline</div>
-          </div>
+        <div class="stat-content">
+          <div class="stat-value">{{ stats.services_online || 0 }}</div>
+          <div class="stat-label">Online</div>
         </div>
+      </div>
 
-        <div class="stat-card">
-          <div class="stat-icon workers">
-            <svg
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-              <circle cx="9" cy="7" r="4" />
-              <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-              <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-            </svg>
-          </div>
-          <div class="stat-content">
-            <div class="stat-value">{{ stats.total_workers || 0 }}</div>
-            <div class="stat-label">Workers Ativos</div>
-          </div>
+      <div class="stat-card">
+        <div class="stat-icon stopped">
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <rect x="6" y="4" width="4" height="16" />
+            <rect x="14" y="4" width="4" height="16" />
+          </svg>
         </div>
-
-        <div class="stat-card">
-          <div class="stat-icon memory">
-            <svg
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
-              <line x1="8" y1="21" x2="16" y2="21" />
-              <line x1="12" y1="17" x2="12" y2="21" />
-            </svg>
-          </div>
-          <div class="stat-content">
-            <div class="stat-value">{{ formatMemory(stats.total_memory_mb) }}</div>
-            <div class="stat-label">Memória Total</div>
-          </div>
+        <div class="stat-content">
+          <div class="stat-value">{{ stats.services_offline || 0 }}</div>
+          <div class="stat-label">Offline</div>
         </div>
+      </div>
 
-        <div class="stat-card">
-          <div class="stat-icon cpu">
-            <svg
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <rect x="4" y="4" width="16" height="16" rx="2" ry="2" />
-              <rect x="9" y="9" width="6" height="6" />
-              <line x1="9" y1="1" x2="9" y2="4" />
-              <line x1="15" y1="1" x2="15" y2="4" />
-              <line x1="9" y1="20" x2="9" y2="23" />
-              <line x1="15" y1="20" x2="15" y2="23" />
-              <line x1="20" y1="9" x2="23" y2="9" />
-              <line x1="20" y1="14" x2="23" y2="14" />
-              <line x1="1" y1="9" x2="4" y2="9" />
-              <line x1="1" y1="14" x2="4" y2="14" />
-            </svg>
-          </div>
-          <div class="stat-content">
-            <div class="stat-value">{{ (stats.total_cpu_percent || 0).toFixed(1) }}%</div>
-            <div class="stat-label">CPU Total</div>
-          </div>
+      <div class="stat-card">
+        <div class="stat-icon workers">
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+            <circle cx="9" cy="7" r="4" />
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+          </svg>
         </div>
+        <div class="stat-content">
+          <div class="stat-value">{{ stats.total_workers || 0 }}</div>
+          <div class="stat-label">Workers Ativos</div>
+        </div>
+      </div>
 
-        <div class="stat-card">
-          <div class="stat-icon services">
-            <svg
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <rect x="2" y="2" width="20" height="8" rx="2" ry="2" />
-              <rect x="2" y="14" width="20" height="8" rx="2" ry="2" />
-              <line x1="6" y1="6" x2="6.01" y2="6" />
-              <line x1="6" y1="18" x2="6.01" y2="18" />
-            </svg>
-          </div>
-          <div class="stat-content">
-            <div class="stat-value">{{ stats.total_services || 0 }}</div>
-            <div class="stat-label">Total Serviços</div>
-          </div>
+      <div class="stat-card">
+        <div class="stat-icon memory">
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
+            <line x1="8" y1="21" x2="16" y2="21" />
+            <line x1="12" y1="17" x2="12" y2="21" />
+          </svg>
+        </div>
+        <div class="stat-content">
+          <div class="stat-value">{{ formatMemory(stats.total_memory_mb) }}</div>
+          <div class="stat-label">Memória Total</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon cpu">
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <rect x="4" y="4" width="16" height="16" rx="2" ry="2" />
+            <rect x="9" y="9" width="6" height="6" />
+            <line x1="9" y1="1" x2="9" y2="4" />
+            <line x1="15" y1="1" x2="15" y2="4" />
+            <line x1="9" y1="20" x2="9" y2="23" />
+            <line x1="15" y1="20" x2="15" y2="23" />
+            <line x1="20" y1="9" x2="23" y2="9" />
+            <line x1="20" y1="14" x2="23" y2="14" />
+            <line x1="1" y1="9" x2="4" y2="9" />
+            <line x1="1" y1="14" x2="4" y2="14" />
+          </svg>
+        </div>
+        <div class="stat-content">
+          <div class="stat-value">{{ (stats.total_cpu_percent || 0).toFixed(1) }}%</div>
+          <div class="stat-label">CPU Total</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon services">
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <rect x="2" y="2" width="20" height="8" rx="2" ry="2" />
+            <rect x="2" y="14" width="20" height="8" rx="2" ry="2" />
+            <line x1="6" y1="6" x2="6.01" y2="6" />
+            <line x1="6" y1="18" x2="6.01" y2="18" />
+          </svg>
+        </div>
+        <div class="stat-content">
+          <div class="stat-value">{{ stats.total_services || 0 }}</div>
+          <div class="stat-label">Total Serviços</div>
         </div>
       </div>
     </div>
 
-    <!-- Controles -->
     <div class="controls">
       <div class="search-container">
         <div class="search-input-wrapper">
@@ -216,7 +214,6 @@
       </div>
     </div>
 
-    <!-- Tabela de Serviços -->
     <div class="table-container">
       <div class="table-wrapper">
         <table class="processes-table">
@@ -446,7 +443,6 @@
       </div>
     </div>
 
-    <!-- Modal Workers -->
     <VModal
       v-model="showWorkersModal"
       size="large"
@@ -481,7 +477,6 @@
       <span class="last-update"> Última atualização: {{ formatDate(lastUpdate) }} </span>
     </div>
 
-    <!-- Popup de Conectando -->
     <VPopup
       v-model:visible="showConnectingPopup"
       msg="Conectando ao servidor"
