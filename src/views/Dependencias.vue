@@ -1,51 +1,26 @@
 <template>
   <div class="dependency-manager">
-    <header class="dm-header">
-      <div class="header-content">
-        <div class="header-left">
-          <h1 class="app-title">
-            <svg
-              class="icon"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <circle cx="12" cy="12" r="3" />
-              <circle cx="12" cy="4" r="2" />
-              <circle cx="12" cy="20" r="2" />
-              <circle cx="4" cy="12" r="2" />
-              <circle cx="20" cy="12" r="2" />
-              <line x1="12" y1="6" x2="12" y2="9" />
-              <line x1="12" y1="15" x2="12" y2="18" />
-              <line x1="6" y1="12" x2="9" y2="12" />
-              <line x1="15" y1="12" x2="18" y2="12" />
-            </svg>
-            Sistema de Dependências
-          </h1>
-          <span class="project-name">{{ projectName }}</span>
+      <div class="page-header">
+        <div class="header-content">
+          <h1>Gestão de Alterações</h1>
+          <p>Administre dependências, impactos e riscos do sistema</p>
         </div>
-        <div class="header-right">
-          <button class="btn-icon" @click="refreshDependencies" :class="{ rotating: isRefreshing }">
+        <div class="header-actions">
+          <button class="btn-primary" @click="openCreateModal">
+            <svg class="btn-icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+            Criar Alteração
+          </button>
+          <button class="btn-secondary" @click="refreshDependencies" :class="{ rotating: isRefreshing }">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M21 2v6h-6" />
               <path d="M3 12a9 9 0 0 1 15-6.7L21 8" />
               <path d="M3 22v-6h6" />
               <path d="M21 12a9 9 0 0 1-15 6.7L3 16" />
             </svg>
-          </button>
-          <button class="btn-primary" @click="openCreateModal">
-            <svg
-              class="btn-icon-sm"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <line x1="12" y1="5" x2="12" y2="19" />
-              <line x1="5" y1="12" x2="19" y2="12" />
-            </svg>
-            Criar Alteração
+            Atualizar
           </button>
         </div>
       </div>
@@ -1515,55 +1490,6 @@ export default {
     -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
 
-/* Header */
-.dm-header {
-  background: white;
-  border-bottom: 1px solid #e2e8f0;
-  padding: 1.25rem 2rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-}
-
-.header-content {
-  max-width: 1400px;
-  margin: 0 auto;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.header-left {
-  display: flex;
-  align-items: center;
-  gap: 1.5rem;
-}
-
-.app-title {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #1a202c;
-}
-
-.app-title .icon {
-  width: 28px;
-  height: 28px;
-  color: #6366f1;
-}
-
-.project-name {
-  color: #64748b;
-  font-size: 0.875rem;
-  font-weight: 500;
-}
-
-.header-right {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
 .btn-icon {
   width: 40px;
   height: 40px;
@@ -2775,6 +2701,63 @@ export default {
   border: none;
   font-weight: 800;
   cursor: pointer;
+}
+
+/* ADICIONAR ESTAS REGRAS CSS */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 2rem;
+  padding: 2rem;
+  border-bottom: 2px solid #e9ecef;
+}
+
+.header-content h1 {
+  margin: 0 0 0.5rem 0;
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #2c3e50;
+  background: var(--badge-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.header-content p {
+  margin: 0;
+  color: #6c757d;
+  font-size: 1.1rem;
+}
+
+.header-actions {
+  display: flex;
+  gap: 1rem;
+}
+
+.btn-secondary {
+  background: #6c757d;
+  color: white;
+  border: none;
+  padding: 0.625rem 1.25rem;
+  border-radius: 8px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-secondary:hover {
+  background: #5a6268;
+  transform: translateY(-1px);
+}
+
+.btn-secondary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
 }
 
 </style>
