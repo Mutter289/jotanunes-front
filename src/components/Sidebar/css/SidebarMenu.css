@@ -43,6 +43,22 @@
   margin-bottom: 0;
 }
 
+.menu-divider {
+  height: 1px;
+  background: linear-gradient(
+    to right,
+    transparent,
+    var(--theme-color-hover),
+    transparent
+  );
+  margin: 16px 8px;
+  transition: all 0.3s ease;
+}
+
+.menu-collapsed .menu-divider {
+  margin: 12px 4px;
+}
+
 .menu-group-title {
   font-size: 11px;
   font-weight: 700;

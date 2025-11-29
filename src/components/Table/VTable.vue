@@ -2,27 +2,65 @@
   <div class="v-table-container">
     <!-- Search Bar -->
     <div v-if="searchable" class="v-table-search">
-      <div class="search-input-wrapper">
-        <svg
-          class="search-icon"
-          width="16"
-          height="16"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-        >
-          <circle cx="11" cy="11" r="8"></circle>
-          <path d="m21 21-4.35-4.35"></path>
-        </svg>
-        <input
-          v-model="searchQuery"
-          type="text"
-          :placeholder="searchPlaceholder"
-          class="search-input"
-        />
+      <div class="search-header">
+        <h3 class="search-title">Filtros de Pesquisa</h3>
+        <button v-if="hasActiveFilters" class="clear-filters-btn" @click="clearAllFilters">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+          Limpar Filtros
+        </button>
       </div>
-      <div class="search-actions">
-        <button class="icon-btn refresh-btn" @click="handleRefresh">
+
+      <div class="filters-row">
+        <div class="search-input-wrapper">
+          <svg
+            class="search-icon"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+          >
+            <circle cx="11" cy="11" r="8"></circle>
+            <path d="m21 21-4.35-4.35"></path>
+          </svg>
+          <input
+            v-model="searchQuery"
+            type="text"
+            :placeholder="searchPlaceholder"
+            class="search-input"
+          />
+          <button v-if="searchQuery" class="clear-search-btn" @click="searchQuery = ''">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+
+        <div v-if="filterableColumns.length > 0" class="filter-group">
+          <label class="filter-label">Coluna:</label>
+          <select v-model="selectedColumn" class="filter-select">
+            <option value="">Todas</option>
+            <option v-for="col in filterableColumns" :key="col.key" :value="col.key">
+              {{ col.label }}
+            </option>
+          </select>
+        </div>
+
+        <div v-if="statusOptions.length > 0" class="filter-group">
+          <label class="filter-label">Status:</label>
+          <select v-model="selectedStatus" class="filter-select">
+            <option value="">Todos</option>
+            <option v-for="status in statusOptions" :key="status" :value="status">
+              {{ status }}
+            </option>
+          </select>
+        </div>
+
+        <button class="icon-btn refresh-btn" @click="handleRefresh" title="Atualizar">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
             <path d="M21 2v6h-6"></path>
             <path d="M3 12a9 9 0 0 1 15-6.7L21 8"></path>
@@ -30,17 +68,28 @@
             <path d="M21 12a9 9 0 0 1-15 6.7L3 16"></path>
           </svg>
         </button>
-        <span class="results-info">{{ filteredData.length }} out of {{ data.length }}</span>
-        <button class="icon-btn nav-btn" @click="navigatePrev" :disabled="!canNavigatePrev">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <polyline points="15 18 9 12 15 6"></polyline>
+      </div>
+
+      <div class="search-footer">
+        <span class="results-info">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
           </svg>
-        </button>
-        <button class="icon-btn nav-btn" @click="navigateNext" :disabled="!canNavigateNext">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <polyline points="9 18 15 12 9 6"></polyline>
-          </svg>
-        </button>
+          {{ filteredData.length }} de {{ data.length }} registros
+        </span>
+        <div class="nav-controls">
+          <button class="icon-btn nav-btn" @click="navigatePrev" :disabled="!canNavigatePrev" title="Anterior">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+          </button>
+          <button class="icon-btn nav-btn" @click="navigateNext" :disabled="!canNavigateNext" title="Próximo">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </button>
+        </div>
       </div>
     </div>
 
@@ -406,6 +455,12 @@ export default {
       default: 'No data available',
     },
 
+    // Filter options
+    statusOptions: {
+      type: Array,
+      default: () => [],
+    },
+
     // Events handlers
     onRowClick: {
       type: Function,
@@ -429,6 +484,8 @@ export default {
       sortOrder: 'asc',
       currentPage: 1,
       moreMenuRow: null,
+      selectedColumn: '',
+      selectedStatus: '',
     }
   },
 
@@ -444,8 +501,32 @@ export default {
       return count
     },
 
+    filterableColumns() {
+      return this.columns.filter((col) => col.filterable !== false)
+    },
+
+    hasActiveFilters() {
+      return this.searchQuery || this.selectedColumn || this.selectedStatus
+    },
+
     filteredData() {
       let result = [...this.data]
+
+      // Column filter
+      if (this.selectedColumn) {
+        result = result.filter((row) => {
+          const value = this.getNestedValue(row, this.selectedColumn)
+          return value !== null && value !== undefined && value !== ''
+        })
+      }
+
+      // Status filter
+      if (this.selectedStatus) {
+        result = result.filter((row) => {
+          const statusValue = this.getNestedValue(row, 'status') || this.getNestedValue(row, 'estado')
+          return statusValue && statusValue.toString() === this.selectedStatus
+        })
+      }
 
       // Search
       if (this.searchQuery && this.searchable) {
@@ -619,6 +700,13 @@ export default {
       this.$emit('refresh')
     },
 
+    clearAllFilters() {
+      this.searchQuery = ''
+      this.selectedColumn = ''
+      this.selectedStatus = ''
+      this.currentPage = 1
+    },
+
     isRowSelected(row) {
       const key = this.getRowKey(row)
       return this.selectedRows.some((selected) => this.getRowKey(selected) === key)
@@ -738,92 +826,225 @@ export default {
 }
 
 .v-table-container {
-  background: var(--white-color);
-  border-radius: var(--table-border-radius);
+  background: white;
+  border-radius: 16px;
   overflow: hidden;
-  box-shadow: var(--box-shadow);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
 }
 
 /* Search Section */
 .v-table-search {
+  background: linear-gradient(135deg, #bc1f1b 0%, #8b1714 100%);
+  border-radius: 16px 16px 0 0;
+  padding: 24px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.search-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 16px;
-  border-bottom: 1px solid var(--grey-color);
-  background: var(--header-bg);
+  margin-bottom: 16px;
+}
+
+.search-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--white-color);
+  letter-spacing: 0.3px;
+}
+
+.clear-filters-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  color: var(--white-color);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.clear-filters-btn:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.filters-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
 }
 
 .search-input-wrapper {
   position: relative;
   flex: 1;
-  max-width: 400px;
+  min-width: 250px;
 }
 
 .search-icon {
   position: absolute;
-  left: 12px;
+  left: 14px;
   top: 50%;
   transform: translateY(-50%);
   color: var(--grey-dark);
   pointer-events: none;
+  transition: color 0.3s;
 }
 
 .search-input {
   width: 100%;
-  padding: 8px 12px 8px 36px;
-  border: 1px solid var(--grey-color);
-  border-radius: 6px;
+  padding: 12px 40px 12px 42px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
   font-size: 14px;
   outline: none;
-  transition: all 0.2s;
-  background: white;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  background: rgba(255, 255, 255, 0.95);
   color: var(--secundary-color);
 }
 
 .search-input:focus {
-  border-color: var(--theme-color);
-  box-shadow: 0 0 0 3px var(--theme-color-hover);
+  border-color: var(--white-color);
+  background: white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
 }
 
 .search-input::placeholder {
-  color: var(--grey-light);
+  color: var(--grey-dark);
+  font-weight: 400;
 }
 
-.search-actions {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.icon-btn {
-  padding: 6px;
-  border: 1px solid var(--grey-color);
-  border-radius: 4px;
-  background: white;
+.clear-search-btn {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 4px;
+  border: none;
+  background: transparent;
+  color: var(--grey-dark);
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--grey-dark);
+  border-radius: 50%;
+}
+
+.clear-search-btn:hover {
+  background: var(--theme-color-hover);
+  color: var(--theme-color);
+  transform: translateY(-50%) scale(1.1);
+}
+
+.filter-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(8px);
+  padding: 8px 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.3s;
+}
+
+.filter-group:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.filter-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--white-color);
+  white-space: nowrap;
+  margin: 0;
+}
+
+.filter-select {
+  padding: 6px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.95);
+  color: var(--secundary-color);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s;
+  min-width: 120px;
+}
+
+.filter-select:hover {
+  background: white;
+  border-color: white;
+}
+
+.filter-select:focus {
+  outline: none;
+  border-color: white;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.2);
+}
+
+.icon-btn {
+  padding: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(8px);
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--white-color);
 }
 
 .icon-btn:hover:not(:disabled) {
-  background: var(--theme-color-hover);
-  border-color: var(--theme-color);
-  color: var(--theme-color);
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
 .icon-btn:disabled {
-  opacity: 0.5;
+  opacity: 0.4;
   cursor: not-allowed;
 }
 
+.search-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
 .results-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-size: 13px;
-  color: var(--grey-dark);
+  font-weight: 600;
+  color: var(--white-color);
   white-space: nowrap;
+}
+
+.nav-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 /* Table Wrapper */
@@ -843,24 +1064,27 @@ export default {
 
 /* Table Header */
 .v-table thead {
-  background: var(--header-bg);
-  border-bottom: 2px solid var(--grey-color);
+  background: linear-gradient(135deg, #f5f5f5 0%, #ffffff 100%);
+  border-bottom: 3px solid var(--theme-color);
   position: sticky;
   top: 0;
   z-index: 10;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .table-header {
   padding: var(--cell-padding-y) var(--cell-padding-x);
   text-align: left;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--secundary-color);
   white-space: nowrap;
   user-select: none;
   position: relative;
   border-right: 1px solid rgba(221, 221, 221, 0.3);
   overflow: hidden;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .table-header:last-child {
@@ -882,29 +1106,55 @@ export default {
 
 .table-header.sortable {
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .table-header.sortable:hover {
-  background: var(--theme-color-hover);
+  background: linear-gradient(135deg, var(--theme-color-hover), rgba(188, 31, 27, 0.15));
   color: var(--theme-color);
+  transform: translateY(-2px);
 }
 
 .sort-indicator {
   flex-shrink: 0;
-  font-size: 11px;
+  font-size: 14px;
+  font-weight: 700;
   color: var(--theme-color);
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.1);
+  }
 }
 
 /* Table Rows */
 .table-row {
   border-bottom: 1px solid rgba(221, 221, 221, 0.3);
-  transition: all 0.2s;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   background: white;
+  position: relative;
 }
 
 .table-row:hover {
-  background: var(--row-hover-bg);
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0) 0%, var(--theme-color-hover) 50%, rgba(255, 255, 255, 0) 100%);
+  transform: scale(1.01);
+  box-shadow: 0 2px 8px rgba(188, 31, 27, 0.1);
+  z-index: 1;
+}
+
+.table-row:nth-child(even) {
+  background: rgba(240, 240, 240, 0.3);
+}
+
+.table-row:nth-child(even):hover {
+  background: linear-gradient(90deg, rgba(240, 240, 240, 0.3) 0%, var(--theme-color-hover) 50%, rgba(240, 240, 240, 0.3) 100%);
 }
 
 /* Table Cells - Enhanced */
@@ -1079,14 +1329,44 @@ export default {
   padding: 200px 16px;
   text-align: center;
   color: var(--grey-dark);
-  background: linear-gradient(135deg, transparent, var(--theme-color-hover), transparent);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.5), var(--theme-color-hover), rgba(255, 255, 255, 0.5));
   height: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+.empty-state::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 200px;
+  height: 200px;
+  background: radial-gradient(circle, var(--theme-color-hover), transparent);
+  opacity: 0.3;
+  border-radius: 50%;
+  animation: breathe 3s ease-in-out infinite;
+}
+
+@keyframes breathe {
+  0%, 100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0.3;
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.2);
+    opacity: 0.5;
+  }
 }
 
 .empty-content p {
   margin: 0;
-  font-size: 14px;
+  font-size: 16px;
+  font-weight: 600;
   color: var(--secundary-color);
+  position: relative;
+  z-index: 1;
 }
 
 /* Pagination */
@@ -1094,34 +1374,35 @@ export default {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 16px;
-  border-top: 2px solid var(--grey-color);
-  background: linear-gradient(to top, var(--white-color), rgba(240, 240, 240, 0.3));
+  padding: 16px 24px;
+  border-top: 3px solid var(--theme-color);
+  background: linear-gradient(135deg, #f5f5f5 0%, #ffffff 100%);
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .pagination-info {
-  font-size: 13px;
-  color: var(--grey-dark);
-  font-weight: 500;
+  font-size: 14px;
+  color: var(--secundary-color);
+  font-weight: 600;
 }
 
 .pagination-controls {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
 }
 
 .pagination-btn,
 .page-btn {
-  padding: 6px 12px;
-  border: 1px solid var(--grey-color);
+  padding: 8px 14px;
+  border: 2px solid var(--grey-color);
   background: white;
   font-size: 13px;
   color: var(--secundary-color);
   cursor: pointer;
-  transition: all 0.2s;
-  border-radius: 4px;
-  font-weight: 500;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 8px;
+  font-weight: 600;
 }
 
 .pagination-btn:hover:not(:disabled),
@@ -1129,27 +1410,33 @@ export default {
   background: var(--theme-color-hover);
   border-color: var(--theme-color);
   color: var(--theme-color);
-  transform: translateY(-2px);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 4px 12px rgba(188, 31, 27, 0.2);
 }
 
 .pagination-btn:disabled {
-  opacity: 0.5;
+  opacity: 0.4;
   cursor: not-allowed;
   background: var(--grey-color);
+  border-color: var(--grey-color);
 }
 
 .page-btn.active {
   background: var(--badge-gradient);
   color: white;
   border-color: var(--theme-color);
-  font-weight: 600;
-  box-shadow: 0 2px 4px rgba(188, 31, 27, 0.3);
+  font-weight: 700;
+  box-shadow: 0 4px 12px rgba(188, 31, 27, 0.4);
+  transform: translateY(-2px);
+}
+
+.page-btn.active:hover {
+  transform: translateY(-3px) scale(1.05);
 }
 
 .page-numbers {
   display: flex;
-  gap: 4px;
+  gap: 6px;
   margin: 0 8px;
 }
 
