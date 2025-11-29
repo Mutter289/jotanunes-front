@@ -1,8 +1,8 @@
 <template>
   <div
-    :class="['popup-notification', popupClass, { 'popup--visible': visible, 'popup-modal': $slots.footer }]"
-    @mouseenter="handleMouseEnter"
-    @mouseleave="handleMouseLeave"
+    :class="['popup-notification', popupClass, { 'popup--visible': visible }]"
+    @mouseenter="pauseAutoClose"
+    @mouseleave="resumeAutoClose"
   >
     <header class="popup-header">
       <div class="popup-title">
@@ -46,7 +46,7 @@ export default {
     mark: {
       type: String,
       required: true,
-      validator: (value) => ['success', 'danger', 'warning', 'info'].includes(value),
+      validator: (value) => ['success', 'danger', 'warning'].includes(value),
     },
     visible: {
       type: Boolean,
@@ -75,8 +75,6 @@ export default {
           return 'exclamation-triangle'
         case 'warning':
           return 'exclamation-circle'
-        case 'info':
-          return 'info-circle'
         default:
           return 'info-circle'
       }
@@ -121,18 +119,8 @@ export default {
       this.clearAutoClose()
     },
     resumeAutoClose() {
-      if (this.visible && this.autoClose > 0 && !this.$slots.footer) {
+      if (this.visible) {
         this.startAutoClose()
-      }
-    },
-    handleMouseEnter() {
-      if (!this.$slots.footer) {
-        this.pauseAutoClose()
-      }
-    },
-    handleMouseLeave() {
-      if (!this.$slots.footer) {
-        this.resumeAutoClose()
       }
     },
   },

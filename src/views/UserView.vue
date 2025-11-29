@@ -163,119 +163,50 @@
       :auto-close="0"
     >
       <form @submit.prevent="saveUser" class="user-form">
-        <!-- Ilustração de cabeçalho -->
-        <div class="form-header-illustration">
-          <div class="illustration-circle">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="user-icon">
-              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-              <circle cx="12" cy="7" r="4"></circle>
-            </svg>
-          </div>
-          <div class="decorative-dots">
-            <span class="dot"></span>
-            <span class="dot"></span>
-            <span class="dot"></span>
-          </div>
+        <div class="form-group">
+          <label>Nome *</label>
+          <input
+            v-model="userForm.nome"
+            type="text"
+            class="form-input"
+            placeholder="Nome completo"
+            required
+          />
         </div>
 
         <div class="form-group">
-          <label>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-              <circle cx="12" cy="7" r="4"></circle>
-            </svg>
-            Nome *
-          </label>
-          <div class="input-wrapper">
-            <input
-              v-model="userForm.nome"
-              type="text"
-              class="form-input"
-              placeholder="Digite o nome completo"
-              required
-            />
-            <div class="input-border-effect"></div>
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
-              <polyline points="22,6 12,13 2,6"></polyline>
-            </svg>
-            Email *
-          </label>
-          <div class="input-wrapper">
-            <input
-              v-model="userForm.email"
-              type="email"
-              class="form-input"
-              placeholder="usuario@exemplo.com"
-              required
-              :disabled="isEditing"
-            />
-            <div class="input-border-effect"></div>
-          </div>
+          <label>Email *</label>
+          <input
+            v-model="userForm.email"
+            type="email"
+            class="form-input"
+            placeholder="email@exemplo.com"
+            required
+            :disabled="isEditing"
+          />
         </div>
 
         <div v-if="!isEditing" class="form-group">
-          <label>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-              <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-            </svg>
-            Senha *
-          </label>
-          <div class="input-wrapper">
-            <input
-              v-model="userForm.senha"
-              type="password"
-              class="form-input"
-              placeholder="Mínimo 8 caracteres"
-              required
-            />
-            <div class="input-border-effect"></div>
-            <div class="password-strength">
-              <span
-                v-if="userForm.senha"
-                :class="['strength-indicator', getPasswordStrength(userForm.senha)]"
-              >
-                {{ getPasswordStrengthText(userForm.senha) }}
-              </span>
-            </div>
-          </div>
+          <label>Senha *</label>
+          <input
+            v-model="userForm.senha"
+            type="password"
+            class="form-input"
+            placeholder="Mínimo 8 caracteres"
+            required
+          />
         </div>
 
         <div class="form-group">
-          <label>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="12" cy="12" r="10"></circle>
-              <path d="M12 6v6l4 2"></path>
-            </svg>
-            Status
-          </label>
-          <div class="input-wrapper">
-            <select v-model="userForm.status" class="form-select">
-              <option value="PENDENTE">Pendente</option>
-              <option value="ATIVO">Ativo</option>
-              <option value="BLOQUEADO">Bloqueado</option>
-            </select>
-            <div class="select-arrow">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="6 9 12 15 18 9"></polyline>
-              </svg>
-            </div>
-            <div class="input-border-effect"></div>
-          </div>
+          <label>Status</label>
+          <select v-model="userForm.status" class="form-select">
+            <option value="PENDENTE">Pendente</option>
+            <option value="ATIVO">Ativo</option>
+            <option value="BLOQUEADO">Bloqueado</option>
+          </select>
         </div>
 
         <div v-if="formError" class="form-error">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="10"></circle>
-            <line x1="12" y1="8" x2="12" y2="12"></line>
-            <line x1="12" y1="16" x2="12.01" y2="16"></line>
-          </svg>
           {{ formError }}
         </div>
       </form>
@@ -794,32 +725,6 @@ export default {
         alert(`${title}: ${message}`)
       }
     },
-
-    getPasswordStrength(password) {
-      if (!password) return 'weak'
-      if (password.length < 8) return 'weak'
-
-      let strength = 0
-      if (password.length >= 8) strength++
-      if (password.length >= 12) strength++
-      if (/[a-z]/.test(password) && /[A-Z]/.test(password)) strength++
-      if (/[0-9]/.test(password)) strength++
-      if (/[^a-zA-Z0-9]/.test(password)) strength++
-
-      if (strength <= 2) return 'weak'
-      if (strength <= 4) return 'medium'
-      return 'strong'
-    },
-
-    getPasswordStrengthText(password) {
-      const strength = this.getPasswordStrength(password)
-      const strengthMap = {
-        weak: 'Fraca',
-        medium: 'Média',
-        strong: 'Forte'
-      }
-      return strengthMap[strength]
-    },
   },
 }
 </script>
@@ -1160,303 +1065,51 @@ export default {
 .user-form {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
-  min-width: 480px;
-  padding-top: 1rem;
-}
-
-/* Ilustração de cabeçalho */
-.form-header-illustration {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
   gap: 1rem;
-  margin-bottom: 0.5rem;
-  animation: fadeInDown 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-@keyframes fadeInDown {
-  from {
-    opacity: 0;
-    transform: translateY(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.illustration-circle {
-  position: relative;
-  width: 80px;
-  height: 80px;
-  background: linear-gradient(135deg, #bc1f1b 0%, #8b1714 100%);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow:
-    0 10px 30px rgba(188, 31, 27, 0.3),
-    0 0 0 10px rgba(188, 31, 27, 0.1),
-    0 0 0 20px rgba(188, 31, 27, 0.05);
-  animation: pulse 2s ease-in-out infinite;
-}
-
-@keyframes pulse {
-  0%, 100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.05);
-  }
-}
-
-.user-icon {
-  width: 42px;
-  height: 42px;
-  color: white;
-  stroke-width: 2.5;
-}
-
-.decorative-dots {
-  display: flex;
-  gap: 8px;
-}
-
-.dot {
-  width: 8px;
-  height: 8px;
-  background: linear-gradient(135deg, #bc1f1b 0%, #8b1714 100%);
-  border-radius: 50%;
-  animation: dotBounce 1.4s ease-in-out infinite;
-}
-
-.dot:nth-child(1) {
-  animation-delay: 0s;
-}
-
-.dot:nth-child(2) {
-  animation-delay: 0.2s;
-}
-
-.dot:nth-child(3) {
-  animation-delay: 0.4s;
-}
-
-@keyframes dotBounce {
-  0%, 80%, 100% {
-    transform: scale(1);
-    opacity: 0.5;
-  }
-  40% {
-    transform: scale(1.3);
-    opacity: 1;
-  }
+  min-width: 400px;
 }
 
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: 0.625rem;
-  animation: fadeInUp 0.6s cubic-bezier(0.4, 0, 0.2, 1) backwards;
-}
-
-.form-group:nth-child(2) { animation-delay: 0.1s; }
-.form-group:nth-child(3) { animation-delay: 0.2s; }
-.form-group:nth-child(4) { animation-delay: 0.3s; }
-.form-group:nth-child(5) { animation-delay: 0.4s; }
-
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  gap: 0.5rem;
 }
 
 .form-group label {
   font-weight: 600;
-  color: #2c3e50;
-  font-size: 0.95rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  letter-spacing: 0.3px;
-}
-
-.form-group label svg {
-  width: 18px;
-  height: 18px;
-  color: #bc1f1b;
-  stroke-width: 2.5;
-}
-
-.input-wrapper {
-  position: relative;
+  color: #495057;
 }
 
 .form-input,
 .form-select,
 .form-textarea {
-  width: 100%;
-  padding: 0.875rem 1rem;
-  border: 2px solid #e9ecef;
-  border-radius: 10px;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 6px;
   font-size: 1rem;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  background: #f8f9fa;
-  color: #2c3e50;
-  font-weight: 500;
-}
-
-.form-input::placeholder,
-.form-select::placeholder,
-.form-textarea::placeholder {
-  color: #adb5bd;
-  font-weight: 400;
-}
-
-.form-input:hover,
-.form-select:hover,
-.form-textarea:hover {
-  border-color: #ced4da;
-  background: #ffffff;
+  transition: border-color 0.2s;
 }
 
 .form-input:focus,
 .form-select:focus,
 .form-textarea:focus {
   outline: none;
-  border-color: #bc1f1b;
-  background: #ffffff;
-  box-shadow: 0 0 0 4px rgba(188, 31, 27, 0.1);
-  transform: translateY(-2px);
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
 .form-input:disabled {
-  background: #e9ecef;
+  background: #f8f9fa;
   color: #6c757d;
-  cursor: not-allowed;
-  opacity: 0.7;
-}
-
-.input-border-effect {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 0;
-  height: 2px;
-  background: linear-gradient(90deg, #bc1f1b 0%, #8b1714 100%);
-  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  border-radius: 0 0 10px 10px;
-}
-
-.form-input:focus ~ .input-border-effect,
-.form-select:focus ~ .input-border-effect {
-  width: 100%;
-}
-
-/* Select customizado */
-.form-select {
-  appearance: none;
-  padding-right: 2.5rem;
-  cursor: pointer;
-  background-image: none;
-}
-
-.select-arrow {
-  position: absolute;
-  right: 1rem;
-  top: 50%;
-  transform: translateY(-50%);
-  pointer-events: none;
-  color: #6c757d;
-  transition: all 0.3s;
-}
-
-.select-arrow svg {
-  width: 18px;
-  height: 18px;
-}
-
-.form-select:focus ~ .select-arrow {
-  color: #bc1f1b;
-  transform: translateY(-50%) rotate(180deg);
-}
-
-/* Indicador de força da senha */
-.password-strength {
-  margin-top: 0.5rem;
-}
-
-.strength-indicator {
-  display: inline-block;
-  padding: 0.25rem 0.75rem;
-  border-radius: 20px;
-  font-size: 0.75rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  animation: slideInRight 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-@keyframes slideInRight {
-  from {
-    opacity: 0;
-    transform: translateX(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-.strength-indicator.weak {
-  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
-  color: white;
-  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
-}
-
-.strength-indicator.medium {
-  background: linear-gradient(135deg, #eab308 0%, #ca8a04 100%);
-  color: white;
-  box-shadow: 0 2px 8px rgba(234, 179, 8, 0.3);
-}
-
-.strength-indicator.strong {
-  background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
-  color: white;
-  box-shadow: 0 2px 8px rgba(22, 163, 74, 0.3);
 }
 
 .form-error {
-  padding: 1rem;
-  background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
-  border: 2px solid #ef4444;
-  border-radius: 10px;
-  color: #dc2626;
+  padding: 0.75rem;
+  background: rgba(220, 53, 69, 0.1);
+  border: 1px solid rgba(220, 53, 69, 0.3);
+  border-radius: 6px;
+  color: #dc3545;
   font-size: 0.9rem;
-  font-weight: 500;
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  animation: shake 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-@keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
-  20%, 40%, 60%, 80% { transform: translateX(5px); }
-}
-
-.form-error svg {
-  width: 20px;
-  height: 20px;
-  flex-shrink: 0;
-  color: #ef4444;
 }
 
 .modal-actions {
@@ -1534,49 +1187,6 @@ export default {
 
   .user-form {
     min-width: 300px;
-  }
-
-  .form-header-illustration {
-    gap: 0.75rem;
-  }
-
-  .illustration-circle {
-    width: 70px;
-    height: 70px;
-    box-shadow:
-      0 8px 25px rgba(188, 31, 27, 0.3),
-      0 0 0 8px rgba(188, 31, 27, 0.1),
-      0 0 0 16px rgba(188, 31, 27, 0.05);
-  }
-
-  .user-icon {
-    width: 36px;
-    height: 36px;
-  }
-
-  .decorative-dots {
-    gap: 6px;
-  }
-
-  .dot {
-    width: 6px;
-    height: 6px;
-  }
-
-  .form-group label {
-    font-size: 0.9rem;
-  }
-
-  .form-group label svg {
-    width: 16px;
-    height: 16px;
-  }
-
-  .form-input,
-  .form-select,
-  .form-textarea {
-    padding: 0.75rem 0.875rem;
-    font-size: 0.95rem;
   }
 
   .stats-section {
