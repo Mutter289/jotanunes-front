@@ -167,7 +167,7 @@
         <p>Carregando serviços...</p>
       </div>
 
-      <!-- Empty State -->
+        <!-- Empty State -->
       <div v-else-if="filteredServices.length === 0" class="empty-state">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
           <circle cx="12" cy="12" r="10" />
@@ -176,6 +176,13 @@
           <line x1="15" y1="9" x2="15.01" y2="9" />
         </svg>
         <p>Nenhum serviço encontrado</p>
+        <button v-if="searchTerm || statusFilter" @click="clearFilters" class="btn-clear-filters">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+          Limpar filtros
+        </button>
       </div>
 
       <!-- Services Grid -->
@@ -1022,6 +1029,33 @@ export default {
 .empty-state p {
   font-size: 16px;
   color: #64748b;
+  margin-bottom: 8px;
+}
+
+.btn-clear-filters {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #bc1f1b 0%, #8b1714 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 15px rgba(188, 31, 27, 0.3);
+}
+
+.btn-clear-filters:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(188, 31, 27, 0.4);
+}
+
+.btn-clear-filters svg {
+  width: 16px;
+  height: 16px;
 }
 
 /* Services Grid */
