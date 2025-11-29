@@ -1,6 +1,6 @@
 <template>
   <div
-    :class="['popup-notification', popupClass, { 'popup--visible': visible }]"
+    :class="['popup-notification', popupClass, { 'popup--visible': visible, 'popup-modal': $slots.footer }]"
     @mouseenter="pauseAutoClose"
     @mouseleave="resumeAutoClose"
   >
@@ -46,7 +46,7 @@ export default {
     mark: {
       type: String,
       required: true,
-      validator: (value) => ['success', 'danger', 'warning'].includes(value),
+      validator: (value) => ['success', 'danger', 'warning', 'info'].includes(value),
     },
     visible: {
       type: Boolean,
@@ -75,6 +75,8 @@ export default {
           return 'exclamation-triangle'
         case 'warning':
           return 'exclamation-circle'
+        case 'info':
+          return 'info-circle'
         default:
           return 'info-circle'
       }
