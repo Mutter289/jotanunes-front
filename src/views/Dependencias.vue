@@ -3,7 +3,7 @@
     <!-- NOVO HEADER -->
     <div class="page-header">
       <div class="header-content">
-        <h1>Gestão de Alterações</h1>
+        <h1>Gestão de Dependências</h1>
         <p>Administre dependências, impactos e riscos do sistema</p>
       </div>
       <div class="header-actions">
@@ -775,7 +775,6 @@ export default {
         console.log("CATEGORIAS DA ÁRVORE:", this.dependencyTree.map(c => c.name));
         this.organizeDependencyTree();
       } catch (error) {
-        // this.showToast('Erro ao carregar alterações', 'error');
         console.error(error);
       } finally {
         this.isLoading = false;
