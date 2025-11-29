@@ -284,157 +284,296 @@
       v-model="showAddModal"
       size="extra-large"
       background-color="white"
-      :title="isEditing ? 'Editar Dependência' : 'Criar Dependência'"
+      :title="isEditing ? 'Editar Dependência' : 'Criar Nova Dependência'"
       :show-footer="false"
       :show-confirm-button="false"
       :show-cancel-button="false"
     >
-      <div class="modal-body">
-        <!-- Header Section -->
-        <div class="modal-header-section">
-          <div class="modal-left-block">
+      <div class="modern-modal-body">
+        <!-- Progress Indicator -->
+        <div class="modal-progress">
+          <div class="progress-step" :class="{ active: true, completed: true }">
+            <div class="step-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+              </svg>
+            </div>
+            <span class="step-label">Informações</span>
+          </div>
+          <div class="progress-line" :class="{ active: !isChoosingPrincipal }"></div>
+          <div class="progress-step" :class="{ active: !isChoosingPrincipal, completed: !isChoosingPrincipal && selectedPrincipalKey }">
+            <div class="step-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+              </svg>
+            </div>
+            <span class="step-label">Item Principal</span>
+          </div>
+          <div class="progress-line" :class="{ active: !isChoosingPrincipal && selectedPrincipalKey }"></div>
+          <div class="progress-step" :class="{ active: !isChoosingPrincipal && selectedPrincipalKey, completed: selectedDependentesKeys.length > 0 }">
+            <div class="step-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+                <path d="M23 21v-2a4 4 0 00-3-3.87m-4-12a4 4 0 010 7.75"/>
+              </svg>
+            </div>
+            <span class="step-label">Dependências</span>
+          </div>
+        </div>
+
+        <!-- Step 1: Basic Information -->
+        <div class="modal-step" v-show="true">
+          <div class="step-header">
+            <div class="step-header-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M12 16v-4m0-4h.01"/>
+              </svg>
+            </div>
+            <div class="step-header-content">
+              <h3>Informações Básicas</h3>
+              <p>Defina o título, descrição e nível de impacto da dependência</p>
+            </div>
+          </div>
+
+          <div class="modern-form-grid">
             <!-- Título -->
-            <div class="modal-input-group">
-              <label class="modal-label" for="titulo">Título da Dependência</label>
+            <div class="form-group full-width">
+              <label class="modern-label" for="titulo">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M4 7h16M4 12h16M4 17h10"/>
+                </svg>
+                Título da Dependência
+              </label>
               <input
                 id="titulo"
                 type="text"
                 v-model="titulo"
-                class="modal-input"
+                class="modern-input"
                 placeholder="Ex: Atualização do módulo financeiro..."
               />
             </div>
 
             <!-- Nível de Impacto -->
-            <div class="modal-risk-section">
-              <label class="modal-label">Nível de Impacto</label>
-              <div class="modal-risk-options">
+            <div class="form-group full-width">
+              <label class="modern-label">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+                  <line x1="12" y1="9" x2="12" y2="13"/>
+                  <line x1="12" y1="17" x2="12.01" y2="17"/>
+                </svg>
+                Nível de Impacto
+              </label>
+              <div class="risk-selector">
                 <button
                   type="button"
-                  class="risk-option risk-low"
+                  class="risk-card risk-low"
                   :class="{ selected: risco === 'Baixo' }"
                   @click="modal_setRisco('Baixo')"
                 >
-                  <span class="risk-dot"></span>
-                  Baixo
+                  <div class="risk-icon">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M12 2L2 22h20L12 2zm0 5l7 13H5l7-13z"/>
+                    </svg>
+                  </div>
+                  <span class="risk-label">Baixo</span>
+                  <div class="risk-check" v-if="risco === 'Baixo'">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                      <polyline points="20 6 9 17 4 12"/>
+                    </svg>
+                  </div>
                 </button>
+
                 <button
                   type="button"
-                  class="risk-option risk-medium"
+                  class="risk-card risk-medium"
                   :class="{ selected: risco === 'Médio' }"
                   @click="modal_setRisco('Médio')"
                 >
-                  <span class="risk-dot"></span>
-                  Médio
+                  <div class="risk-icon">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/>
+                    </svg>
+                  </div>
+                  <span class="risk-label">Médio</span>
+                  <div class="risk-check" v-if="risco === 'Médio'">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                      <polyline points="20 6 9 17 4 12"/>
+                    </svg>
+                  </div>
                 </button>
+
                 <button
                   type="button"
-                  class="risk-option risk-high"
+                  class="risk-card risk-high"
                   :class="{ selected: risco === 'Alto' }"
                   @click="modal_setRisco('Alto')"
                 >
-                  <span class="risk-dot"></span>
-                  Alto
+                  <div class="risk-icon">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+                    </svg>
+                  </div>
+                  <span class="risk-label">Alto</span>
+                  <div class="risk-check" v-if="risco === 'Alto'">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                      <polyline points="20 6 9 17 4 12"/>
+                    </svg>
+                  </div>
                 </button>
               </div>
             </div>
-          </div>
 
-          <div class="modal-right-block">
-            <label class="modal-label" for="descricao">Descrição</label>
-            <textarea
-              id="descricao"
-              v-model="descricao"
-              class="modal-textarea"
-              placeholder="Descreva a alteração e seu impacto no sistema..."
-            ></textarea>
+            <!-- Descrição -->
+            <div class="form-group full-width">
+              <label class="modern-label" for="descricao">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+                  <polyline points="14 2 14 8 20 8"/>
+                  <line x1="16" y1="13" x2="8" y2="13"/>
+                  <line x1="16" y1="17" x2="8" y2="17"/>
+                  <polyline points="10 9 9 9 8 9"/>
+                </svg>
+                Descrição Detalhada
+              </label>
+              <textarea
+                id="descricao"
+                v-model="descricao"
+                class="modern-textarea"
+                placeholder="Descreva a alteração e seu impacto no sistema de forma clara e detalhada..."
+                rows="4"
+              ></textarea>
+            </div>
           </div>
         </div>
 
-        <!-- Section Title -->
-        <h3 class="modal-section-title">
-          {{ isChoosingPrincipal ? "Selecione o Item Principal" : "Selecione as Dependências" }}
-        </h3>
+        <!-- Step 2 & 3: Selection -->
+        <div class="modal-step">
+          <div class="step-header">
+            <div class="step-header-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M9 11l3 3L22 4"/>
+                <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>
+              </svg>
+            </div>
+            <div class="step-header-content">
+              <h3>{{ isChoosingPrincipal ? 'Escolha o Item Principal' : 'Selecione as Dependências' }}</h3>
+              <p>{{ isChoosingPrincipal ? 'Selecione qual item será o principal desta dependência' : 'Marque todos os itens relacionados a esta alteração' }}</p>
+            </div>
+          </div>
 
-        <!-- Tables Section -->
-        <div class="modal-tables-wrapper">
-          <div
-            v-for="table in tablesData"
-            :key="table.name"
-            class="modal-table-column"
-          >
-            <h4 class="modal-table-title">{{ formatTableName(table.name) }}</h4>
+          <!-- Tables Grid -->
+          <div class="selection-grid">
             <div
-              class="modal-table-list"
-              :ref="el => tableRefs[table.name] = el"
+              v-for="table in tablesData"
+              :key="table.name"
+              class="selection-column"
             >
+              <div class="column-header">
+                <div class="column-header-icon">
+                  <svg viewBox="0 0 24 24" fill="currentColor">
+                    <rect x="3" y="3" width="7" height="7" rx="1"/>
+                    <rect x="14" y="3" width="7" height="7" rx="1"/>
+                    <rect x="3" y="14" width="7" height="7" rx="1"/>
+                    <rect x="14" y="14" width="7" height="7" rx="1"/>
+                  </svg>
+                </div>
+                <h4>{{ formatTableName(table.name) }}</h4>
+                <span class="column-count">{{ table.items?.length || 0 }}</span>
+              </div>
+
               <div
-                v-for="item in modal_orderedItems(table)"
-                :key="modal_makeKey(table, item)"
-                class="modal-dependency-item"
-                :class="{
-                  'principal-selected': modal_makeKey(table, item) === selectedPrincipalKey
-                }"
+                class="items-list-container"
+                :ref="el => tableRefs[table.name] = el"
               >
-                <!-- Principal Item Display -->
-                <template v-if="!isChoosingPrincipal && modal_makeKey(table, item) === selectedPrincipalKey">
-                  <div class="modal-principal-container" @click="modal_trocarPrincipal()">
-                    <div class="modal-principal-line">
-                      <span class="modal-principal-star">⭐</span>
-                      <span class="modal-principal-name">{{ item.nome }}</span>
+                <div
+                  v-for="item in modal_orderedItems(table)"
+                  :key="modal_makeKey(table, item)"
+                  class="selection-item"
+                  :class="{
+                    'is-principal': modal_makeKey(table, item) === selectedPrincipalKey,
+                    'is-selected': selectedDependentesKeys.includes(modal_makeKey(table, item))
+                  }"
+                >
+                  <!-- Principal Item Display -->
+                  <template v-if="!isChoosingPrincipal && modal_makeKey(table, item) === selectedPrincipalKey">
+                    <div class="principal-item" @click="modal_trocarPrincipal()">
+                      <div class="principal-badge">
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                        </svg>
+                        <span>Principal</span>
+                      </div>
+                      <span class="principal-name">{{ item.nome }}</span>
+                      <button class="change-principal-btn" type="button">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <path d="M21 2v6h-6"/>
+                          <path d="M3 12a9 9 0 0115-6.7L21 8"/>
+                          <path d="M3 22v-6h6"/>
+                          <path d="M21 12a9 9 0 01-15 6.7L3 16"/>
+                        </svg>
+                        Trocar
+                      </button>
                     </div>
-                    <div class="modal-principal-action">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M21 2v6h-6" />
-                        <path d="M3 12a9 9 0 0 1 15-6.7L21 8" />
-                        <path d="M3 22v-6h6" />
-                        <path d="M21 12a9 9 0 0 1-15 6.7L3 16" />
-                      </svg>
-                      <span>Trocar item principal</span>
-                    </div>
-                  </div>
-                </template>
+                  </template>
 
-                <!-- Step 1: Choose Principal -->
-                <template v-else-if="isChoosingPrincipal">
-                  <span class="modal-item-name">{{ item.nome }}</span>
-                  <input
-                    type="radio"
-                    class="modal-radio"
-                    name="principal"
-                    :value="modal_makeKey(table, item)"
-                    @change="modal_confirmarPrincipal(modal_makeKey(table, item))"
-                  />
-                </template>
+                  <!-- Step 1: Choose Principal -->
+                  <template v-else-if="isChoosingPrincipal">
+                    <label class="radio-item">
+                      <input
+                        type="radio"
+                        class="modern-radio"
+                        name="principal"
+                        :value="modal_makeKey(table, item)"
+                        @change="modal_confirmarPrincipal(modal_makeKey(table, item))"
+                      />
+                      <span class="item-content">
+                        <span class="item-name">{{ item.nome }}</span>
+                      </span>
+                    </label>
+                  </template>
 
-                <!-- Step 2: Choose Dependencies -->
-                <template v-else>
-                  <input
-                    type="checkbox"
-                    class="modal-checkbox"
-                    :id="`dep-${table.name}-${item.id}`"
-                    :value="modal_makeKey(table, item)"
-                    :checked="selectedDependentesKeys.includes(modal_makeKey(table, item))"
-                    :disabled="modal_makeKey(table, item) === selectedPrincipalKey"
-                    @change="modal_toggleDependente(modal_makeKey(table, item))"
-                  />
-                  <label
-                    :for="`dep-${table.name}-${item.id}`"
-                    class="modal-item-name"
-                  >
-                    {{ item.nome }}
-                  </label>
-                </template>
+                  <!-- Step 2: Choose Dependencies -->
+                  <template v-else>
+                    <label class="checkbox-item">
+                      <input
+                        type="checkbox"
+                        class="modern-checkbox"
+                        :id="`dep-${table.name}-${item.id}`"
+                        :value="modal_makeKey(table, item)"
+                        :checked="selectedDependentesKeys.includes(modal_makeKey(table, item))"
+                        :disabled="modal_makeKey(table, item) === selectedPrincipalKey"
+                        @change="modal_toggleDependente(modal_makeKey(table, item))"
+                      />
+                      <span class="item-content">
+                        <span class="item-name">{{ item.nome }}</span>
+                      </span>
+                    </label>
+                  </template>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Modal Footer -->
-      <div class="modal-footer">
-        <button class="modal-btn-cancel" @click="closeModal">Cancelar</button>
-        <button class="modal-btn-confirm" @click="modal_submitNew">Salvar Dependência</button>
+      <!-- Modern Footer -->
+      <div class="modern-modal-footer">
+        <button class="modern-btn-cancel" @click="closeModal">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+          Cancelar
+        </button>
+        <button class="modern-btn-confirm" @click="modal_submitNew" :disabled="isSaving">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" v-if="!isSaving">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+          <div class="btn-spinner" v-if="isSaving"></div>
+          {{ isSaving ? 'Salvando...' : (isEditing ? 'Atualizar Dependência' : 'Criar Dependência') }}
+        </button>
       </div>
     </VModal>
 
@@ -1952,13 +2091,24 @@ export default {
   font-size: 13px;
 }
 
-/* Modal Styles */
-.modal-body {
-  display: flex;
-  flex-direction: column;
-  gap: 30px;
+/* Modern Modal Styles */
+.modern-modal-body {
+  padding: 0;
+  max-height: 75vh;
   overflow-y: auto;
-  padding-right: 6px;
+}
+
+.modern-modal-body::-webkit-scrollbar {
+  width: 8px;
+}
+
+.modern-modal-body::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+.modern-modal-body::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
 }
 
 .modal-header-section {
@@ -2319,10 +2469,7 @@ export default {
   box-shadow: 0 4px 15px rgba(188, 31, 27, 0.3);
 }
 
-.modal-btn-confirm:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(188, 31, 27, 0.4);
-}
+/* [PLACEHOLDER_FOR_NEW_MODAL_STYLES] */
 
 /* Offcanvas Sidebar */
 .offcanvas-sidebar {
