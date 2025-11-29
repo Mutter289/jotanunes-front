@@ -1,4 +1,5 @@
 <template>
+  <div class="gemini-analyses">
     <div class="page-header">
       <div class="header-content">
         <h1>Análises de Alterações (Gemini)</h1>
