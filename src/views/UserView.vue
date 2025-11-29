@@ -7,8 +7,25 @@
         <p>Administre usuários, aprove cadastros e gerencie permissões</p>
       </div>
       <div class="header-actions">
-        <VButton text="Novo Usuário" variant="add" @click="openCreateModal" />
-        <VButton text="Atualizar" variant="secondary" @click="loadUsers" :loading="isLoading" />
+        <button class="btn-create" @click="openCreateModal">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="12" y1="5" x2="12" y2="19" />
+            <line x1="5" y1="12" x2="19" y2="12" />
+          </svg>
+          Novo Usuário
+        </button>
+        <button
+          class="btn-refresh"
+          @click="loadUsers"
+          :class="{ rotating: isLoading }"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 2v6h-6" />
+            <path d="M3 12a9 9 0 0 1 15-6.7L21 8" />
+            <path d="M3 22v-6h6" />
+            <path d="M21 12a9 9 0 0 1-15 6.7L3 16" />
+          </svg>
+        </button>
       </div>
     </div>
 
@@ -267,14 +284,13 @@
 
 <script>
 import VTable from '@/components/Table/VTable.vue'
-import VButton from '@/components/Button/VButton.vue'
 import VPopup from '@/components/Popup/VPopup.vue'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { useAuthStore } from '@/store/auth.js'
 import { useFetch } from '@/hooks/useFetch.js'
 
 export default {
-  components: { VTable, VButton, VPopup, FontAwesomeIcon },
+  components: { VTable, VPopup, FontAwesomeIcon },
   data() {
     return {
       users: [],
@@ -748,7 +764,67 @@ export default {
 
 .header-actions {
   display: flex;
-  gap: 1rem;
+  gap: 12px;
+  align-items: center;
+}
+
+.btn-create {
+  background: linear-gradient(135deg, #bc1f1b 0%, #8b1714 100%);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 15px rgba(188, 31, 27, 0.3);
+}
+
+.btn-create:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(188, 31, 27, 0.4);
+}
+
+.btn-create svg {
+  width: 18px;
+  height: 18px;
+}
+
+.btn-refresh {
+  width: 44px;
+  height: 44px;
+  background: white;
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.btn-refresh:hover {
+  background: #f8fafc;
+  border-color: #bc1f1b;
+}
+
+.btn-refresh svg {
+  width: 20px;
+  height: 20px;
+  color: #64748b;
+}
+
+.btn-refresh.rotating svg {
+  animation: rotate 1s linear infinite;
+}
+
+@keyframes rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 /* Estatísticas */
