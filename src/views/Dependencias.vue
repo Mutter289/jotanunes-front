@@ -79,7 +79,6 @@
           :class="{ active: filter.active }"
         >
           {{ filter.label }}
-          <!-- <span class="chip-count">{{ filter.count }}</span> Sem contagem por recomendação de ezequiel-->
         </button>
       </div>
       <div class="view-toggles">
@@ -123,19 +122,6 @@
     </div>
 
     <div class="stats-grid">
-      <!-- <div class="stat-card">
-        <div class="stat-icon blue">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M12 2L2 7l10 5 10-5-10-5z" />
-            <path d="M2 17l10 5 10-5" />
-            <path d="M2 12l10 5 10-5" />
-          </svg>
-        </div>
-        <div class="stat-content">
-          <h3 class="stat-value">{{ stats.total_itens }}</h3>
-          <p class="stat-label">Total de Itens</p>
-        </div>
-      </div> -->
       <div class="stat-card" :class="{ selected: filters.find(f => f.id === 'Baixo').active }" @click="toggleFilter('Baixo')">
         <div class="stat-icon green">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -602,9 +588,6 @@
               <button class="btn-primary full-width" @click="editDependency(selectedDep)">
                 Editar Alteração
               </button>
-              <!-- <button class="btn-secondary full-width" @click="viewHistory(selectedDep)">
-                Ver Histórico (em breve)
-              </button> Não terá mais, pois não há tabela de historicoDependencias-->
               <button class="btn-danger full-width" @click="removeDependency(selectedDep)">
                 Remover Alteração
               </button>
@@ -628,8 +611,6 @@
 
 <script>
 import { useFetch } from '@/hooks/useFetch.js'
-// import { toMermaidFlowchart } from '@/util/toMermaid.js'
-// import VMermaid from '@/components/Mermaid/VMermaid.vue'
 import VModal from '@/components/Modal/VModal.vue'
 
 export default {
@@ -668,10 +649,6 @@ export default {
       editingDependency: null,
       unreadNotifications: 0,
       websocket: null,
-      showDiagram: false,
-      diagramData: null,
-      modalStep: 1,
-      searchItens: "",
       tipoMapa: {
         AUD_SQLS: 1,
         AUD_REPORTS: 2,
@@ -698,7 +675,6 @@ export default {
       ],
 
       stats: {
-        total_itens: 0,
         total_dependencias: 0,
         distribuicao_risco: {
           Baixo: 0,
@@ -797,13 +773,11 @@ export default {
         if (this.isConnected) {
           await Promise.all([
             this.loadDependencies(),
-            // this.loadStatistics(), Não usado mais
             this.loadNotifications(),
             this.connectWebSocket(),
           ])
         }
       } catch (error) {
-        // this.showToast('Erro ao inicializar aplicação', 'error')
         console.error('Initialization error:', error)
       }
     },
@@ -919,15 +893,6 @@ export default {
       });
     },
 
-    // async loadStatistics() {
-    //   try {
-    //     const response = await this.useFetch(`/api/v2/dependencias/estatisticas`)
-    //     this.stats = response
-    //   } catch (error) {
-    //     console.error('Load statistics error:', error)
-    //   }
-    // },
-
     async loadNotifications() {
       try {
         const response = await this.useFetch(`/notifications/count/unread`)
@@ -977,7 +942,6 @@ export default {
         `Nova notificação: ${notification.dados?.acao || 'Alteração no sistema'}`,
         'info',
       )
-      // Reload dependencies if it's a system change
       if (notification.dados?.acao) {
         this.loadDependencies()
       }
@@ -988,7 +952,6 @@ export default {
       try {
         await Promise.all([
           this.loadDependencies(),
-          // this.loadStatistics(), Não usado mais
           this.loadNotifications(),
         ])
         this.showToast('Dados atualizados com sucesso', 'success')
@@ -1291,17 +1254,6 @@ export default {
         dependencias: [],
       }
       this.depSelecionada = { fv: [], sql: [], report: [] }
-    },
-
-    async viewHistory(dep) {
-      try {
-        const response = await this.useFetch(`/dependencias/alteracoes/${dep.id}/historico`)
-        console.log('Histórico:', response.data)
-        // Here you could open another modal or sidebar to show the history
-        this.showToast(`Histórico carregado (${response.data.length} entradas)`, 'info')
-      } catch (error) {
-        this.showToast('Erro ao carregar histórico', 'error')
-      }
     },
 
     toggleCategory(category) {
