@@ -156,73 +156,182 @@
     </VTable>
 
     <!-- Modal de Criar/Editar Usuário -->
-    <VPopup
-      v-model:visible="showUserModal"
-      :msg="isEditing ? 'Editar Usuário' : 'Novo Usuário'"
-      mark="info"
-      :auto-close="0"
-    >
-      <form @submit.prevent="saveUser" class="user-form">
-        <div class="form-group">
-          <label>Nome *</label>
-          <input
-            v-model="userForm.nome"
-            type="text"
-            class="form-input"
-            placeholder="Nome completo"
-            required
-          />
+    <div v-if="showUserModal" class="modal-overlay" @click.self="closeUserModal">
+      <div class="modern-modal" :class="{ 'modal-visible': showUserModal }">
+        <!-- Header do Modal -->
+        <div class="modal-header">
+          <div class="modal-header-content">
+            <div class="modal-icon">
+              <svg
+                v-if="!isEditing"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                <circle cx="9" cy="7" r="4"></circle>
+                <line x1="19" y1="8" x2="19" y2="14"></line>
+                <line x1="22" y1="11" x2="16" y2="11"></line>
+              </svg>
+              <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                <path
+                  d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"
+                ></path>
+              </svg>
+            </div>
+            <div class="modal-title-wrapper">
+              <h2>{{ isEditing ? 'Editar Usuário' : 'Novo Usuário' }}</h2>
+              <p>{{ isEditing ? 'Atualize as informações do usuário' : 'Preencha os dados para criar um novo usuário' }}</p>
+            </div>
+          </div>
+          <button class="modal-close" @click="closeUserModal">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
         </div>
 
-        <div class="form-group">
-          <label>Email *</label>
-          <input
-            v-model="userForm.email"
-            type="email"
-            class="form-input"
-            placeholder="email@exemplo.com"
-            required
-            :disabled="isEditing"
-          />
-        </div>
+        <!-- Body do Modal -->
+        <form @submit.prevent="saveUser" class="modal-body">
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+                Nome Completo
+                <span class="required">*</span>
+              </label>
+              <div class="input-wrapper">
+                <input
+                  v-model="userForm.nome"
+                  type="text"
+                  class="form-input"
+                  placeholder="Digite o nome completo"
+                  required
+                />
+              </div>
+            </div>
 
-        <div v-if="!isEditing" class="form-group">
-          <label>Senha *</label>
-          <input
-            v-model="userForm.senha"
-            type="password"
-            class="form-input"
-            placeholder="Mínimo 8 caracteres"
-            required
-          />
-        </div>
+            <div class="form-group">
+              <label class="form-label">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                  <polyline points="22,6 12,13 2,6"></polyline>
+                </svg>
+                Endereço de Email
+                <span class="required">*</span>
+              </label>
+              <div class="input-wrapper">
+                <input
+                  v-model="userForm.email"
+                  type="email"
+                  class="form-input"
+                  placeholder="email@exemplo.com"
+                  required
+                  :disabled="isEditing"
+                />
+              </div>
+            </div>
 
-        <div class="form-group">
-          <label>Status</label>
-          <select v-model="userForm.status" class="form-select">
-            <option value="PENDENTE">Pendente</option>
-            <option value="ATIVO">Ativo</option>
-            <option value="BLOQUEADO">Bloqueado</option>
-          </select>
-        </div>
+            <div v-if="!isEditing" class="form-group">
+              <label class="form-label">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                </svg>
+                Senha
+                <span class="required">*</span>
+              </label>
+              <div class="input-wrapper">
+                <input
+                  v-model="userForm.senha"
+                  type="password"
+                  class="form-input"
+                  placeholder="Mínimo 8 caracteres"
+                  required
+                />
+              </div>
+            </div>
 
-        <div v-if="formError" class="form-error">
-          {{ formError }}
-        </div>
-      </form>
+            <div class="form-group">
+              <label class="form-label">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <path d="M12 6v6l4 2"></path>
+                </svg>
+                Status do Usuário
+              </label>
+              <div class="input-wrapper">
+                <select v-model="userForm.status" class="form-select">
+                  <option value="PENDENTE">Pendente</option>
+                  <option value="ATIVO">Ativo</option>
+                  <option value="BLOQUEADO">Bloqueado</option>
+                </select>
+                <svg
+                  class="select-arrow"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+              </div>
+            </div>
+          </div>
 
-      <template #footer>
-        <div class="modal-actions">
-          <VButton text="Cancelar" variant="secondary" @click="closeUserModal" />
-          <VButton
-            :text="isEditing ? 'Salvar' : 'Criar'"
-            variant="add"
+          <div v-if="formError" class="form-error">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="8" x2="12" y2="12"></line>
+              <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+            {{ formError }}
+          </div>
+        </form>
+
+        <!-- Footer do Modal -->
+        <div class="modal-footer">
+          <button type="button" class="btn-cancel" @click="closeUserModal">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+            Cancelar
+          </button>
+          <button
+            type="button"
+            class="btn-submit"
             @click="saveUser"
-            :loading="isSaving"
-          />
+            :disabled="isSaving"
+            :class="{ loading: isSaving }"
+          >
+            <svg
+              v-if="!isSaving"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path v-if="isEditing" d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+              <polyline v-if="isEditing" points="17 21 17 13 7 13 7 21"></polyline>
+              <polyline v-if="isEditing" points="7 3 7 8 15 8"></polyline>
+              <path v-if="!isEditing" d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+              <circle v-if="!isEditing" cx="9" cy="7" r="4"></circle>
+              <line v-if="!isEditing" x1="19" y1="8" x2="19" y2="14"></line>
+              <line v-if="!isEditing" x1="22" y1="11" x2="16" y2="11"></line>
+            </svg>
+            <div v-else class="spinner"></div>
+            {{ isSaving ? 'Salvando...' : (isEditing ? 'Salvar Alterações' : 'Adicionar Usuário') }}
+          </button>
         </div>
-      </template>
-    </VPopup>
+      </div>
+    </div>
 
     <VPopup
       v-model:visible="showConfirmModal"
@@ -1061,55 +1170,357 @@ export default {
   font-style: italic;
 }
 
-/* Modais */
-.user-form {
+/* Modal Moderno */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.modern-modal {
+  background: white;
+  border-radius: 20px;
+  max-width: 600px;
+  width: 100%;
+  max-height: 90vh;
+  overflow: hidden;
+  box-shadow:
+    0 20px 60px rgba(0, 0, 0, 0.3),
+    0 0 0 1px rgba(255, 255, 255, 0.1);
+  animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  min-width: 400px;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(40px) scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+.modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 28px 32px;
+  border-bottom: 2px solid #f0f0f0;
+  background: linear-gradient(135deg, #fafafa 0%, #ffffff 100%);
+}
+
+.modal-header-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  flex: 1;
+}
+
+.modal-icon {
+  width: 56px;
+  height: 56px;
+  background: linear-gradient(135deg, #bc1f1b 0%, #8b1714 100%);
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 8px 20px rgba(188, 31, 27, 0.3);
+  animation: iconPulse 2s ease-in-out infinite;
+}
+
+@keyframes iconPulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+.modal-icon svg {
+  width: 28px;
+  height: 28px;
+  color: white;
+  stroke-width: 2.5;
+}
+
+.modal-title-wrapper h2 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 700;
+  color: #2b2522;
+  line-height: 1.3;
+}
+
+.modal-title-wrapper p {
+  margin: 4px 0 0 0;
+  font-size: 14px;
+  color: #6b7280;
+  font-weight: 400;
+}
+
+.modal-close {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.04);
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  flex-shrink: 0;
+}
+
+.modal-close:hover {
+  background: rgba(188, 31, 27, 0.1);
+  transform: rotate(90deg);
+}
+
+.modal-close svg {
+  width: 20px;
+  height: 20px;
+  color: #6b7280;
+  transition: color 0.3s;
+}
+
+.modal-close:hover svg {
+  color: #bc1f1b;
+}
+
+.modal-body {
+  padding: 32px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.form-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
 }
 
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 10px;
 }
 
-.form-group label {
+.form-label {
   font-weight: 600;
-  color: #495057;
+  font-size: 14px;
+  color: #2b2522;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.form-label svg {
+  width: 18px;
+  height: 18px;
+  color: #bc1f1b;
+  stroke-width: 2;
+}
+
+.required {
+  color: #bc1f1b;
+  font-weight: 700;
+}
+
+.input-wrapper {
+  position: relative;
 }
 
 .form-input,
-.form-select,
-.form-textarea {
-  padding: 0.75rem;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  font-size: 1rem;
-  transition: border-color 0.2s;
+.form-select {
+  width: 100%;
+  padding: 14px 16px;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  font-size: 15px;
+  font-family: inherit;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  background: white;
+  color: #2b2522;
+}
+
+.form-input:hover,
+.form-select:hover {
+  border-color: #d1d5db;
 }
 
 .form-input:focus,
-.form-select:focus,
-.form-textarea:focus {
+.form-select:focus {
   outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  border-color: #bc1f1b;
+  box-shadow: 0 0 0 4px rgba(188, 31, 27, 0.1);
+  transform: translateY(-1px);
 }
 
 .form-input:disabled {
-  background: #f8f9fa;
-  color: #6c757d;
+  background: #f9fafb;
+  color: #9ca3af;
+  cursor: not-allowed;
+  border-color: #e5e7eb;
+}
+
+.form-select {
+  appearance: none;
+  cursor: pointer;
+  padding-right: 40px;
+}
+
+.select-arrow {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 20px;
+  color: #6b7280;
+  pointer-events: none;
+  transition: all 0.3s;
+}
+
+.input-wrapper:hover .select-arrow {
+  color: #bc1f1b;
 }
 
 .form-error {
-  padding: 0.75rem;
-  background: rgba(220, 53, 69, 0.1);
-  border: 1px solid rgba(220, 53, 69, 0.3);
-  border-radius: 6px;
-  color: #dc3545;
-  font-size: 0.9rem;
+  padding: 16px;
+  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+  border: 2px solid rgba(188, 31, 27, 0.3);
+  border-radius: 12px;
+  color: #bc1f1b;
+  font-size: 14px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 8px;
+  animation: shakeError 0.5s ease;
+}
+
+@keyframes shakeError {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-8px); }
+  75% { transform: translateX(8px); }
+}
+
+.form-error svg {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  stroke-width: 2.5;
+}
+
+.modal-footer {
+  padding: 24px 32px;
+  border-top: 2px solid #f0f0f0;
+  background: #fafafa;
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.btn-cancel,
+.btn-submit {
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: inherit;
+}
+
+.btn-cancel {
+  background: white;
+  color: #6b7280;
+  border: 2px solid #e5e7eb;
+}
+
+.btn-cancel:hover {
+  background: #f9fafb;
+  border-color: #d1d5db;
+  color: #374151;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.btn-cancel svg {
+  width: 18px;
+  height: 18px;
+}
+
+.btn-submit {
+  background: linear-gradient(135deg, #bc1f1b 0%, #8b1714 100%);
+  color: white;
+  border: 2px solid transparent;
+  box-shadow: 0 4px 15px rgba(188, 31, 27, 0.3);
+}
+
+.btn-submit:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(188, 31, 27, 0.4);
+}
+
+.btn-submit:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.btn-submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-submit svg {
+  width: 18px;
+  height: 18px;
+  stroke-width: 2.5;
+}
+
+.spinner {
+  width: 18px;
+  height: 18px;
+  border: 2.5px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .modal-actions {
@@ -1221,6 +1632,69 @@ export default {
     height: 120px;
     right: -15px;
     bottom: -15px;
+  }
+
+  .modern-modal {
+    max-width: 95%;
+    max-height: 95vh;
+    border-radius: 16px;
+  }
+
+  .modal-header {
+    padding: 20px;
+  }
+
+  .modal-icon {
+    width: 48px;
+    height: 48px;
+  }
+
+  .modal-icon svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  .modal-title-wrapper h2 {
+    font-size: 20px;
+  }
+
+  .modal-title-wrapper p {
+    font-size: 13px;
+  }
+
+  .modal-close {
+    width: 36px;
+    height: 36px;
+  }
+
+  .modal-body {
+    padding: 20px;
+  }
+
+  .form-grid {
+    gap: 20px;
+  }
+
+  .form-label {
+    font-size: 13px;
+  }
+
+  .form-input,
+  .form-select {
+    padding: 12px 14px;
+    font-size: 14px;
+  }
+
+  .modal-footer {
+    padding: 16px 20px;
+    flex-direction: column;
+  }
+
+  .btn-cancel,
+  .btn-submit {
+    width: 100%;
+    justify-content: center;
+    padding: 14px 20px;
   }
 }
 </style>
