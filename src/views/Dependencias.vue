@@ -1,163 +1,178 @@
 <template>
-  <div class="dependency-manager">
-    <!-- NOVO HEADER -->
+  <div class="dependencies">
+    <!-- Header -->
     <div class="page-header">
       <div class="header-content">
         <h1>Gestão de Dependências</h1>
-        <p>Administre dependências, impactos e riscos do sistema</p>
+        <p>Gerencie alterações do sistema e suas interdependências</p>
       </div>
       <div class="header-actions">
-        <button class="btn-primary" @click="openCreateModal">
-          <svg class="btn-icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <button class="btn-create" @click="openCreateModal">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <line x1="12" y1="5" x2="12" y2="19" />
             <line x1="5" y1="12" x2="19" y2="12" />
           </svg>
-          Criar Alteração
+          Nova Dependência
         </button>
-        <button class="btn-secondary" @click="refreshDependencies" :class="{ rotating: isRefreshing }">
+        <button
+          class="btn-refresh"
+          @click="refreshDependencies"
+          :class="{ rotating: isRefreshing }"
+        >
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M21 2v6h-6" />
             <path d="M3 12a9 9 0 0 1 15-6.7L21 8" />
             <path d="M3 22v-6h6" />
             <path d="M21 12a9 9 0 0 1-15 6.7L3 16" />
           </svg>
-          Atualizar
         </button>
       </div>
     </div>
 
-    <div class="search-filter-bar">
-      <div class="search-box">
-        <svg
-          class="search-icon"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-        >
-          <circle cx="11" cy="11" r="8" />
-          <path d="m21 21-4.35-4.35" />
-        </svg>
-        <input
-          v-model="searchQuery"
-          type="text"
-          placeholder="Buscar alterações do sistema..."
-          class="search-input"
-        />
-      </div>
-      <div class="filter-chips">
+    <!-- Filter Tabs -->
+    <div class="table-filter-container">
+      <div class="filter-tabs">
         <button
           v-for="filter in filters"
           :key="filter.id"
+          :class="['filter-tab', { active: filter.active }]"
           @click="toggleFilter(filter.id)"
-          class="filter-chip"
-          :class="{ active: filter.active }"
         >
-          {{ filter.label }}
+          <div class="tab-icon" v-html="getFilterIcon(filter.id)"></div>
+          <div class="tab-content">
+            <span class="tab-title">{{ filter.label }}</span>
+            <span class="tab-subtitle">{{ filter.count }} {{ filter.count === 1 ? 'item' : 'itens' }}</span>
+          </div>
+          <div v-if="filter.active" class="tab-active-indicator">
+            <svg viewBox="0 0 24 24" fill="none">
+              <path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
         </button>
       </div>
-      <div class="view-toggles">
+
+      <!-- View Mode Toggles -->
+      <div class="view-modes">
         <button
           @click="viewMode = 'grid'"
-          class="view-btn"
-          :class="{ active: viewMode === 'grid' }"
+          :class="['view-mode-btn', { active: viewMode === 'grid' }]"
+          title="Visualização em Grade"
         >
           <svg viewBox="0 0 24 24" fill="currentColor">
-            <rect x="3" y="3" width="7" height="7" />
-            <rect x="14" y="3" width="7" height="7" />
-            <rect x="3" y="14" width="7" height="7" />
-            <rect x="14" y="14" width="7" height="7" />
+            <rect x="3" y="3" width="7" height="7" rx="1" />
+            <rect x="14" y="3" width="7" height="7" rx="1" />
+            <rect x="3" y="14" width="7" height="7" rx="1" />
+            <rect x="14" y="14" width="7" height="7" rx="1" />
           </svg>
         </button>
         <button
           @click="viewMode = 'list'"
-          class="view-btn"
-          :class="{ active: viewMode === 'list' }"
+          :class="['view-mode-btn', { active: viewMode === 'list' }]"
+          title="Visualização em Lista"
         >
           <svg viewBox="0 0 24 24" fill="currentColor">
-            <rect x="3" y="4" width="18" height="2" />
-            <rect x="3" y="11" width="18" height="2" />
-            <rect x="3" y="18" width="18" height="2" />
+            <rect x="3" y="4" width="18" height="2" rx="1" />
+            <rect x="3" y="11" width="18" height="2" rx="1" />
+            <rect x="3" y="18" width="18" height="2" rx="1" />
           </svg>
         </button>
         <button
           @click="viewMode = 'tree'"
-          class="view-btn"
-          :class="{ active: viewMode === 'tree' }"
+          :class="['view-mode-btn', { active: viewMode === 'tree' }]"
+          title="Visualização em Árvore"
         >
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M12 2v10m0 0l-3-3m3 3l3-3" />
-            <path d="M12 12v10" />
-            <circle cx="5" cy="19" r="2" />
-            <circle cx="12" cy="19" r="2" />
-            <circle cx="19" cy="19" r="2" />
+            <circle cx="12" cy="5" r="2" />
+            <line x1="12" y1="7" x2="12" y2="12" />
+            <line x1="12" y1="12" x2="7" y2="17" />
+            <line x1="12" y1="12" x2="17" y2="17" />
+            <circle cx="7" cy="19" r="2" />
+            <circle cx="17" cy="19" r="2" />
           </svg>
         </button>
       </div>
     </div>
 
-    <div class="dependencies-container">
+    <!-- Search Bar -->
+    <div class="search-container">
+      <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="8" />
+        <path d="m21 21-4.35-4.35" />
+      </svg>
+      <input
+        v-model="searchQuery"
+        type="text"
+        placeholder="Buscar por título, descrição ou criador..."
+        class="search-input"
+      />
+    </div>
+
+    <!-- Content Area -->
+    <div class="content-area">
+      <!-- Loading State -->
       <div v-if="isLoading" class="loading-state">
-        <div class="loading-spinner"></div> 
-        <p>Carregando alterações...</p>
+        <div class="spinner"></div>
+        <p>Carregando dependências...</p>
       </div>
+
+      <!-- Grid View -->
       <div v-else-if="viewMode === 'grid'" class="grid-view">
         <div
           v-for="dep in filteredDependencies"
           :key="dep.id"
-          class="dep-card"
+          class="dependency-card"
           @click="selectDependency(dep)"
           :class="{ selected: selectedDep?.id === dep.id }"
         >
-          <div class="dep-card-header">
-            <div class="dep-info">
-              <h3 class="dep-name">{{ dep.titulo }}</h3>
-              <!-- <p class="dep-version">{{ dep.versao }}</p> -->
+          <div class="card-header">
+            <div class="card-title-area">
+              <h3 class="card-title">{{ dep.titulo }}</h3>
             </div>
-            <div class="dep-status" :class="getRiskClass(dep.nivel_impacto)">
-              <span class="status-dot"></span>
+            <div class="risk-badge" :class="getRiskClass(dep.nivel_impacto)">
+              <span class="badge-dot"></span>
               {{ dep.nivel_impacto }}
             </div>
           </div>
-          <div class="dep-card-body">
-            <p class="dep-description">{{ dep.descricao || 'Sem descrição disponível' }}</p>
-            <div class="dep-meta">
-              <span class="meta-item">
+
+          <div class="card-body">
+            <p class="card-description">{{ dep.descricao || 'Sem descrição disponível' }}</p>
+
+            <div class="card-meta">
+              <div class="meta-item">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <circle cx="12" cy="12" r="10" />
                   <polyline points="12 6 12 12 16 14" />
                 </svg>
                 {{ formatDate(dep.criado_em) }}
-              </span>
-              <span class="meta-item">
+              </div>
+              <div class="meta-item">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
                   <circle cx="8.5" cy="7" r="4" />
                   <line x1="20" y1="8" x2="20" y2="14" />
                   <line x1="23" y1="11" x2="17" y2="11" />
                 </svg>
                 {{ formatDependencias(dep.qtd_itens) }}
-              </span>
+              </div>
             </div>
           </div>
-          <div class="dep-card-footer">
-            <div class="dep-tags">
-              <span class="tag">{{ getTabelaOrigem(dep) }}</span>
-              <span class="tag">{{ dep.nome_criador }}</span>
+
+          <div class="card-footer">
+            <div class="card-tags">
+              <span class="tag tag-table">{{ getTabelaOrigem(dep) }}</span>
+              <span class="tag tag-user">{{ dep.nome_criador }}</span>
             </div>
-            <div class="dep-actions">
+            <div class="card-actions">
               <button class="action-btn" @click.stop="editDependency(dep)" title="Editar">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
                   <path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4z" />
                 </svg>
               </button>
-              <button class="action-btn" @click.stop="removeDependency(dep)" title="Remover">
+              <button class="action-btn action-btn-danger" @click.stop="removeDependency(dep)" title="Remover">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <polyline points="3 6 5 6 21 6" />
-                  <path
-                    d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
-                  />
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
                 </svg>
               </button>
             </div>
@@ -165,61 +180,66 @@
         </div>
       </div>
 
+      <!-- List View -->
       <div v-else-if="viewMode === 'list'" class="list-view">
-        <table class="dep-table">
-          <thead>
-            <tr>
-              <th>Nome</th>
-              <th>Risco</th>
-              <th>Data de criação</th>
-              <th>Dependências</th>
-              <th>Ações</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr
-              v-for="dep in filteredDependencies"
-              :key="dep.id"
-              @click="selectDependency(dep)"
-              :class="{ selected: selectedDep?.id === dep.id }"
-            >
-              <td>
-                <div class="package-cell">
-                  <strong>{{ dep.titulo }}</strong>
-                  <span class="package-desc">{{ dep.descricao || 'Sem descrição' }}</span>
-                </div>
-              </td>
-              <!-- <td>{{ dep.versao }}</td> -->
-              <td>
-                <span class="status-badge" :class="getRiskClass(dep.nivel_impacto)">
-                  {{ dep.nivel_impacto }}
-                </span>
-              </td>
-              <td>{{ formatDate(dep.criado_em) }}</td>
-              <td>{{ dep.qtd_itens }}</td>
-              <td>
-                <div class="table-actions">
-                  <button class="action-btn" @click.stop="editDependency(dep)">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                      <path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4z" />
-                    </svg>
-                  </button>
-                  <button class="action-btn" @click.stop="removeDependency(dep)">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <polyline points="3 6 5 6 21 6" />
-                      <path
-                        d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
-                      />
-                    </svg>
-                  </button>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+        <div class="table-wrapper">
+          <table class="dependencies-table">
+            <thead>
+              <tr>
+                <th>Título</th>
+                <th>Nível de Impacto</th>
+                <th>Data de Criação</th>
+                <th>Dependências</th>
+                <th>Origem</th>
+                <th class="actions-column">Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                v-for="dep in filteredDependencies"
+                :key="dep.id"
+                @click="selectDependency(dep)"
+                :class="{ selected: selectedDep?.id === dep.id }"
+              >
+                <td>
+                  <div class="table-title-cell">
+                    <strong>{{ dep.titulo }}</strong>
+                    <span class="table-description">{{ dep.descricao || 'Sem descrição' }}</span>
+                  </div>
+                </td>
+                <td>
+                  <span class="risk-badge-sm" :class="getRiskClass(dep.nivel_impacto)">
+                    {{ dep.nivel_impacto }}
+                  </span>
+                </td>
+                <td>{{ formatDate(dep.criado_em) }}</td>
+                <td>{{ dep.qtd_itens }}</td>
+                <td>
+                  <span class="table-tag">{{ getTabelaOrigem(dep) }}</span>
+                </td>
+                <td class="actions-column">
+                  <div class="table-actions">
+                    <button class="action-btn-sm" @click.stop="editDependency(dep)" title="Editar">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                        <path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4z" />
+                      </svg>
+                    </button>
+                    <button class="action-btn-sm action-btn-danger" @click.stop="removeDependency(dep)" title="Remover">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="3 6 5 6 21 6" />
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                      </svg>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
 
+      <!-- Tree View -->
       <div v-else-if="viewMode === 'tree'" class="tree-view">
         <div class="tree-container">
           <div v-for="category in dependencyTree" :key="category.name" class="tree-category">
@@ -247,13 +267,9 @@
               >
                 <div class="tree-item-content">
                   <span class="item-name">{{ item.titulo }}</span>
-
-                  <span class="item-version">
-                    {{ formatDependencias(item.qtd_itens) }}
-                  </span>
-
-                  <span class="status-badge" :class="getRiskClass(item.risco)">
-                    {{ item.risco }}
+                  <span class="item-meta">{{ formatDependencias(item.qtd_itens) }}</span>
+                  <span class="risk-badge-sm" :class="getRiskClass(item.nivel_impacto)">
+                    {{ item.nivel_impacto }}
                   </span>
                 </div>
               </div>
@@ -263,6 +279,7 @@
       </div>
     </div>
 
+    <!-- Modal -->
     <VModal
       v-model="showAddModal"
       size="extra-large"
@@ -272,183 +289,161 @@
       :show-confirm-button="false"
       :show-cancel-button="false"
     >
-    
-      <!-- CORPO -->
       <div class="modal-body">
-
-        <!-- LINHA 1 - FORM -->
-        <div class="header-wrapper">
-
-          <!-- ESQUERDA -->
-          <div class="left-block">
-
+        <!-- Header Section -->
+        <div class="modal-header-section">
+          <div class="modal-left-block">
             <!-- Título -->
-            <div class="input-block">
-              <label class="input-label" for="titulo">Título</label>
+            <div class="modal-input-group">
+              <label class="modal-label" for="titulo">Título da Dependência</label>
               <input
                 id="titulo"
                 type="text"
                 v-model="titulo"
-                class="text-input"
-                placeholder="Digite o título..."
+                class="modal-input"
+                placeholder="Ex: Atualização do módulo financeiro..."
               />
             </div>
 
-            <!-- Seleção de Risco -->
-            <div class="risk-block" role="group" aria-label="Selecione o risco">
-              <div class="risk-title">Selecione o risco</div>
-
-              <div class="risk-container">
+            <!-- Nível de Impacto -->
+            <div class="modal-risk-section">
+              <label class="modal-label">Nível de Impacto</label>
+              <div class="modal-risk-options">
                 <button
                   type="button"
-                  class="risk-card low"
-                  :class="{ modalSelected: risco === 'Baixo' }"
+                  class="risk-option risk-low"
+                  :class="{ selected: risco === 'Baixo' }"
                   @click="modal_setRisco('Baixo')"
                 >
+                  <span class="risk-dot"></span>
                   Baixo
                 </button>
-
                 <button
                   type="button"
-                  class="risk-card medium"
-                  :class="{ modalSelected: risco === 'Médio' }"
+                  class="risk-option risk-medium"
+                  :class="{ selected: risco === 'Médio' }"
                   @click="modal_setRisco('Médio')"
                 >
+                  <span class="risk-dot"></span>
                   Médio
                 </button>
-
                 <button
                   type="button"
-                  class="risk-card high"
-                  :class="{ modalSelected: risco === 'Alto' }"
+                  class="risk-option risk-high"
+                  :class="{ selected: risco === 'Alto' }"
                   @click="modal_setRisco('Alto')"
                 >
+                  <span class="risk-dot"></span>
                   Alto
                 </button>
               </div>
             </div>
           </div>
 
-          <!-- DIREITA -->
-          <div class="right-block">
-            <label class="input-label" for="descricao">Descrição</label>
+          <div class="modal-right-block">
+            <label class="modal-label" for="descricao">Descrição</label>
             <textarea
               id="descricao"
               v-model="descricao"
-              class="text-area"
-              placeholder="Descreva..."
+              class="modal-textarea"
+              placeholder="Descreva a alteração e seu impacto no sistema..."
             ></textarea>
           </div>
-
         </div>
 
-        <!-- TÍTULO SEÇÃO -->
-        <h3 class="section-title">
-          {{ isChoosingPrincipal ? "Selecione o Item Principal" : "Selecione suas Dependências" }}
+        <!-- Section Title -->
+        <h3 class="modal-section-title">
+          {{ isChoosingPrincipal ? "Selecione o Item Principal" : "Selecione as Dependências" }}
         </h3>
 
-        <!-- TABELAS -->
-        <div class="tables-wrapper">
-
+        <!-- Tables Section -->
+        <div class="modal-tables-wrapper">
           <div
             v-for="table in tablesData"
             :key="table.name"
-            class="table-col"
+            class="modal-table-column"
           >
-            <h4 class="table-title">{{ table.name }}</h4>
-
-            <!-- bloco com scroll -->
+            <h4 class="modal-table-title">{{ table.name }}</h4>
             <div
-              class="table-block"
-              :data-table="table.name"
+              class="modal-table-list"
               :ref="el => tableRefs[table.name] = el"
             >
-
-              <!-- itens -->
               <div
                 v-for="item in modal_orderedItems(table)"
                 :key="modal_makeKey(table, item)"
-                :data-item="modal_makeKey(table, item)"
-                class="dependency-item"
+                class="modal-dependency-item"
                 :class="{
                   'principal-selected': modal_makeKey(table, item) === selectedPrincipalKey
                 }"
               >
-
-                <!-- ⭐ Item Principal Exibido -->
+                <!-- Principal Item Display -->
                 <template v-if="!isChoosingPrincipal && modal_makeKey(table, item) === selectedPrincipalKey">
-                  <div class="principal-container" @click="modal_trocarPrincipal()">
-                    <div class="principal-line">
-                      <span class="principal-star">⭐</span>
-                      <span class="principal-name">{{ item.nome }}</span>
+                  <div class="modal-principal-container" @click="modal_trocarPrincipal()">
+                    <div class="modal-principal-line">
+                      <span class="modal-principal-star">⭐</span>
+                      <span class="modal-principal-name">{{ item.nome }}</span>
                     </div>
-
-                    <div class="principal-action">
-                      <span class="swap-icon">↺</span>
-                      <span class="swap-text">Trocar item principal</span>
+                    <div class="modal-principal-action">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 2v6h-6" />
+                        <path d="M3 12a9 9 0 0 1 15-6.7L21 8" />
+                        <path d="M3 22v-6h6" />
+                        <path d="M21 12a9 9 0 0 1-15 6.7L3 16" />
+                      </svg>
+                      <span>Trocar item principal</span>
                     </div>
                   </div>
                 </template>
 
-                <!-- ETAPA 1 — Escolher principal -->
+                <!-- Step 1: Choose Principal -->
                 <template v-else-if="isChoosingPrincipal">
-                  <span class="modal-dep-name">{{ item.nome }}</span>
-
+                  <span class="modal-item-name">{{ item.nome }}</span>
                   <input
                     type="radio"
-                    class="principal-radio"
+                    class="modal-radio"
                     name="principal"
                     :value="modal_makeKey(table, item)"
                     @change="modal_confirmarPrincipal(modal_makeKey(table, item))"
                   />
                 </template>
 
-                <!-- ETAPA 2 — Dependências -->
+                <!-- Step 2: Choose Dependencies -->
                 <template v-else>
                   <input
                     type="checkbox"
-                    class="dep-checkbox"
+                    class="modal-checkbox"
                     :id="`dep-${table.name}-${item.id}`"
                     :value="modal_makeKey(table, item)"
                     :checked="selectedDependentesKeys.includes(modal_makeKey(table, item))"
                     :disabled="modal_makeKey(table, item) === selectedPrincipalKey"
                     @change="modal_toggleDependente(modal_makeKey(table, item))"
                   />
-
                   <label
                     :for="`dep-${table.name}-${item.id}`"
-                    class="modal-dep-name"
+                    class="modal-item-name"
                   >
                     {{ item.nome }}
                   </label>
                 </template>
-
               </div>
-              <!-- fim do dependency-item -->
-
             </div>
-            <!-- fim do table-block -->
-
           </div>
-
         </div>
-        <!-- fim tables-wrapper -->
-
       </div>
-      <!-- fim modal-body -->
 
-      <!-- FOOTER -->
+      <!-- Modal Footer -->
       <div class="modal-footer">
-        <button class="btn-cancel" @click="closeModal">Cancelar</button>
-        <button class="btn-confirm" @click="modal_submitNew">Salvar</button>
+        <button class="modal-btn-cancel" @click="closeModal">Cancelar</button>
+        <button class="modal-btn-confirm" @click="modal_submitNew">Salvar Dependência</button>
       </div>
     </VModal>
 
+    <!-- Offcanvas Sidebar -->
     <transition name="slide">
-      <div v-if="selectedDep" class="sidebar">
-        <div class="sidebar-header">
+      <div v-if="selectedDep" class="offcanvas-sidebar">
+        <div class="offcanvas-header">
           <h2>{{ selectedDep.titulo }}</h2>
-          <button class="sidebar-close" @click="selectedDep = null">
+          <button class="offcanvas-close" @click="selectedDep = null">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <line x1="18" y1="6" x2="6" y2="18" />
               <line x1="6" y1="6" x2="18" y2="18" />
@@ -456,71 +451,86 @@
           </button>
         </div>
 
-        <div class="sidebar-content">
-          <div class="detail-section">
-            <h3>Informações Gerais</h3>
-
-            <div class="detail-row">
-              <span class="detail-label">Risco:</span>
-              <span class="status-badge" :class="getRiskClass(selectedDep.nivel_impacto)">
-                {{ selectedDep.nivel_impacto }}
-              </span>
-            </div>
-
-            <div class="detail-row">
-              <span class="detail-label">Dependências:</span>
-              <span class="detail-value">{{ formatDependencias(selectedDep.qtd_itens) }}</span>
-            </div>
-          </div>
-
-          <div class="detail-section">
-            <h3>Detalhes</h3>
-            <p class="detail-description">
-              {{ selectedDep.descricao || 'Sem descrição disponível' }}
-            </p>
-
-            <div class="detail-row">
-              <span class="detail-label">Data de criação:</span>
-              <span class="detail-value">{{ formatDate(selectedDep.criado_em) }}</span>
-            </div>
-
-            <div class="detail-row">
-              <span class="detail-label">Criador:</span>
-              <span class="detail-value">{{ selectedDep.criado_por_id }}</span>
-            </div>
-
-            <div class="detail-row">
-              <span class="detail-label">Tabela de Origem:</span>
-              <span class="detail-value">{{ getTabelaOrigem(selectedDep) }}</span>
-            </div>
-          </div>
-
-          <div
-            class="detail-section"
-            v-if="selectedDep.itens && selectedDep.itens.length > 0"
-          >
-            <h3>Itens ({{ selectedDep.itens.length }})</h3>
-
-            <div class="sub-dependencies">
-              <div
-                v-for="item in selectedDep.itens"
-                :key="item.origem_id"
-                class="sub-dep-item"
-              >
-                <strong>{{ item.titulo || 'Item sem nome' }}</strong>
-                <small>{{ item.tabela }} - {{ item.origem_id }}</small>
+        <div class="offcanvas-content">
+          <!-- General Info -->
+          <div class="offcanvas-section">
+            <h3 class="section-title">Informações Gerais</h3>
+            <div class="detail-grid">
+              <div class="detail-item">
+                <label>Nível de Impacto:</label>
+                <span class="risk-badge-sm" :class="getRiskClass(selectedDep.nivel_impacto)">
+                  {{ selectedDep.nivel_impacto }}
+                </span>
+              </div>
+              <div class="detail-item">
+                <label>Dependências:</label>
+                <span>{{ formatDependencias(selectedDep.qtd_itens) }}</span>
               </div>
             </div>
           </div>
 
-          <div class="detail-section">
-            <h3>Ações</h3>
-            <div class="sidebar-actions">
-              <button class="btn-primary full-width" @click="editDependency(selectedDep)">
-                Editar Alteração
+          <!-- Description -->
+          <div class="offcanvas-section">
+            <h3 class="section-title">Descrição</h3>
+            <p class="detail-description">
+              {{ selectedDep.descricao || 'Sem descrição disponível' }}
+            </p>
+          </div>
+
+          <!-- Details -->
+          <div class="offcanvas-section">
+            <h3 class="section-title">Detalhes</h3>
+            <div class="detail-grid">
+              <div class="detail-item">
+                <label>Data de Criação:</label>
+                <span>{{ formatDate(selectedDep.criado_em) }}</span>
+              </div>
+              <div class="detail-item">
+                <label>Criador:</label>
+                <span>{{ selectedDep.criado_por_id }}</span>
+              </div>
+              <div class="detail-item">
+                <label>Tabela de Origem:</label>
+                <span>{{ getTabelaOrigem(selectedDep) }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Items List -->
+          <div class="offcanvas-section" v-if="selectedDep.itens && selectedDep.itens.length > 0">
+            <h3 class="section-title">Itens Vinculados ({{ selectedDep.itens.length }})</h3>
+            <div class="items-list">
+              <div
+                v-for="item in selectedDep.itens"
+                :key="item.origem_id"
+                class="item-card"
+              >
+                <div class="item-header">
+                  <strong>{{ item.titulo || 'Item sem nome' }}</strong>
+                  <span v-if="item.is_item_principal" class="principal-badge">Principal</span>
+                </div>
+                <small>{{ item.tabela }} - ID: {{ item.origem_id }}</small>
+              </div>
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div class="offcanvas-section">
+            <h3 class="section-title">Ações</h3>
+            <div class="offcanvas-actions">
+              <button class="btn-action-primary" @click="editDependency(selectedDep)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                  <path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4z" />
+                </svg>
+                Editar Dependência
               </button>
-              <button class="btn-danger full-width" @click="removeDependency(selectedDep)">
-                Remover Alteração
+              <button class="btn-action-danger" @click="removeDependency(selectedDep)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="3 6 5 6 21 6" />
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                </svg>
+                Remover Dependência
               </button>
             </div>
           </div>
@@ -528,6 +538,7 @@
       </div>
     </transition>
 
+    <!-- Toast Container -->
     <div class="toast-container">
       <div v-for="toast in toasts" :key="toast.id" class="toast" :class="toast.type">
         <div class="toast-content">
@@ -557,51 +568,38 @@ export default {
   },
   data() {
     return {
-      projectName: 'JotaNunes Construtora',
       searchQuery: '',
       viewMode: 'grid',
       showAddModal: false,
       usuariosCache: {},
-      form: {
-        id: null,
-        titulo: "",
-        descricao: "",
-        nivel_impacto: "",
-        itens_dependentes: [],
-        tabela_origem: "",
-      },
       isEditing: false,
       selectedDep: null,
       isRefreshing: false,
       isLoading: true,
       isSaving: false,
-      isConnected: false,
       editingDependency: null,
-      unreadNotifications: 0,
-      websocket: null,
       tipoMapa: {
         AUD_SQLS: 1,
         AUD_REPORTS: 2,
         AUD_FVS: 3
       },
-      // --- MODAL NOVO ---
+
+      // Modal data
       titulo: "",
       descricao: "",
       risco: null,
-
       isChoosingPrincipal: true,
       selectedPrincipalKey: null,
       selectedDependentesKeys: [],
-
       tablesData: [],
       tiposItens: [],
       tableRefs: {},
 
       filters: [
         { id: 'all', label: 'Todos', count: 0, active: true },
-        { id: 'Baixo', label: 'Baixo', count: 0, active: false },
-        { id: 'Médio', label: 'Médio', count: 0, active: false },
-        { id: 'Alto', label: 'Alto', count: 0, active: false },
+        { id: 'Baixo', label: 'Baixo Impacto', count: 0, active: false },
+        { id: 'Médio', label: 'Médio Impacto', count: 0, active: false },
+        { id: 'Alto', label: 'Alto Impacto', count: 0, active: false },
       ],
 
       stats: {
@@ -616,37 +614,12 @@ export default {
       dependencies: [],
 
       dependencyTree: [
-        {
-          name: 'AUD_FVS',
-          expanded: false,
-          items: [],
-        },
-        {
-          name: 'AUD_SQLS',
-          expanded: false,
-          items: [],
-        },
-        {
-          name: 'AUD_REPORTS',
-          expanded: false,
-          items: [],
-        },
+        { name: 'AUD_FVS', expanded: false, items: [] },
+        { name: 'AUD_SQLS', expanded: false, items: [] },
+        { name: 'AUD_REPORTS', expanded: false, items: [] },
       ],
 
-      newDependency: {
-        titulo: "",
-        descricao: "",
-        nivel_impacto_id: null,
-        criado_por_id: null,
-        itens: []
-      },
-
-
       tabelasDisponiveis: ['AUD_FVS', 'AUD_SQLS', 'AUD_REPORTS'],
-      itensOrigem: [],
-      itensPorTabela: { AUD_FVS: [], AUD_SQLS: [], AUD_REPORTS: [] },
-      depSelecionada: { fv: [], sql: [], report: [] }, // seleção múltipla por clique
-      itens: [],
       toasts: [],
       nowTick: Date.now(),
     }
@@ -663,62 +636,38 @@ export default {
           (dep) =>
             dep.titulo.toLowerCase().includes(query) ||
             (dep.descricao && dep.descricao.toLowerCase().includes(query)),
-            // dep.criado_por_id.toLowerCase().includes(query),
-            // dep.versao.toLowerCase().includes(query),
         )
       }
 
       // Apply risk filters
       const activeFilter = this.filters.find(f => f.active && f.id !== "all");
-
       if (activeFilter) {
-        deps = deps.filter(dep => dep.risco === activeFilter.id);
+        deps = deps.filter(dep => dep.nivel_impacto === activeFilter.id);
       }
-
 
       return deps
     },
   },
-  
+
   async mounted() {
     await this.initializeApp()
-    // Atualiza o relógio a cada 60s para re-renderizar e recalcular textos relativos
     this._timeInterval = setInterval(() => {
       this.nowTick = Date.now()
     }, 60000)
-  },  
+  },
 
   beforeUnmount() {
-    if (this.websocket) {
-      this.websocket.close()
-    }
     if (this._timeInterval) clearInterval(this._timeInterval)
   },
 
   methods: {
     useFetch,
+
     async initializeApp() {
       try {
-        await this.checkConnection()
-        if (this.isConnected) {
-          await Promise.all([
-            this.loadDependencies(),
-            this.loadNotifications(),
-            this.connectWebSocket(),
-          ])
-        }
+        await this.loadDependencies()
       } catch (error) {
         console.error('Initialization error:', error)
-      }
-    },
-
-    async checkConnection() {
-      try {
-        await this.useFetch(`/health`)
-        this.isConnected = true
-      } catch (error) {
-        this.isConnected = false
-        // this.showToast('Erro de conexão com a API', 'error')
       }
     },
 
@@ -734,23 +683,20 @@ export default {
       }
     },
 
-
     async loadDependencies() {
       try {
         this.isLoading = true;
-
         const response = await this.useFetch(`/api/v2/dependencias/`);
-        
-        // Agora já vem tudo completo no response
+
         this.dependencies = response.map(dep => {
-          const risco = dep.nivel_impacto?.nivel || 'erro';
+          const risco = dep.nivel_impacto?.nivel || 'Baixo';
 
           return {
             id: dep.id,
             titulo: dep.titulo,
             descricao: dep.descricao,
             criado_por_id: dep.criado_por_id,
-            nome_criador: null, // carregado separadamente se necessário
+            nome_criador: null,
             criado_em: dep.criado_em,
             nivel_impacto: dep.nivel_impacto?.nivel,
             nivel_impacto_id: dep.nivel_impacto_id,
@@ -759,75 +705,19 @@ export default {
             qtd_itens: dep.itens?.length ?? 0
           };
         });
+
         for (const dep of this.dependencies) {
           dep.nome_criador = await this.fetchUsuarioPorId(dep.criado_por_id);
         }
+
         this.stats.total_dependencias = this.dependencies.length;
         this.updateRiskCounts();
-        console.log("DEPENDÊNCIAS RECEBIDAS:", this.dependencies);
-
-        this.dependencies.forEach(dep => {
-          console.log("DEP:", dep.id, "ITENS:", dep.itens);
-          console.log("ITEM PRINCIPAL:", dep.itens.find(i => i.is_item_principal));
-          console.log("TABELA ORIGEM:", this.getTabelaOrigem(dep));
-        });
-
-        console.log("CATEGORIAS DA ÁRVORE:", this.dependencyTree.map(c => c.name));
         this.organizeDependencyTree();
       } catch (error) {
         console.error(error);
+        this.showToast('Erro ao carregar dependências', 'error');
       } finally {
         this.isLoading = false;
-      }
-    },
-
-    isItemSelected(tabela, id) {
-      return this.newDependency.itens.some(
-        it => it.tipo_item_id === this.tipoMapa[tabela] && it.origem_id == id
-      );
-    },
-
-    toggleItem(tabela, item) {
-      const tipo_item_id = this.tipoMapa[tabela];
-
-      const existing = this.newDependency.itens.findIndex(
-        it => it.tipo_item_id === tipo_item_id && it.origem_id == item.id
-      );
-
-      if (existing >= 0) {
-        this.newDependency.itens.splice(existing, 1);
-      } else {
-        this.newDependency.itens.push({
-          tipo_item_id,
-          origem_id: item.id,
-          is_item_principal: false
-        });
-      }
-    },
-
-    isPrincipal(tabela, id) {
-      const tipo_item_id = this.tipoMapa[tabela];
-      return this.newDependency.itens.some(
-        it => it.tipo_item_id === tipo_item_id && it.origem_id == id && it.is_item_principal
-      );
-    },
-
-    setPrincipal(tabela, id) {
-      const tipo_item_id = this.tipoMapa[tabela];
-
-      this.newDependency.itens.forEach(it => {
-        if (it.tipo_item_id === tipo_item_id) {
-          it.is_item_principal = it.origem_id == id;
-        }
-      });
-    },
-
-    async loadNotifications() {
-      try {
-        const response = await this.useFetch(`/notifications/count/unread`)
-        this.unreadNotifications = response.unread_count
-      } catch (error) {
-        console.error('Load notifications error:', error)
       }
     },
 
@@ -837,52 +727,10 @@ export default {
       return `${qtd} Dependências`;
     },
 
-    connectWebSocket() {
-      try {
-        const wsUrl = this.apiBaseUrl.replace('http', 'ws') + '/ws/notifications'
-        this.websocket = new WebSocket(wsUrl)
-
-        this.websocket.onopen = () => {
-          console.log('WebSocket connected')
-        }
-
-        this.websocket.onmessage = (event) => {
-          const data = JSON.parse(event.data)
-          if (data.tabela && data.tabela.includes('ALTERACOES_SISTEMA')) {
-            this.handleNotification(data)
-          }
-        }
-
-        this.websocket.onclose = () => {
-          console.log('WebSocket disconnected')
-          // Attempt to reconnect after 5 seconds
-          setTimeout(() => {
-            this.connectWebSocket()
-          }, 5000)
-        }
-      } catch (error) {
-        console.error('WebSocket connection error:', error)
-      }
-    },
-
-    handleNotification(notification) {
-      this.unreadNotifications++
-      this.showToast(
-        `Nova notificação: ${notification.dados?.acao || 'Alteração no sistema'}`,
-        'info',
-      )
-      if (notification.dados?.acao) {
-        this.loadDependencies()
-      }
-    },
-    
     async refreshDependencies() {
       this.isRefreshing = true
       try {
-        await Promise.all([
-          this.loadDependencies(),
-          this.loadNotifications(),
-        ])
+        await this.loadDependencies()
         this.showToast('Dados atualizados com sucesso', 'success')
       } catch (error) {
         this.showToast('Erro ao atualizar dados', 'error')
@@ -895,18 +743,16 @@ export default {
       this.filters.forEach((filter) => {
         filter.active = filter.id === filterId
       })
-      document.body.setAttribute("data-risk", id === "all" ? "" : id);
     },
 
     selectDependency(dep) {
       if (this.selectedDep?.id === dep.id) {
         this.selectedDep = null
       } else {
-        // Load full dependency details
         this.loadDependencyDetails(dep.id)
       }
     },
-    
+
     async loadDependencyDetails(id) {
       try {
         const dep = await this.useFetch(`/api/v2/dependencias/${id}`);
@@ -933,114 +779,51 @@ export default {
       this.isEditing = true;
       this.editingDependency = dep;
 
-      // preencher modal
       this.titulo = dep.titulo;
       this.descricao = dep.descricao;
       this.risco = dep.nivel_impacto || dep.nivel_impacto?.nivel || null;
-
-      // NÃO dar reset aqui
 
       await this.modal_loadTables();
 
       const itens = dep.itens || [];
 
-      // principal
       const principal = itens.find(i => i.is_item_principal);
       if (principal) {
         this.selectedPrincipalKey = `${principal.tabela}:${principal.origem_id}`;
         this.isChoosingPrincipal = false;
       }
 
-      // dependentes
       this.selectedDependentesKeys = itens
         .filter(i => !i.is_item_principal)
         .map(i => `${i.tabela}:${i.origem_id}`);
 
-      // abrir modal
       this.showAddModal = true;
     },
 
-
-
     getTabelaOrigem(dep) {
       if (!dep?.itens || dep.itens.length === 0) return "Sem origem";
-
       const principal = dep.itens.find(i => i.is_item_principal);
       return principal?.tabela || dep.itens[0]?.tabela || "Sem origem";
     },
 
     async removeDependency(dep) {
       if (!dep) return
-      if (
-        !confirm(
-          `Remover definitivamente a alteração "${dep.titulo}" e tudo que foi criado no banco?`,
-        )
-      )
-        return
+      if (!confirm(`Remover definitivamente a alteração "${dep.titulo}"?`)) return
+
       try {
         const usuario = prompt('Digite seu nome de usuário:')
         if (!usuario) return
+
         await this.useFetch(
           `/api/v2/dependencias/${dep.id}?usuario=${encodeURIComponent(usuario)}`,
           { method: 'DELETE' },
         )
-        this.showToast('Dependência excluida!', 'success')
+        this.showToast('Dependência excluída!', 'success')
         await this.loadDependencies()
         this.selectedDep = null
       } catch (error) {
-        this.showToast('Erro ao remover alteração', 'error')
+        this.showToast('Erro ao remover dependência', 'error')
         console.error('Remove dependency error:', error)
-      }
-    },
-
-    async saveDependency(payload) {
-      // payload vem do VModal
-
-      // atualiza newDependency com os dados do payload
-      this.newDependency = payload;
-
-      if (!this.newDependency.titulo || !this.newDependency.descricao) {
-        this.showToast('Preencha todos os campos obrigatórios', 'error');
-        return;
-      }
-
-      this.isSaving = true;
-
-      try {
-        const payload = {
-          titulo: this.newDependency.titulo,
-          descricao: this.newDependency.descricao,
-          nivel_impacto_id: this.newDependency.nivel_impacto_id,
-          criado_por_id: this.newDependency.criado_por,
-          itens: this.newDependency.itens.map(it => ({
-            tipo_item_id: it.tipo_item_id,
-            origem_id: it.origem_id,
-            is_item_principal: it.is_item_principal
-          }))
-        };
-
-        if (this.editingDependency) {
-          await this.useFetch(`/api/v2/dependencias/${this.editingDependency.id}`, {
-            method: "PUT",
-            body: payload
-          });
-          this.showToast('Dependência atualizada!', 'success');
-        } else {
-          await this.useFetch(`/api/v2/dependencias/`, {
-            method: "POST",
-            body: payload
-          });
-          this.showToast('Dependência criada!', 'success');
-        }
-
-        await this.loadDependencies();
-        this.closeModal();
-
-      } catch (e) {
-        this.showToast('Erro ao salvar dependência', 'error');
-        console.error(e);
-      } finally {
-        this.isSaving = false;
       }
     },
 
@@ -1048,7 +831,6 @@ export default {
       this.isEditing = false;
       this.editingDependency = null;
 
-      // Reset do modal novo
       this.titulo = "";
       this.descricao = "";
       this.risco = null;
@@ -1057,132 +839,12 @@ export default {
       this.selectedPrincipalKey = null;
       this.selectedDependentesKeys = [];
 
-      // abrir modal
       this.showAddModal = true;
     },
-    toggleOption(tabela, idSel) {
-      const tipoMapa = {
-        AUD_SQLS: 1,
-        AUD_REPORTS: 2,
-        AUD_FVS: 3
-      };
-
-      const tipo_item_id = tipoMapa[tabela];
-      const origem_id = String(idSel);
-
-      // Verifica se já existe o item
-      const index = this.newDependency.itens.findIndex(
-        it => it.tipo_item_id === tipo_item_id && it.origem_id === origem_id
-      );
-
-      if (index >= 0) {
-        // remover
-        this.newDependency.itens.splice(index, 1);
-      } else {
-        // adicionar
-        this.newDependency.itens.push({
-          tipo_item_id,
-          origem_id,
-          is_item_principal: false
-        });
-      }
-    },
-
-    setPrincipal(tabela, idSel) {
-      const tipoMapa = { AUD_SQLS: 1, AUD_REPORTS: 2, AUD_FVS: 3 };
-      const tipo_item_id = tipoMapa[tabela];
-
-      this.newDependency.itens.forEach(item => {
-        if (item.tipo_item_id === tipo_item_id) {
-          item.is_item_principal = (item.origem_id === String(idSel));
-        }
-      });
-    },
-
-
-    isSelected(tabela, idSel) {
-      if (!this.newDependency || !this.newDependency.dependencias) return false
-      const lista = this.newDependency.dependencias[tabela] || []
-      return lista.includes(String(idSel))
-    },
-
-
-
-    limparSelecao() {
-      this.depSelecionada = { fv: [], sql: [], report: [] }
-    },
-
-    // Regras de negócio: quais FVs aparecem na seleção
-    availableOptions(tabela) {
-      const list = this.itensPorTabela[tabela] || []
-      if (tabela === 'AUD_FVS') {
-        return list.filter((it) => {
-          const ativo = it.ATIVO === true || it.ativo === true || it.ativo === 1
-          const notSelf = !(
-            this.newDependency.tabela_origem === 'AUD_FVS' && it.id === this.newDependency.origem_id
-          )
-          return ativo && notSelf
-        })
-      }
-      return list
-    },
-
-    removerDependencia(index) {
-      this.newDependency.dependencias.splice(index, 1)
-    },
-
-    async submitForm() {
-      this.isSaving = true;
-
-      const payload = {
-        titulo: this.form.titulo,
-        descricao: this.form.descricao,
-        nivel_impacto_id: this.form.nivel_impacto,
-        itens: this.form.itens_dependentes.map(id => ({
-          origem_id: id
-        }))
-      };
-
-      try {
-        if (this.editingDependency) {
-          await this.useFetch(`/api/v2/dependencias/${this.form.id}`, {
-            method: "PUT",
-            body: payload
-          });
-          this.showToast("Dependência atualizada!", "success");
-        } else {
-          await this.useFetch(`/api/v2/dependencias/`, {
-            method: "POST",
-            body: payload
-          });
-          this.showToast("Dependência criada!", "success");
-        }
-
-        this.showAddModal = false;
-        await this.loadDependencies();
-      
-      } catch (error) {
-        console.error(error);
-        this.showToast("Erro ao salvar dependência", "error");
-      }
-
-      this.isSaving = false;
-    },
-
 
     closeModal() {
       this.showAddModal = false
       this.editingDependency = null
-      this.newDependency = {
-        nome: '',
-        versao: '',
-        tabela_origem: '',
-        origem_id: null, //  null em vez de string vazia
-        criador: '',
-        descricao: '',
-        dependencias: [],
-      }
-      this.depSelecionada = { fv: [], sql: [], report: [] }
     },
 
     toggleCategory(category) {
@@ -1190,22 +852,14 @@ export default {
     },
 
     organizeDependencyTree() {
-      // Reset tree items
       this.dependencyTree.forEach((category) => {
         category.items = []
       })
 
-      // Group dependencies by table origin
       this.dependencies.forEach((dep) => {
         const category = this.dependencyTree.find((cat) => cat.name === this.getTabelaOrigem(dep))
         if (category) {
           category.items.push(dep)
-        } else {
-          // Add to "Outros" category
-          const otherCategory = this.dependencyTree.find((cat) => cat.name === 'Outros')
-          if (otherCategory) {
-            otherCategory.items.push(dep)
-          }
         }
       })
     },
@@ -1214,36 +868,46 @@ export default {
       const counts = { Baixo: 0, Médio: 0, Alto: 0 };
 
       this.dependencies.forEach(dep => {
-        if (counts[dep.risco] !== undefined) {
-          counts[dep.risco]++;
+        if (counts[dep.nivel_impacto] !== undefined) {
+          counts[dep.nivel_impacto]++;
         }
       });
 
-      // Atualiza os cards
       this.stats.distribuicao_risco = counts;
-
-      // Atualiza os chips
       this.filters.find(f => f.id === "Baixo").count = counts.Baixo;
       this.filters.find(f => f.id === "Médio").count = counts.Médio;
       this.filters.find(f => f.id === "Alto").count = counts.Alto;
-
-      // Total (chip "Todos")
       this.filters.find(f => f.id === "all").count = this.dependencies.length;
     },
 
-
     getRiskClass(risco) {
       const riskClasses = {
-        'Sem risco': 'sem-risco',
-        Baixo: 'baixo',
-        Médio: 'medio',
-        Alto: 'alto',
+        'Baixo': 'baixo',
+        'Médio': 'medio',
+        'Alto': 'alto',
       }
       return riskClasses[risco] || 'baixo'
     },
 
+    getFilterIcon(filterId) {
+      const icons = {
+        all: `<svg viewBox="0 0 24 24" fill="currentColor">
+          <rect x="3" y="3" width="18" height="18" rx="2" />
+        </svg>`,
+        Baixo: `<svg viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 2L2 22h20L12 2zm0 5l7 13H5l7-13z"/>
+        </svg>`,
+        Médio: `<svg viewBox="0 0 24 24" fill="currentColor">
+          <path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/>
+        </svg>`,
+        Alto: `<svg viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+        </svg>`
+      }
+      return icons[filterId] || icons.all
+    },
+
     formatDate(input) {
-      // Referência para forçar re-render quando nowTick muda
       void this.nowTick
       if (!input) return 'N/A'
       const d = typeof input === 'string' || typeof input === 'number' ? new Date(input) : input
@@ -1284,9 +948,7 @@ export default {
         message,
         type,
       }
-
       this.toasts.push(toast)
-
       setTimeout(() => {
         this.removeToast(toast.id)
       }, 5000)
@@ -1298,35 +960,23 @@ export default {
         this.toasts.splice(index, 1)
       }
     },
-    // =============================
-    // === MODAL — NOVO SISTEMA ===
-    // =============================
 
-    // Selecionar risco
+    // Modal methods
     modal_setRisco(r) {
       this.risco = r;
     },
 
-    // Chave única para identificar itens
     modal_makeKey(table, item) {
       return `${table.name}:${item.id}`;
     },
 
-
-    // Ordenar itens: principal → dependentes → restantes
     modal_orderedItems(table) {
       const items = table.items || [];
-
       return [
-        // principal
         ...items.filter(i => this.modal_makeKey(table, i) === this.selectedPrincipalKey),
-
-        // dependentes
         ...items.filter(i =>
           this.selectedDependentesKeys.includes(this.modal_makeKey(table, i))
         ),
-
-        // restantes
         ...items.filter(i =>
           this.modal_makeKey(table, i) !== this.selectedPrincipalKey &&
           !this.selectedDependentesKeys.includes(this.modal_makeKey(table, i))
@@ -1334,15 +984,11 @@ export default {
       ];
     },
 
-    // Confirmar item principal
     modal_confirmarPrincipal(key) {
       this.selectedPrincipalKey = key;
       this.isChoosingPrincipal = false;
-
-      // Remover dependente que virou principal
       this.selectedDependentesKeys = this.selectedDependentesKeys.filter(k => k !== key);
 
-      // Scroll para topo da coluna
       const [tableName] = key.split(":");
       const el = this.tableRefs[tableName];
       if (el) {
@@ -1350,25 +996,20 @@ export default {
       }
     },
 
-    // Trocar item principal
     modal_trocarPrincipal() {
       this.isChoosingPrincipal = true;
       this.selectedPrincipalKey = null;
     },
 
-    // Selecionar / deselecionar dependente
     modal_toggleDependente(key) {
-      // Não marca o principal
       if (key === this.selectedPrincipalKey) return;
 
       if (this.selectedDependentesKeys.includes(key)) {
-        this.selectedDependentesKeys =
-          this.selectedDependentesKeys.filter(k => k !== key);
+        this.selectedDependentesKeys = this.selectedDependentesKeys.filter(k => k !== key);
       } else {
         this.selectedDependentesKeys.push(key);
       }
 
-      // Scroll para topo da coluna
       const [tableName] = key.split(":");
       const el = this.tableRefs[tableName];
       if (el) {
@@ -1376,7 +1017,6 @@ export default {
       }
     },
 
-    // Buscar itens de cada tabela
     async modal_fetchItems(tabela) {
       try {
         return await this.useFetch(`/api/v2/dependencias/itens/${tabela}`);
@@ -1386,12 +1026,9 @@ export default {
       }
     },
 
-    // Carregar lista de tabelas + itens
     async modal_loadTables() {
       try {
-        // Tipos de itens: retorna lista com { id, tabela }
         this.tiposItens = await this.useFetch("/api/v2/dependencias/lista-tabelas");
-
         const arr = [];
 
         for (const tabela of this.tabelasDisponiveis) {
@@ -1405,13 +1042,11 @@ export default {
       }
     },
 
-    // Converter nome da tabela -> tipo_item_id
     modal_tipoItemIdPorTabela(nomeTabela) {
       const found = this.tiposItens.find(t => t.tabela === nomeTabela);
       return found ? found.id : null;
     },
 
-    // Converter risco → nível de impacto da API
     modal_riscoParaImpacto(r) {
       return {
         "Baixo": 1,
@@ -1420,14 +1055,11 @@ export default {
       }[r] || null;
     },
 
-    // Montar payload para salvar no backend
     modal_buildPayload() {
       const itens = [];
 
-      // Item principal
       if (this.selectedPrincipalKey) {
         const [tabela, id] = this.selectedPrincipalKey.split(":");
-
         itens.push({
           tipo_item_id: this.modal_tipoItemIdPorTabela(tabela),
           origem_id: id,
@@ -1435,10 +1067,8 @@ export default {
         });
       }
 
-      // Dependentes
       for (const key of this.selectedDependentesKeys) {
         const [tabela, id] = key.split(":");
-
         itens.push({
           tipo_item_id: this.modal_tipoItemIdPorTabela(tabela),
           origem_id: id,
@@ -1457,100 +1087,394 @@ export default {
     async modal_submitNew() {
       const payload = this.modal_buildPayload();
 
-      if (this.isEditing && this.editingDependency) {
-        await this.saveDependency({
-          ...payload,
-          id: this.editingDependency.id
-        });
-      } else {
-        await this.saveDependency(payload);
+      if (!payload.titulo || !payload.descricao || !payload.nivel_impacto_id) {
+        this.showToast('Preencha todos os campos obrigatórios', 'error');
+        return;
+      }
+
+      this.isSaving = true;
+
+      try {
+        if (this.isEditing && this.editingDependency) {
+          await this.useFetch(`/api/v2/dependencias/${this.editingDependency.id}`, {
+            method: "PUT",
+            body: payload
+          });
+          this.showToast('Dependência atualizada!', 'success');
+        } else {
+          await this.useFetch(`/api/v2/dependencias/`, {
+            method: "POST",
+            body: payload
+          });
+          this.showToast('Dependência criada!', 'success');
+        }
+
+        await this.loadDependencies();
+        this.closeModal();
+      } catch (e) {
+        this.showToast('Erro ao salvar dependência', 'error');
+        console.error(e);
+      } finally {
+        this.isSaving = false;
       }
     },
-
   },
 }
 </script>
 
 <style scoped>
-* {
+/* Global Styles */
+.dependencies {
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* Page Header */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 2px solid #e9ecef;
+}
+
+.header-content h1 {
+  margin: 0 0 0.5rem 0;
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #2c3e50;
+  background: linear-gradient(135deg, #bc1f1b 0%, #8b1714 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.header-content p {
   margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+  color: #6c757d;
+  font-size: 1.1rem;
 }
 
-.dependency-manager {
-  min-height: 100vh;
-  background: linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%);
-  font-family:
-    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+.header-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
 }
 
-.btn-icon {
-  width: 40px;
-  height: 40px;
-  border: 1px solid #e2e8f0;
+.btn-create {
+  background: linear-gradient(135deg, #bc1f1b 0%, #8b1714 100%);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 15px rgba(188, 31, 27, 0.3);
+}
+
+.btn-create:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(188, 31, 27, 0.4);
+}
+
+.btn-create svg {
+  width: 18px;
+  height: 18px;
+}
+
+.btn-refresh {
+  width: 44px;
+  height: 44px;
   background: white;
+  border: 2px solid #e9ecef;
   border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s;
 }
 
-.btn-icon:hover {
+.btn-refresh:hover {
   background: #f8fafc;
-  transform: translateY(-1px);
+  border-color: #bc1f1b;
 }
 
-.btn-icon svg {
+.btn-refresh svg {
   width: 20px;
   height: 20px;
   color: #64748b;
 }
 
-.btn-icon.rotating {
+.btn-refresh.rotating svg {
   animation: rotate 1s linear infinite;
 }
 
 @keyframes rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Filter Tabs Container */
+.table-filter-container {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  animation: slideDown 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+  border: 2px solid #e9ecef;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+}
+
+@keyframes slideDown {
   from {
-    transform: rotate(0deg);
+    opacity: 0;
+    transform: translateY(-30px);
   }
   to {
-    transform: rotate(360deg);
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
-.btn-primary {
-  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-  color: white;
-  border: none;
-  padding: 0.625rem 1.25rem;
-  border-radius: 8px;
-  font-weight: 600;
+.filter-tabs {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+  flex: 1;
+}
+
+.filter-tab {
+  position: relative;
+  background: #ffffff;
+  border: 2px solid #e9ecef;
+  border-radius: 12px;
+  padding: 16px;
+  color: #495057;
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  cursor: pointer;
-  transition: all 0.2s;
+  gap: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
-.btn-primary:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 10px 25px rgba(99, 102, 241, 0.25);
+.filter-tab::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(188, 31, 27, 0.05), transparent);
+  transition: left 0.5s;
 }
 
-.btn-primary:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
+.filter-tab:hover::before {
+  left: 100%;
 }
 
-.btn-icon-sm {
+.filter-tab:hover {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12), 0 0 20px rgba(188, 31, 27, 0.1);
+  border-color: rgba(188, 31, 27, 0.3);
+  color: #bc1f1b;
+}
+
+.filter-tab.active {
+  background: linear-gradient(135deg, #bc1f1b 0%, #8b1714 100%);
+  border-color: #bc1f1b;
+  color: #ffffff;
+  transform: translateY(-4px) scale(1.03);
+  box-shadow: 0 12px 40px rgba(188, 31, 27, 0.35), 0 0 0 3px rgba(188, 31, 27, 0.15);
+  animation: tabActivate 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes tabActivate {
+  0% { transform: translateY(-4px) scale(1); }
+  50% { transform: translateY(-4px) scale(1.06); }
+  100% { transform: translateY(-4px) scale(1.03); }
+}
+
+.tab-icon {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.tab-icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.filter-tab:hover .tab-icon {
+  transform: scale(1.15) rotate(5deg);
+}
+
+.filter-tab.active .tab-icon {
+  animation: iconPulse 0.6s ease-out;
+  color: #ffffff;
+}
+
+@keyframes iconPulse {
+  0%, 100% { transform: scale(1); }
+  30% { transform: scale(1.3) rotate(-10deg); }
+  60% { transform: scale(0.9) rotate(5deg); }
+}
+
+.tab-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.tab-title {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+}
+
+.tab-subtitle {
+  font-size: 11px;
+  opacity: 0.85;
+  font-weight: 500;
+}
+
+.filter-tab.active .tab-subtitle {
+  opacity: 0.95;
+}
+
+.tab-active-indicator {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  background: #ffffff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #bc1f1b;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  animation: checkmarkAppear 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.tab-active-indicator svg {
   width: 16px;
   height: 16px;
+  animation: checkmarkDraw 0.4s ease-out;
+}
+
+@keyframes checkmarkAppear {
+  from {
+    transform: scale(0) rotate(-180deg);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+/* View Modes */
+.view-modes {
+  display: flex;
+  gap: 8px;
+  background: #f1f5f9;
+  padding: 6px;
+  border-radius: 10px;
+}
+
+.view-mode-btn {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.view-mode-btn:hover {
+  background: white;
+  transform: scale(1.05);
+}
+
+.view-mode-btn.active {
+  background: linear-gradient(135deg, #bc1f1b 0%, #8b1714 100%);
+  box-shadow: 0 4px 12px rgba(188, 31, 27, 0.3);
+}
+
+.view-mode-btn svg {
+  width: 20px;
+  height: 20px;
+  color: #64748b;
+}
+
+.view-mode-btn.active svg {
+  color: white;
+}
+
+/* Search Container */
+.search-container {
+  background: white;
+  border: 2px solid #e9ecef;
+  border-radius: 12px;
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: all 0.3s;
+}
+
+.search-container:focus-within {
+  border-color: #bc1f1b;
+  box-shadow: 0 0 0 3px rgba(188, 31, 27, 0.1);
+}
+
+.search-icon {
+  width: 20px;
+  height: 20px;
+  color: #94a3b8;
+  flex-shrink: 0;
+}
+
+.search-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 15px;
+  color: #1e293b;
+}
+
+.search-input::placeholder {
+  color: #94a3b8;
+}
+
+/* Content Area */
+.content-area {
+  min-height: 400px;
 }
 
 /* Loading State */
@@ -1560,270 +1484,142 @@ export default {
   align-items: center;
   justify-content: center;
   padding: 4rem 2rem;
-  text-align: center;
+  gap: 16px;
 }
 
-.loading-spinner {
+.spinner {
   width: 40px;
   height: 40px;
-  border: 3px solid #e2e8f0;
-  border-top: 3px solid #6366f1;
+  border: 4px solid #e5e7eb;
+  border-top-color: #bc1f1b;
   border-radius: 50%;
   animation: spin 1s linear infinite;
-  margin-bottom: 1rem;
 }
 
 @keyframes spin {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
+  to { transform: rotate(360deg); }
 }
 
-/* Search and Filter Bar */
-.search-filter-bar {
-  background: white;
-  padding: 1.5rem 2rem;
-  display: flex;
-  align-items: center;
-  gap: 2rem;
-  max-width: 1400px;
-  margin: 2rem auto;
-  border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-}
-
-.search-box {
-  flex: 1;
-  position: relative;
-}
-
-.search-box input, ::placeholder{
-  color: black;
-}
-
-.search-icon {
-  position: absolute;
-  left: 1rem;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 20px;
-  height: 20px;
-  color: #94a3b8;
-}
-
-.search-input {
-  width: 100%;
-  padding: 0.75rem 1rem 0.75rem 3rem;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  font-size: 0.95rem;
-  transition: all 0.2s;
-}
-
-.search-input:focus {
-  outline: none;
-  border-color: #6366f1;
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-}
-
-.filter-chips {
-  display: flex;
-  gap: 0.75rem;
-}
-
-.filter-chip {
-  padding: 0.5rem 1rem;
-  border: 1px solid #e2e8f0;
-  background: white;
-  border-radius: 20px;
-  font-size: 0.875rem;
+.loading-state p {
   color: #64748b;
-  cursor: pointer;
-  transition: all 0.2s;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.filter-chip:hover {
-  background: #f8fafc;
-}
-
-.filter-chip.active {
-  background: #6366f1;
-  color: white;
-  border-color: #6366f1;
-}
-
-.chip-count {
-  background: rgba(0, 0, 0, 0.1);
-  padding: 0.125rem 0.5rem;
-  border-radius: 10px;
-  font-size: 0.75rem;
-  font-weight: 600;
-}
-
-.view-toggles {
-  display: flex;
-  gap: 0.5rem;
-  padding: 0.25rem;
-  background: #f1f5f9;
-  border-radius: 8px;
-}
-
-.view-btn {
-  width: 36px;
-  height: 36px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: transparent;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.view-btn:hover {
-  background: white;
-}
-
-.view-btn.active {
-  background: white;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.view-btn svg {
-  width: 18px;
-  height: 18px;
-  color: #64748b;
-}
-
-.view-btn.active svg {
-  color: #6366f1;
-}
-
-/* Dependencies Container */
-.dependencies-container {
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 0 2rem;
-  min-height: 400px;
+  font-size: 14px;
 }
 
 /* Grid View */
 .grid-view {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 20px;
 }
 
-.dep-card {
+.dependency-card {
   background: white;
   border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-  padding: 1.5rem;
+  border: 2px solid #e9ecef;
+  padding: 20px;
   cursor: pointer;
   transition: all 0.3s;
-  border: 2px solid transparent;
+  animation: fadeIn 0.5s ease-out;
 }
 
-.dep-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-.dep-card.selected {
-  border-color: #6366f1;
+.dependency-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
+  border-color: rgba(188, 31, 27, 0.3);
 }
 
-.dep-card-header {
+.dependency-card.selected {
+  border-color: #bc1f1b;
+  box-shadow: 0 0 0 3px rgba(188, 31, 27, 0.1);
+}
+
+.card-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 1rem;
+  margin-bottom: 12px;
+  gap: 12px;
 }
 
-.dep-name {
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: #1a202c;
-  margin-bottom: 0.25rem;
+.card-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+  line-height: 1.3;
 }
 
-.dep-version {
-  font-size: 0.875rem;
-  color: #64748b;
-  font-family: 'SF Mono', 'Monaco', 'Inconsolata', monospace;
-}
-
-.dep-status {
-  padding: 0.25rem 0.75rem;
+.risk-badge {
+  padding: 6px 12px;
   border-radius: 20px;
-  font-size: 0.75rem;
-  font-weight: 600;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
   display: flex;
   align-items: center;
-  gap: 0.25rem;
-  white-space: nowrap; /* Para resolver quebra que deixa feio */
+  gap: 6px;
+  white-space: nowrap;
+  letter-spacing: 0.3px;
 }
 
-.dep-status.sem-risco {
-  background: #f0f9ff;
-  color: #0369a1;
-}
-
-.dep-status.baixo {
-  background: #dcfce7;
-  color: #166534;
-}
-
-.dep-status.medio {
-  background: #fed7aa;
-  color: #9a3412;
-}
-
-.dep-status.alto {
-  background: #fee2e2;
-  color: #991b1b;
-}
-
-.status-dot {
+.badge-dot {
   width: 6px;
   height: 6px;
   border-radius: 50%;
   background: currentColor;
 }
 
-.dep-card-body {
-  margin-bottom: 1rem;
+.risk-badge.baixo {
+  background: #dcfce7;
+  color: #166534;
 }
 
-.dep-description {
+.risk-badge.medio {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.risk-badge.alto {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.card-body {
+  margin-bottom: 16px;
+}
+
+.card-description {
   color: #475569;
-  font-size: 0.875rem;
-  line-height: 1.5;
-  margin-bottom: 1rem;
+  font-size: 14px;
+  line-height: 1.6;
+  margin: 0 0 12px 0;
   display: -webkit-box;
   -webkit-line-clamp: 3;
-  line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
 
-.dep-meta {
+.card-meta {
   display: flex;
-  gap: 1rem;
+  gap: 16px;
 }
 
 .meta-item {
   display: flex;
   align-items: center;
-  gap: 0.25rem;
-  font-size: 0.75rem;
+  gap: 6px;
+  font-size: 12px;
   color: #64748b;
 }
 
@@ -1832,39 +1628,40 @@ export default {
   height: 14px;
 }
 
-.dep-card-footer {
+.card-footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-top: 1rem;
+  padding-top: 16px;
   border-top: 1px solid #f1f5f9;
 }
 
-.dep-tags {
+.card-tags {
   display: flex;
-  gap: 0.5rem;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .tag {
-  padding: 0.25rem 0.625rem;
+  padding: 4px 10px;
   background: #f1f5f9;
   color: #475569;
-  border-radius: 4px;
-  font-size: 0.75rem;
-  font-weight: 500;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
 }
 
-.dep-actions {
+.card-actions {
   display: flex;
-  gap: 0.5rem;
+  gap: 8px;
 }
 
 .action-btn {
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   border: 1px solid #e2e8f0;
   background: white;
-  border-radius: 6px;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1875,6 +1672,7 @@ export default {
 .action-btn:hover {
   background: #f8fafc;
   border-color: #cbd5e1;
+  transform: scale(1.05);
 }
 
 .action-btn svg {
@@ -1883,128 +1681,194 @@ export default {
   color: #64748b;
 }
 
+.action-btn-danger:hover {
+  background: #fee2e2;
+  border-color: #fca5a5;
+}
+
+.action-btn-danger:hover svg {
+  color: #dc2626;
+}
+
 /* List View */
 .list-view {
   background: white;
   border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  border: 2px solid #e9ecef;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
-.dep-table {
+.table-wrapper {
+  overflow-x: auto;
+}
+
+.dependencies-table {
   width: 100%;
   border-collapse: collapse;
 }
 
-.dep-table thead {
+.dependencies-table thead {
   background: #f8fafc;
 }
 
-.dep-table th {
+.dependencies-table th {
   text-align: left;
-  padding: 1rem 1.5rem;
-  font-size: 0.875rem;
-  font-weight: 600;
+  padding: 16px;
+  font-size: 13px;
+  font-weight: 700;
   color: #475569;
-  border-bottom: 1px solid #e2e8f0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 2px solid #e2e8f0;
 }
 
-.dep-table tbody tr {
+.dependencies-table tbody tr {
   border-bottom: 1px solid #f1f5f9;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: all 0.2s;
 }
 
-.dep-table tbody tr:hover {
+.dependencies-table tbody tr:hover {
   background: #f8fafc;
 }
 
-.dep-table tbody tr.selected {
-  background: #f0f9ff;
+.dependencies-table tbody tr.selected {
+  background: #fef2f2;
+  border-left: 4px solid #bc1f1b;
 }
 
-.dep-table td {
-  padding: 1rem 1.5rem;
+.dependencies-table td {
+  padding: 16px;
+  font-size: 14px;
+  color: #1e293b;
 }
 
-.package-cell {
+.table-title-cell {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 4px;
 }
 
-.package-desc {
-  font-size: 0.75rem;
+.table-title-cell strong {
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.table-description {
+  font-size: 12px;
   color: #64748b;
   display: -webkit-box;
   -webkit-line-clamp: 2;
-  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
 
-.status-badge {
-  padding: 0.25rem 0.75rem;
-  border-radius: 20px;
-  font-size: 0.75rem;
+.risk-badge-sm {
+  padding: 4px 10px;
+  border-radius: 16px;
+  font-size: 11px;
   font-weight: 600;
   display: inline-block;
-  white-space: nowrap; /* Resolvendo quebra chata */
+  text-transform: uppercase;
 }
 
-.status-badge.sem-risco {
-  background: #f0f9ff;
-  color: #0369a1;
-}
-
-.status-badge.baixo {
+.risk-badge-sm.baixo {
   background: #dcfce7;
   color: #166534;
 }
 
-.status-badge.medio {
-  background: #fed7aa;
-  color: #9a3412;
+.risk-badge-sm.medio {
+  background: #fef3c7;
+  color: #92400e;
 }
 
-.status-badge.alto {
+.risk-badge-sm.alto {
   background: #fee2e2;
   color: #991b1b;
 }
 
+.table-tag {
+  padding: 4px 10px;
+  background: #f1f5f9;
+  color: #475569;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.actions-column {
+  width: 120px;
+}
+
 .table-actions {
   display: flex;
-  gap: 0.5rem;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.action-btn-sm {
+  width: 32px;
+  height: 32px;
+  border: 1px solid #e2e8f0;
+  background: white;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.action-btn-sm:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+.action-btn-sm svg {
+  width: 14px;
+  height: 14px;
+  color: #64748b;
+}
+
+.action-btn-sm.action-btn-danger:hover {
+  background: #fee2e2;
+  border-color: #fca5a5;
+}
+
+.action-btn-sm.action-btn-danger:hover svg {
+  color: #dc2626;
 }
 
 /* Tree View */
 .tree-view {
   background: white;
   border-radius: 12px;
-  padding: 1.5rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  padding: 20px;
+  border: 2px solid #e9ecef;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
 .tree-container {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 12px;
 }
 
 .tree-category {
   border: 1px solid #e2e8f0;
-  border-radius: 8px;
+  border-radius: 10px;
   overflow: hidden;
 }
 
 .category-header {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 1rem 1.25rem;
+  gap: 12px;
+  padding: 16px;
   background: #f8fafc;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: all 0.2s;
 }
 
 .category-header:hover {
@@ -2012,8 +1876,8 @@ export default {
 }
 
 .chevron {
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
   color: #64748b;
   transition: transform 0.2s;
 }
@@ -2024,28 +1888,30 @@ export default {
 
 .category-name {
   flex: 1;
-  font-weight: 600;
-  color: #1a202c;
+  font-weight: 700;
+  color: #1e293b;
+  font-size: 15px;
 }
 
 .category-count {
-  padding: 0.125rem 0.5rem;
+  padding: 4px 10px;
   background: #e2e8f0;
-  border-radius: 10px;
-  font-size: 0.75rem;
-  font-weight: 600;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 700;
   color: #64748b;
 }
 
 .category-items {
-  padding: 0.5rem;
+  padding: 8px;
 }
 
 .tree-item {
-  padding: 0.75rem 1rem;
-  border-radius: 6px;
+  padding: 12px;
+  border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s;
+  margin-bottom: 4px;
 }
 
 .tree-item:hover {
@@ -2053,207 +1919,411 @@ export default {
 }
 
 .tree-item.selected {
-  background: #f0f9ff;
+  background: #fef2f2;
+  border-left: 4px solid #bc1f1b;
 }
 
 .tree-item-content {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 12px;
 }
 
 .item-name {
   flex: 1;
   font-weight: 500;
-  color: #1a202c;
+  color: #1e293b;
 }
 
-.item-version {
+.item-meta {
   color: #64748b;
-  font-size: 0.875rem;
-  font-family: 'SF Mono', 'Monaco', 'Inconsolata', monospace;
+  font-size: 13px;
 }
 
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Sidebar */
-.sidebar {
-  position: fixed;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  width: 400px;
-  background: white;
-  box-shadow: -10px 0 30px rgba(0, 0, 0, 0.1);
-  z-index: 999;
+/* Modal Styles */
+.modal-body {
   display: flex;
   flex-direction: column;
+  gap: 30px;
+  overflow-y: auto;
+  padding-right: 6px;
 }
 
-.sidebar-header {
-  padding: 1.5rem;
-  border-bottom: 1px solid #e2e8f0;
+.modal-header-section {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
+}
+
+.modal-left-block,
+.modal-right-block {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  flex-direction: column;
+  gap: 20px;
 }
 
-.sidebar-header h2 {
-  font-size: 1.25rem;
-  color: #1a202c;
+.modal-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
-.sidebar-close {
-  width: 32px;
-  height: 32px;
-  border: none;
-  background: transparent;
+.modal-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: #334155;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.modal-input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: 14px;
+  color: #1e293b;
+  transition: all 0.3s;
+}
+
+.modal-input:focus {
+  outline: none;
+  border-color: #bc1f1b;
+  box-shadow: 0 0 0 3px rgba(188, 31, 27, 0.1);
+}
+
+.modal-textarea {
+  width: 100%;
+  min-height: 160px;
+  padding: 12px 16px;
+  border: 2px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: 14px;
+  color: #1e293b;
+  resize: vertical;
+  font-family: inherit;
+  transition: all 0.3s;
+}
+
+.modal-textarea:focus {
+  outline: none;
+  border-color: #bc1f1b;
+  box-shadow: 0 0 0 3px rgba(188, 31, 27, 0.1);
+}
+
+.modal-risk-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.modal-risk-options {
+  display: flex;
+  gap: 8px;
+}
+
+.risk-option {
+  flex: 1;
+  padding: 14px;
+  border: 2px solid #e2e8f0;
+  background: white;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 13px;
   cursor: pointer;
+  transition: all 0.3s;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 6px;
-  transition: background 0.2s;
+  gap: 8px;
+  text-transform: uppercase;
 }
 
-.sidebar-close:hover {
-  background: #f1f5f9;
+.risk-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
 }
 
-.sidebar-close svg {
+.risk-option:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.risk-option.risk-low {
+  color: #166534;
+}
+
+.risk-option.risk-low:hover {
+  background: #dcfce7;
+  border-color: #86efac;
+}
+
+.risk-option.risk-low.selected {
+  background: #dcfce7;
+  border-color: #16a34a;
+}
+
+.risk-option.risk-medium {
+  color: #92400e;
+}
+
+.risk-option.risk-medium:hover {
+  background: #fef3c7;
+  border-color: #fde047;
+}
+
+.risk-option.risk-medium.selected {
+  background: #fef3c7;
+  border-color: #ca8a04;
+}
+
+.risk-option.risk-high {
+  color: #991b1b;
+}
+
+.risk-option.risk-high:hover {
+  background: #fee2e2;
+  border-color: #fca5a5;
+}
+
+.risk-option.risk-high.selected {
+  background: #fee2e2;
+  border-color: #dc2626;
+}
+
+.modal-section-title {
+  font-size: 20px;
+  font-weight: 700;
+  text-align: center;
+  color: #1e293b;
+  margin: 0;
+}
+
+.modal-tables-wrapper {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+}
+
+.modal-table-column {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 1;
+  max-width: 320px;
+}
+
+.modal-table-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1e293b;
+  text-align: center;
+  margin: 0;
+}
+
+.modal-table-list {
+  max-height: 400px;
+  overflow-y: auto;
+  background: #f8fafc;
+  border-radius: 10px;
+  border: 2px solid #e2e8f0;
+}
+
+.modal-table-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.modal-table-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.modal-table-list::-webkit-scrollbar-thumb {
+  background: rgba(100, 116, 139, 0.3);
+  border-radius: 10px;
+}
+
+.modal-dependency-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px;
+  border-bottom: 1px solid #e2e8f0;
+  transition: all 0.2s;
+}
+
+.modal-dependency-item:last-child {
+  border-bottom: none;
+}
+
+.modal-dependency-item:hover {
+  background: white;
+}
+
+.modal-dependency-item.principal-selected {
+  background: #d1fae5;
+  border-left: 4px solid #10b981;
+}
+
+.modal-item-name {
+  flex: 1;
+  font-size: 14px;
+  color: #1e293b;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.modal-radio {
+  appearance: none;
   width: 20px;
   height: 20px;
-  color: #64748b;
-}
-
-.sidebar-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 1.5rem;
-}
-
-.detail-section {
-  margin-bottom: 2rem;
-  border: 0; 
-  /* Tirei essa borda */
-}
-
-.detail-section h3 {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #64748b;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-bottom: 1rem;
-}
-
-.detail-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.5rem 0;
-}
-
-.detail-label {
-  color: #64748b;
-  font-size: 0.875rem;
-}
-
-.detail-value {
-  color: #1a202c;
-  font-weight: 500;
-}
-
-.detail-description {
-  color: #475569;
-  line-height: 1.6;
-  margin-bottom: 1rem;
-  padding: 0.2rem;
-}
-
-.sub-dependencies {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.sub-dep-item {
-  padding: 0.625rem;
-  background: #f8fafc;
-  border-radius: 6px;
-  font-size: 0.875rem;
-  color: #475569;
-}
-
-.sub-dep-item strong {
-  display: block;
-  color: #1a202c;
-  margin-bottom: 0.25rem;
-}
-
-.sub-dep-item small {
-  color: #64748b;
-}
-
-.sidebar-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.full-width {
-  width: 100%;
-}
-
-.btn-danger {
-  padding: 0.625rem 1.25rem;
-  border: 1px solid #fee2e2;
-  background: white;
-  color: #ef4444;
-  border-radius: 8px;
-  font-weight: 600;
+  border-radius: 50%;
+  border: 3px solid #94a3b8;
   cursor: pointer;
   transition: all 0.2s;
 }
 
-.btn-danger:hover {
-  background: #fee2e2;
+.modal-radio:hover {
+  border-color: #bc1f1b;
 }
 
-/* Toast Notifications */
-.toast-container {
+.modal-radio:checked {
+  background: #bc1f1b;
+  border-color: #bc1f1b;
+  box-shadow: inset 0 0 0 4px white;
+}
+
+.modal-checkbox {
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border: 2px solid #94a3b8;
+  border-radius: 6px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.modal-checkbox:hover {
+  border-color: #bc1f1b;
+  background: #fef2f2;
+}
+
+.modal-checkbox:checked {
+  background: #bc1f1b;
+  border-color: #bc1f1b;
+}
+
+.modal-checkbox:checked::after {
+  content: "✔";
+  color: white;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.modal-principal-container {
+  width: 100%;
+  padding: 12px;
+  background: #d1fae5;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.modal-principal-container:hover {
+  background: #a7f3d0;
+}
+
+.modal-principal-line {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.modal-principal-star {
+  font-size: 20px;
+}
+
+.modal-principal-name {
+  font-weight: 700;
+  color: #1e293b;
+  font-size: 14px;
+}
+
+.modal-principal-action {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #059669;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.modal-principal-action svg {
+  width: 14px;
+  height: 14px;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding-top: 20px;
+  border-top: 2px solid #e2e8f0;
+}
+
+.modal-btn-cancel {
+  padding: 12px 24px;
+  background: #f1f5f9;
+  border: 2px solid #e2e8f0;
+  border-radius: 10px;
+  font-weight: 700;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.modal-btn-cancel:hover {
+  background: #e2e8f0;
+  border-color: #cbd5e1;
+}
+
+.modal-btn-confirm {
+  padding: 12px 28px;
+  background: linear-gradient(135deg, #bc1f1b 0%, #8b1714 100%);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 4px 15px rgba(188, 31, 27, 0.3);
+}
+
+.modal-btn-confirm:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(188, 31, 27, 0.4);
+}
+
+/* Offcanvas Sidebar */
+.offcanvas-sidebar {
   position: fixed;
-  top: 1rem;
-  right: 1rem;
-  z-index: 9999;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 450px;
+  background: white;
+  box-shadow: -10px 0 40px rgba(0, 0, 0, 0.15);
+  z-index: 999;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-}
-
-.toast {
-  max-width: 400px;
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
   animation: slideInRight 0.3s ease-out;
 }
 
@@ -2268,46 +2338,191 @@ export default {
   }
 }
 
-.toast.success {
-  border-left: 4px solid #10b981;
-}
-
-.toast.error {
-  border-left: 4px solid #ef4444;
-}
-
-.toast.info {
-  border-left: 4px solid #6366f1;
-}
-
-.toast-content {
-  padding: 1rem 1.5rem;
+.offcanvas-header {
+  padding: 24px;
+  border-bottom: 2px solid #e2e8f0;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  background: linear-gradient(135deg, #2b2522 0%, #1a1715 100%);
+  color: white;
 }
 
-
-.toast-message {
-  color: #1a202c;
-  font-size: 0.875rem;
-  flex: 1;
+.offcanvas-header h2 {
+  font-size: 20px;
+  margin: 0;
 }
 
-.toast-close {
-  background: none;
+.offcanvas-close {
+  width: 36px;
+  height: 36px;
   border: none;
-  font-size: 1.5rem;
-  color: #64748b;
+  background: rgba(255, 255, 255, 0.1);
   cursor: pointer;
-  margin-left: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  transition: all 0.2s;
 }
 
-.toast-close:hover {
-  color: #1a202c;
+.offcanvas-close:hover {
+  background: rgba(255, 255, 255, 0.2);
 }
 
-/* Transitions */
+.offcanvas-close svg {
+  width: 20px;
+  height: 20px;
+  color: white;
+}
+
+.offcanvas-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
+}
+
+.offcanvas-section {
+  margin-bottom: 28px;
+}
+
+.section-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin: 0 0 14px 0;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.detail-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.detail-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+}
+
+.detail-item label {
+  font-size: 13px;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.detail-item span {
+  font-size: 14px;
+  color: #1e293b;
+  font-weight: 500;
+}
+
+.detail-description {
+  color: #475569;
+  line-height: 1.7;
+  font-size: 14px;
+}
+
+.items-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.item-card {
+  padding: 12px;
+  background: #f8fafc;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+
+.item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.item-header strong {
+  color: #1e293b;
+  font-size: 14px;
+}
+
+.principal-badge {
+  padding: 4px 8px;
+  background: #fef3c7;
+  color: #92400e;
+  border-radius: 12px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.item-card small {
+  color: #64748b;
+  font-size: 12px;
+}
+
+.offcanvas-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.btn-action-primary,
+.btn-action-danger {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.3s;
+}
+
+.btn-action-primary {
+  background: linear-gradient(135deg, #bc1f1b 0%, #8b1714 100%);
+  color: white;
+  box-shadow: 0 4px 15px rgba(188, 31, 27, 0.3);
+}
+
+.btn-action-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(188, 31, 27, 0.4);
+}
+
+.btn-action-primary svg {
+  width: 18px;
+  height: 18px;
+}
+
+.btn-action-danger {
+  background: white;
+  color: #dc2626;
+  border: 2px solid #fee2e2;
+}
+
+.btn-action-danger:hover {
+  background: #fee2e2;
+  border-color: #fca5a5;
+}
+
+.btn-action-danger svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* Slide Transition */
 .slide-enter-active,
 .slide-leave-active {
   transition: transform 0.3s ease;
@@ -2318,441 +2533,114 @@ export default {
   transform: translateX(100%);
 }
 
-.btn-remove {
-  background: #dc3545;
-  color: white;
+/* Toast Notifications */
+.toast-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.toast {
+  min-width: 320px;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  animation: slideInRight 0.3s ease-out;
+  overflow: hidden;
+}
+
+.toast.success {
+  border-left: 4px solid #10b981;
+}
+
+.toast.error {
+  border-left: 4px solid #ef4444;
+}
+
+.toast.info {
+  border-left: 4px solid #3b82f6;
+}
+
+.toast-content {
+  padding: 16px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.toast-message {
+  color: #1e293b;
+  font-size: 14px;
+  font-weight: 500;
+  flex: 1;
+}
+
+.toast-close {
+  background: none;
   border: none;
-  border-radius: 50%;
+  font-size: 24px;
+  color: #64748b;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0;
   width: 24px;
   height: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
-  font-size: 14px;
-  line-height: 1;
-}
-
-.btn-remove:hover {
-  background: #c82333;
-}
-
-/* ----------------------- */
-/* --------------------------
-   OVERLAY & CONTAINER
----------------------------*/
-/* BODY SCROLL */
-.modal-body {
-  display: flex;
-  flex-direction: column;
-  gap: 30px;
-  flex: 1;
-  overflow-y: auto;
-  padding-right: 6px;
-}
-
-.modal-title {
-  font-size: 28px;
-  font-weight: 800;
-  text-align: center;
-  margin: 0;
-  color: #111;
-}
-
-/* --------------------------
-      HEADER (Título/Risco/Desc)
----------------------------*/
-.header-wrapper {
-  display: grid;
-  grid-template-columns: 450px 1fr;
-  gap: 40px;
-  align-items: center;
-}
-
-.left-block {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.right-block {
-  display: flex;
-  flex-direction: column;
-}
-
-.input-label {
-  font-size: 14px;
-  font-weight: 600;
-  color: #333;
-}
-
-.text-input {
-  width: 100%;
-  padding: 12px 14px;
-  border-radius: 10px;
-  border: 1px solid #d5d5d5;
-  background: #fafafa;
-  font-size: 14px;
-}
-
-.text-area {
-  min-height: 130px;
-  padding: 12px 14px;
-  border-radius: 10px;
-  border: 1px solid #d5d5d5;
-  font-size: 14px;
-  resize: vertical;
-}
-
-/* --------------------------
-      RISCO – Grupo conectado
----------------------------*/
-.risk-block {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.risk-title {
-  font-size: 16px;
-  font-weight: 700;
-  color: #222;
-  margin-bottom: 8px;
-}
-
-.risk-container {
-  display: inline-flex;
-  gap: 2px;
-}
-
-.risk-card {
-  padding: 10px 28px;
-  min-width: 98px;
-  text-align: center;
-  border: none;
   border-radius: 4px;
-  background: #5151512e;
-  font-weight: 700;
-  font-size: 15px;
-  cursor: pointer;
-  transition: background, border-radius .10s ease;
-}
-
-.risk-card.low:hover:not(.modalSelected) { background: #6EE7B7; border-radius: 12px; }
-.risk-card.medium:hover:not(.modalSelected) { background: #FDE047; border-radius: 12px; }
-.risk-card.high:hover:not(.modalSelected) { background: #F87171; border-radius: 12px; }
-
-.risk-card.low.modalSelected { background: #34D399; border-radius: 24px; }
-.risk-card.medium.modalSelected { background: #FACC15; border-radius: 24px; }
-.risk-card.high.modalSelected { background: #EF4444; border-radius: 24px; }
-
-/* --------------------------
-        SECTION TITLE
----------------------------*/
-.section-title {
-  font-size: 24px;
-  font-weight: 700;
-  text-align: center;
-  margin: 0;
-  color: #111;
-}
-
-/* --------------------------
-        TABLES (Colunas)
----------------------------*/
-.tables-wrapper {
-  display: flex;
-  gap: 20px;
-  justify-content: center;
-  align-items: flex-start;
-}
-
-.table-col {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 300px;
-  gap: 10px;
-}
-
-.table-title {
-  font-size: 20px;
-  font-weight: 500;
-  color: #111;
-  margin: 0;
-  text-align: center;
-}
-
-.table-block {
-  width: 300px;
-  height: 370px;
-  border-radius: 5px;
-  background: #efefef;
-  overflow-y: auto;
-}
-
-/* Scrollbar minimalista */
-.table-block::-webkit-scrollbar {
-  width: 4px;       /* Largura sutil */
-}
-
-.table-block::-webkit-scrollbar-track {
-  background: transparent;   /* Sem bloco cinza */
-}
-
-.table-block::-webkit-scrollbar-thumb {
-  background: rgba(1, 1, 1, 0.31);    /* Cor discreta */
-  border-radius: 20px;                      /* Bordinha suave */
-}
-
-.table-block::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.25);    /* Um pouco mais forte no hover */
-}
-
-
-/* --------------------------
-   DEPENDENCY ITEM (Geral)
----------------------------*/
-.dependency-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  max-width: 300px;
-  gap: 12px;
-  padding: 12px;
-  height: auto;
-  min-height: 75px;
-  border-bottom: solid 3px #ddd;
-  color: #111;
-}
-
-/* NOME */
-.modal-dep-name {
-  flex: 1;
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* --------------------------
-     ETAPA 1 – RADIO BUTTON
----------------------------*/
-.principal-radio {
-  appearance: none;
-  -webkit-appearance: none;
-  min-width: 22px;
-  min-height: 22px;
-  border-radius: 50%;
-  border: 3px solid #888;
-  cursor: pointer;
-  transition: all .15s ease;
-}
-
-.principal-radio:hover {
-  border-color: #5b2ccc;
-}
-
-.principal-radio:checked {
-  background: #6f39ef;
-  border-color: #6f39ef;
-  box-shadow: inset 0 0 0 4px #fff;
-}
-
-
-/* --------------------------
- ETAPA 2 – CHECKBOX DAS DEPENDÊNCIAS
----------------------------*/
-.dep-checkbox {
-  appearance: none;
-  width: 22px;
-  height: 22px;
-  border: 2px solid gray;
-  border-radius: 6px;
-  cursor: pointer;
-  background: #fff;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  transition: all .15s ease;
-}
-
-.dep-checkbox:hover {
-  border-color: #5b2ccc;
-  background: #f3eaff;
-}
-
-.dep-checkbox:checked {
-  background: #6f39ef;
-  border-color: #6f39ef;
-}
-
-.dep-checkbox:checked::after {
-  content: "✔";
-  color: white;
-  font-size: 14px;
-  font-weight: bold;
-}
-.input-block {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-/* --------------------------
-    ITEM PRINCIPAL (selecionado)
----------------------------*/
-.principal-selected {
-  background: #d1fae5 !important;
-  border-left: 5px solid #10b981;
-  /* border-radius: 10px; */
-  padding-left: 8px;
-}
-
-/* Container interno do principal */
-.principal-container {
-  /* background: #d1fae5;               */
-  /* border-left: 5px solid #10b981;  */
-  border-radius: 12px;
-
-  padding: 12px;
-  width: 100%;          
-  box-sizing: border-box;
-
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-
-  cursor: pointer;
-}
-
-.principal-line {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.principal-star {
-  font-size: 22px;
-  flex-shrink: 0;
-}
-
-.principal-name {
-  font-weight: 700;
-  font-size: 16px;
-  color: #111;
-  /* limitar em 3 linhas igual ao dep-name */
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  line-height: 1.2;
-}
-
-.principal-action {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  color: #0f766e;
-  font-size: 14px;
-  font-weight: 600;
-}
-
-.swap-icon {
-  font-size: 16px;
-}
-
-.swap-text {
-  text-decoration: underline;
-}
-
-/* --------------------------
-       FOOTER
----------------------------*/
-.modal-footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-}
-
-.btn-cancel {
-  padding: 10px 20px;
-  background: #f1f1f1;
-  border-radius: 8px;
-  border: 1px solid #e0e0e0;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.btn-confirm {
-  padding: 10px 26px;
-  background: #6f39ef;
-  color: #fff;
-  border-radius: 12px;
-  border: none;
-  font-weight: 800;
-  cursor: pointer;
-}
-
-/* ADICIONAR ESTAS REGRAS CSS */
-.page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 2rem;
-  padding: 2rem;
-  border-bottom: 2px solid #e9ecef;
-}
-
-.header-content h1 {
-  margin: 0 0 0.5rem 0;
-  font-size: 2.5rem;
-  font-weight: 700;
-  color: #2c3e50;
-  background: var(--badge-gradient);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.header-content p {
-  margin: 0;
-  color: #6c757d;
-  font-size: 1.1rem;
-}
-
-.header-actions {
-  display: flex;
-  gap: 1rem;
-}
-
-.btn-secondary {
-  background: #6c757d;
-  color: white;
-  border: none;
-  padding: 0.625rem 1.25rem;
-  border-radius: 8px;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  cursor: pointer;
   transition: all 0.2s;
 }
 
-.btn-secondary:hover {
-  background: #5a6268;
-  transform: translateY(-1px);
+.toast-close:hover {
+  background: #f1f5f9;
+  color: #1e293b;
 }
 
-.btn-secondary:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none;
+/* Responsive */
+@media (max-width: 1200px) {
+  .grid-view {
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  }
 }
 
+@media (max-width: 768px) {
+  .dependencies {
+    padding: 1rem;
+  }
+
+  .page-header {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .filter-tabs {
+    grid-template-columns: 1fr;
+  }
+
+  .table-filter-container {
+    flex-direction: column;
+  }
+
+  .grid-view {
+    grid-template-columns: 1fr;
+  }
+
+  .modal-header-section {
+    grid-template-columns: 1fr;
+  }
+
+  .modal-tables-wrapper {
+    flex-direction: column;
+  }
+
+  .offcanvas-sidebar {
+    width: 100%;
+  }
+}
 </style>
