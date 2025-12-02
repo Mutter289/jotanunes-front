@@ -290,85 +290,24 @@
       :show-cancel-button="false"
     >
       <div class="modal-body">
-        <!-- Decorative Header Icon -->
-        <div class="modal-hero">
-          <div class="modal-hero-icon">
-            <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <circle cx="32" cy="32" r="28" fill="url(#gradient1)" opacity="0.2"/>
-              <circle cx="32" cy="32" r="22" fill="url(#gradient1)" opacity="0.3"/>
-              <path d="M32 16L32 48M24 24L40 24M24 32L40 32M24 40L40 40" stroke="url(#gradient2)" stroke-width="3" stroke-linecap="round"/>
-              <circle cx="20" cy="24" r="3" fill="#bc1f1b"/>
-              <circle cx="20" cy="32" r="3" fill="#bc1f1b"/>
-              <circle cx="20" cy="40" r="3" fill="#bc1f1b"/>
-              <defs>
-                <linearGradient id="gradient1" x1="0" y1="0" x2="64" y2="64">
-                  <stop offset="0%" style="stop-color:#bc1f1b;stop-opacity:1" />
-                  <stop offset="100%" style="stop-color:#8b1714;stop-opacity:1" />
-                </linearGradient>
-                <linearGradient id="gradient2" x1="0" y1="0" x2="64" y2="64">
-                  <stop offset="0%" style="stop-color:#bc1f1b;stop-opacity:0.8" />
-                  <stop offset="100%" style="stop-color:#8b1714;stop-opacity:0.8" />
-                </linearGradient>
-              </defs>
-            </svg>
-          </div>
-          <h2 class="modal-hero-title">
-            {{ isEditing ? 'Editar Dependência' : 'Nova Dependência' }}
-          </h2>
-          <p class="modal-hero-subtitle">
-            {{ isEditing ? 'Atualize as informações da dependência do sistema' : 'Configure uma nova alteração e suas interdependências' }}
-          </p>
-        </div>
-
-        <!-- Separator -->
-        <div class="modal-separator">
-          <div class="separator-line"></div>
-          <div class="separator-icon">
-            <svg viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
-            </svg>
-          </div>
-          <div class="separator-line"></div>
-        </div>
-
         <!-- Header Section -->
         <div class="modal-header-section">
           <div class="modal-left-block">
             <!-- Título -->
             <div class="modal-input-group">
-              <label class="modal-label" for="titulo">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M4 7h16M4 12h16M4 17h10"/>
-                </svg>
-                Título da Dependência
-              </label>
-              <div class="input-wrapper">
-                <input
-                  id="titulo"
-                  type="text"
-                  v-model="titulo"
-                  class="modal-input"
-                  placeholder="Ex: Atualização do módulo financeiro..."
-                />
-                <div class="input-icon">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                    <path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4z"/>
-                  </svg>
-                </div>
-              </div>
+              <label class="modal-label" for="titulo">Título da Dependência</label>
+              <input
+                id="titulo"
+                type="text"
+                v-model="titulo"
+                class="modal-input"
+                placeholder="Ex: Atualização do módulo financeiro..."
+              />
             </div>
 
             <!-- Nível de Impacto -->
             <div class="modal-risk-section">
-              <label class="modal-label">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-                  <line x1="12" y1="9" x2="12" y2="13"/>
-                  <line x1="12" y1="17" x2="12.01" y2="17"/>
-                </svg>
-                Nível de Impacto
-              </label>
+              <label class="modal-label">Nível de Impacto</label>
               <div class="modal-risk-options">
                 <button
                   type="button"
@@ -376,15 +315,8 @@
                   :class="{ selected: risco === 'Baixo' }"
                   @click="modal_setRisco('Baixo')"
                 >
-                  <div class="risk-option-icon">
-                    <svg viewBox="0 0 24 24" fill="currentColor">
-                      <circle cx="12" cy="12" r="10"/>
-                      <path d="M8 14s1.5 2 4 2 4-2 4-2" stroke="white" stroke-width="2" stroke-linecap="round"/>
-                      <circle cx="9" cy="9" r="1.5" fill="white"/>
-                      <circle cx="15" cy="9" r="1.5" fill="white"/>
-                    </svg>
-                  </div>
-                  <span>Baixo</span>
+                  <span class="risk-dot"></span>
+                  Baixo
                 </button>
                 <button
                   type="button"
@@ -392,14 +324,8 @@
                   :class="{ selected: risco === 'Médio' }"
                   @click="modal_setRisco('Médio')"
                 >
-                  <div class="risk-option-icon">
-                    <svg viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M12 2L2 22h20L12 2z"/>
-                      <line x1="12" y1="10" x2="12" y2="14" stroke="white" stroke-width="2"/>
-                      <circle cx="12" cy="17" r="1" fill="white"/>
-                    </svg>
-                  </div>
-                  <span>Médio</span>
+                  <span class="risk-dot"></span>
+                  Médio
                 </button>
                 <button
                   type="button"
@@ -407,69 +333,28 @@
                   :class="{ selected: risco === 'Alto' }"
                   @click="modal_setRisco('Alto')"
                 >
-                  <div class="risk-option-icon">
-                    <svg viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/>
-                      <line x1="12" y1="8" x2="12" y2="12" stroke="white" stroke-width="2.5"/>
-                      <circle cx="12" cy="16" r="1.5" fill="white"/>
-                    </svg>
-                  </div>
-                  <span>Alto</span>
+                  <span class="risk-dot"></span>
+                  Alto
                 </button>
               </div>
             </div>
           </div>
 
           <div class="modal-right-block">
-            <label class="modal-label" for="descricao">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                <polyline points="14 2 14 8 20 8"/>
-                <line x1="16" y1="13" x2="8" y2="13"/>
-                <line x1="16" y1="17" x2="8" y2="17"/>
-                <polyline points="10 9 9 9 8 9"/>
-              </svg>
-              Descrição
-            </label>
-            <div class="textarea-wrapper">
-              <textarea
-                id="descricao"
-                v-model="descricao"
-                class="modal-textarea"
-                placeholder="Descreva detalhadamente a alteração e seu impacto no sistema..."
-              ></textarea>
-              <div class="textarea-counter">{{ descricao?.length || 0 }} caracteres</div>
-            </div>
+            <label class="modal-label" for="descricao">Descrição</label>
+            <textarea
+              id="descricao"
+              v-model="descricao"
+              class="modal-textarea"
+              placeholder="Descreva a alteração e seu impacto no sistema..."
+            ></textarea>
           </div>
         </div>
 
-        <!-- Separator -->
-        <div class="modal-separator">
-          <div class="separator-line"></div>
-          <div class="separator-text">{{ isChoosingPrincipal ? 'Passo 1 de 2' : 'Passo 2 de 2' }}</div>
-          <div class="separator-line"></div>
-        </div>
-
-        <!-- Section Title with Icon -->
-        <div class="modal-section-header">
-          <div class="section-header-icon">
-            <svg v-if="isChoosingPrincipal" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-            </svg>
-            <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="12" cy="12" r="3"/>
-              <path d="M12 1v6m0 6v6M5.64 5.64l4.24 4.24m4.24 4.24l4.24 4.24M1 12h6m6 0h6M5.64 18.36l4.24-4.24m4.24-4.24l4.24-4.24"/>
-            </svg>
-          </div>
-          <div class="section-header-content">
-            <h3 class="modal-section-title">
-              {{ isChoosingPrincipal ? "Selecione o Item Principal" : "Selecione as Dependências" }}
-            </h3>
-            <p class="modal-section-subtitle">
-              {{ isChoosingPrincipal ? "Escolha o item que será o foco principal desta alteração" : "Marque os itens que dependem do item principal" }}
-            </p>
-          </div>
-        </div>
+        <!-- Section Title -->
+        <h3 class="modal-section-title">
+          {{ isChoosingPrincipal ? "Selecione o Item Principal" : "Selecione as Dependências" }}
+        </h3>
 
         <!-- Tables Section -->
         <div class="modal-tables-wrapper">
@@ -478,17 +363,7 @@
             :key="table.name"
             class="modal-table-column"
           >
-            <div class="modal-table-header">
-              <div class="table-header-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-                  <line x1="3" y1="9" x2="21" y2="9"/>
-                  <line x1="9" y1="21" x2="9" y2="9"/>
-                </svg>
-              </div>
-              <h4 class="modal-table-title">{{ formatTableName(table.name) }}</h4>
-              <span class="modal-table-count">{{ table.items?.length || 0 }}</span>
-            </div>
+            <h4 class="modal-table-title">{{ formatTableName(table.name) }}</h4>
             <div
               class="modal-table-list"
               :ref="el => tableRefs[table.name] = el"
@@ -504,32 +379,25 @@
                 <!-- Principal Item Display -->
                 <template v-if="!isChoosingPrincipal && modal_makeKey(table, item) === selectedPrincipalKey">
                   <div class="modal-principal-container" @click="modal_trocarPrincipal()">
-                    <div class="modal-principal-badge">
-                      <svg viewBox="0 0 24 24" fill="currentColor">
-                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-                      </svg>
+                    <div class="modal-principal-line">
+                      <span class="modal-principal-star">⭐</span>
+                      <span class="modal-principal-name">{{ item.nome }}</span>
                     </div>
-                    <div class="modal-principal-content">
-                      <div class="modal-principal-line">
-                        <span class="modal-principal-label">Item Principal</span>
-                        <span class="modal-principal-name">{{ item.nome }}</span>
-                      </div>
-                      <div class="modal-principal-action">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                          <polyline points="1 4 1 10 7 10"/>
-                          <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>
-                        </svg>
-                        <span>Trocar item principal</span>
-                      </div>
+                    <div class="modal-principal-action">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 2v6h-6" />
+                        <path d="M3 12a9 9 0 0 1 15-6.7L21 8" />
+                        <path d="M3 22v-6h6" />
+                        <path d="M21 12a9 9 0 0 1-15 6.7L3 16" />
+                      </svg>
+                      <span>Trocar item principal</span>
                     </div>
                   </div>
                 </template>
 
                 <!-- Step 1: Choose Principal -->
                 <template v-else-if="isChoosingPrincipal">
-                  <div class="modal-item-content">
-                    <span class="modal-item-name">{{ item.nome }}</span>
-                  </div>
+                  <span class="modal-item-name">{{ item.nome }}</span>
                   <input
                     type="radio"
                     class="modal-radio"
@@ -565,19 +433,8 @@
 
       <!-- Modal Footer -->
       <div class="modal-footer">
-        <button class="modal-btn-cancel" @click="closeModal">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="18" y1="6" x2="6" y2="18"/>
-            <line x1="6" y1="6" x2="18" y2="18"/>
-          </svg>
-          Cancelar
-        </button>
-        <button class="modal-btn-confirm" @click="modal_submitNew">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-            <polyline points="20 6 9 17 4 12"/>
-          </svg>
-          Salvar Dependência
-        </button>
+        <button class="modal-btn-cancel" @click="closeModal">Cancelar</button>
+        <button class="modal-btn-confirm" @click="modal_submitNew">Salvar Dependência</button>
       </div>
     </VModal>
 
@@ -2099,254 +1956,73 @@ export default {
 .modal-body {
   display: flex;
   flex-direction: column;
-  gap: 32px;
+  gap: 30px;
   overflow-y: auto;
-  padding: 8px 12px 12px 12px;
+  padding-right: 6px;
 }
 
-/* Modal Hero Section */
-.modal-hero {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 16px;
-  padding: 24px;
-  background: linear-gradient(135deg, #fef2f2 0%, #fff5f5 100%);
-  border-radius: 16px;
-  border: 2px solid #fee2e2;
-  animation: heroFadeIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-@keyframes heroFadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-20px) scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-.modal-hero-icon {
-  width: 80px;
-  height: 80px;
-  animation: iconFloat 3s ease-in-out infinite;
-}
-
-@keyframes iconFloat {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
-}
-
-.modal-hero-icon svg {
-  width: 100%;
-  height: 100%;
-  filter: drop-shadow(0 4px 8px rgba(188, 31, 27, 0.2));
-}
-
-.modal-hero-title {
-  font-size: 28px;
-  font-weight: 800;
-  color: #1e293b;
-  margin: 0;
-  background: linear-gradient(135deg, #bc1f1b 0%, #8b1714 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  letter-spacing: -0.5px;
-}
-
-.modal-hero-subtitle {
-  font-size: 14px;
-  color: #64748b;
-  margin: 0;
-  text-align: center;
-  max-width: 500px;
-  line-height: 1.6;
-}
-
-/* Separator Styles */
-.modal-separator {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  margin: 8px 0;
-}
-
-.separator-line {
-  flex: 1;
-  height: 2px;
-  background: linear-gradient(90deg, transparent, #e2e8f0, transparent);
-}
-
-.separator-icon {
-  width: 28px;
-  height: 28px;
-  color: #bc1f1b;
-  animation: separatorPulse 2s ease-in-out infinite;
-}
-
-@keyframes separatorPulse {
-  0%, 100% { transform: scale(1); opacity: 0.7; }
-  50% { transform: scale(1.15); opacity: 1; }
-}
-
-.separator-icon svg {
-  width: 100%;
-  height: 100%;
-}
-
-.separator-text {
-  font-size: 12px;
-  font-weight: 700;
-  color: #bc1f1b;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  padding: 6px 16px;
-  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
-  border-radius: 20px;
-  border: 2px solid #fecaca;
-}
-
-/* Modal Header Section */
 .modal-header-section {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 28px;
-  animation: sectionSlideIn 0.5s ease-out;
-}
-
-@keyframes sectionSlideIn {
-  from {
-    opacity: 0;
-    transform: translateX(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
+  gap: 30px;
 }
 
 .modal-left-block,
 .modal-right-block {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 20px;
 }
 
 .modal-input-group {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-}
-
-.modal-label {
-  font-size: 12px;
-  font-weight: 700;
-  color: #334155;
-  text-transform: uppercase;
-  letter-spacing: 0.8px;
-  display: flex;
-  align-items: center;
   gap: 8px;
 }
 
-.modal-label svg {
-  width: 18px;
-  height: 18px;
-  color: #bc1f1b;
-}
-
-.input-wrapper {
-  position: relative;
+.modal-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: #334155;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .modal-input {
   width: 100%;
-  padding: 14px 48px 14px 16px;
+  padding: 12px 16px;
   border: 2px solid #e2e8f0;
-  border-radius: 12px;
-  font-size: 15px;
+  border-radius: 10px;
+  font-size: 14px;
   color: #1e293b;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  background: white;
-}
-
-.modal-input:hover {
-  border-color: #cbd5e1;
+  transition: all 0.3s;
 }
 
 .modal-input:focus {
   outline: none;
   border-color: #bc1f1b;
-  box-shadow: 0 0 0 4px rgba(188, 31, 27, 0.1);
-  transform: translateY(-1px);
-}
-
-.input-icon {
-  position: absolute;
-  right: 14px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 20px;
-  height: 20px;
-  color: #94a3b8;
-  pointer-events: none;
-  transition: all 0.3s;
-}
-
-.modal-input:focus + .input-icon,
-.input-wrapper:has(.modal-input:focus) .input-icon {
-  color: #bc1f1b;
-  transform: translateY(-50%) scale(1.1);
-}
-
-.input-icon svg {
-  width: 100%;
-  height: 100%;
-}
-
-.textarea-wrapper {
-  position: relative;
+  box-shadow: 0 0 0 3px rgba(188, 31, 27, 0.1);
 }
 
 .modal-textarea {
   width: 100%;
-  min-height: 180px;
-  padding: 14px 16px 32px 16px;
+  min-height: 160px;
+  padding: 12px 16px;
   border: 2px solid #e2e8f0;
-  border-radius: 12px;
-  font-size: 15px;
+  border-radius: 10px;
+  font-size: 14px;
   color: #1e293b;
   resize: vertical;
   font-family: inherit;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  line-height: 1.6;
-  background: white;
-}
-
-.modal-textarea:hover {
-  border-color: #cbd5e1;
+  transition: all 0.3s;
 }
 
 .modal-textarea:focus {
   outline: none;
   border-color: #bc1f1b;
-  box-shadow: 0 0 0 4px rgba(188, 31, 27, 0.1);
+  box-shadow: 0 0 0 3px rgba(188, 31, 27, 0.1);
 }
 
-.textarea-counter {
-  position: absolute;
-  bottom: 10px;
-  right: 14px;
-  font-size: 11px;
-  color: #94a3b8;
-  font-weight: 600;
-  pointer-events: none;
-}
-
-/* Risk Section */
 .modal-risk-section {
   display: flex;
   flex-direction: column;
@@ -2355,65 +2031,36 @@ export default {
 
 .modal-risk-options {
   display: flex;
-  gap: 10px;
+  gap: 8px;
 }
 
 .risk-option {
   flex: 1;
-  padding: 16px 12px;
+  padding: 14px;
   border: 2px solid #e2e8f0;
   background: white;
-  border-radius: 12px;
+  border-radius: 10px;
   font-weight: 700;
-  font-size: 12px;
+  font-size: 13px;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.3s;
   display: flex;
-  flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 8px;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  position: relative;
-  overflow: hidden;
 }
 
-.risk-option::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(135deg, transparent 0%, currentColor 100%);
-  opacity: 0;
-  transition: opacity 0.3s;
-}
-
-.risk-option:hover::before {
-  opacity: 0.05;
-}
-
-.risk-option-icon {
-  width: 36px;
-  height: 36px;
-  transition: all 0.3s;
-  position: relative;
-  z-index: 1;
-}
-
-.risk-option-icon svg {
-  width: 100%;
-  height: 100%;
+.risk-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
 }
 
 .risk-option:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
-}
-
-.risk-option:hover .risk-option-icon {
-  transform: scale(1.15) rotate(-5deg);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .risk-option.risk-low {
@@ -2428,11 +2075,6 @@ export default {
 .risk-option.risk-low.selected {
   background: #dcfce7;
   border-color: #16a34a;
-  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.2);
-}
-
-.risk-option.risk-low .risk-option-icon svg {
-  color: #16a34a;
 }
 
 .risk-option.risk-medium {
@@ -2447,11 +2089,6 @@ export default {
 .risk-option.risk-medium.selected {
   background: #fef3c7;
   border-color: #ca8a04;
-  box-shadow: 0 0 0 3px rgba(202, 138, 4, 0.2);
-}
-
-.risk-option.risk-medium .risk-option-icon svg {
-  color: #eab308;
 }
 
 .risk-option.risk-high {
@@ -2466,100 +2103,20 @@ export default {
 .risk-option.risk-high.selected {
   background: #fee2e2;
   border-color: #dc2626;
-  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.2);
-}
-
-.risk-option.risk-high .risk-option-icon svg {
-  color: #dc2626;
-}
-
-/* Section Header */
-.modal-section-header {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 20px 24px;
-  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-  border-radius: 14px;
-  border: 2px solid #e2e8f0;
-  animation: headerSlideIn 0.5s ease-out;
-}
-
-@keyframes headerSlideIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.section-header-icon {
-  width: 48px;
-  height: 48px;
-  background: linear-gradient(135deg, #bc1f1b 0%, #8b1714 100%);
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  box-shadow: 0 4px 12px rgba(188, 31, 27, 0.3);
-  flex-shrink: 0;
-  animation: iconRotate 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-@keyframes iconRotate {
-  from {
-    transform: rotate(-180deg) scale(0);
-  }
-  to {
-    transform: rotate(0deg) scale(1);
-  }
-}
-
-.section-header-icon svg {
-  width: 28px;
-  height: 28px;
-}
-
-.section-header-content {
-  flex: 1;
 }
 
 .modal-section-title {
   font-size: 20px;
   font-weight: 700;
+  text-align: center;
   color: #1e293b;
-  margin: 0 0 4px 0;
-  letter-spacing: -0.3px;
-}
-
-.modal-section-subtitle {
-  font-size: 13px;
-  color: #64748b;
   margin: 0;
-  line-height: 1.5;
 }
 
-/* Tables Wrapper */
 .modal-tables-wrapper {
   display: flex;
   gap: 20px;
   justify-content: center;
-  animation: tablesSlideUp 0.6s ease-out;
-}
-
-@keyframes tablesSlideUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
 }
 
 .modal-table-column {
@@ -2567,90 +2124,46 @@ export default {
   flex-direction: column;
   gap: 12px;
   flex: 1;
-  max-width: 340px;
-}
-
-.modal-table-header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 14px 18px;
-  background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-.table-header-icon {
-  width: 24px;
-  height: 24px;
-  color: #fbbf24;
-  flex-shrink: 0;
-}
-
-.table-header-icon svg {
-  width: 100%;
-  height: 100%;
+  max-width: 320px;
 }
 
 .modal-table-title {
-  flex: 1;
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 700;
-  color: white;
-  margin: 0;
-  letter-spacing: 0.3px;
-}
-
-.modal-table-count {
-  padding: 4px 10px;
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 12px;
-  font-size: 12px;
-  font-weight: 700;
-  color: white;
-  min-width: 28px;
+  color: #1e293b;
   text-align: center;
+  margin: 0;
 }
 
 .modal-table-list {
-  max-height: 420px;
+  max-height: 400px;
   overflow-y: auto;
   background: #f8fafc;
-  border-radius: 12px;
+  border-radius: 10px;
   border: 2px solid #e2e8f0;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
 .modal-table-list::-webkit-scrollbar {
-  width: 8px;
+  width: 6px;
 }
 
 .modal-table-list::-webkit-scrollbar-track {
   background: transparent;
-  margin: 6px 0;
 }
 
 .modal-table-list::-webkit-scrollbar-thumb {
-  background: rgba(100, 116, 139, 0.4);
+  background: rgba(100, 116, 139, 0.3);
   border-radius: 10px;
-  border: 2px solid transparent;
-  background-clip: padding-box;
-}
-
-.modal-table-list::-webkit-scrollbar-thumb:hover {
-  background: rgba(100, 116, 139, 0.6);
-  background-clip: padding-box;
 }
 
 .modal-dependency-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 14px;
-  padding: 14px 16px;
+  gap: 12px;
+  padding: 14px;
   border-bottom: 1px solid #e2e8f0;
   transition: all 0.2s;
-  cursor: pointer;
 }
 
 .modal-dependency-item:last-child {
@@ -2659,260 +2172,156 @@ export default {
 
 .modal-dependency-item:hover {
   background: white;
-  transform: translateX(2px);
 }
 
 .modal-dependency-item.principal-selected {
-  background: transparent;
-  border-left: none;
-  padding: 8px;
-}
-
-.modal-item-content {
-  flex: 1;
+  background: #d1fae5;
+  border-left: 4px solid #10b981;
 }
 
 .modal-item-name {
   flex: 1;
   font-size: 14px;
   color: #1e293b;
-  line-height: 1.5;
-  cursor: pointer;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .modal-radio {
   appearance: none;
-  width: 22px;
-  height: 22px;
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
-  border: 3px solid #cbd5e1;
+  border: 3px solid #94a3b8;
   cursor: pointer;
-  transition: all 0.3s;
-  flex-shrink: 0;
+  transition: all 0.2s;
 }
 
 .modal-radio:hover {
   border-color: #bc1f1b;
-  transform: scale(1.1);
 }
 
 .modal-radio:checked {
   background: #bc1f1b;
   border-color: #bc1f1b;
-  box-shadow: inset 0 0 0 4px white, 0 0 0 3px rgba(188, 31, 27, 0.2);
-  animation: radioCheck 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-@keyframes radioCheck {
-  0% { transform: scale(0.8); }
-  50% { transform: scale(1.2); }
-  100% { transform: scale(1); }
+  box-shadow: inset 0 0 0 4px white;
 }
 
 .modal-checkbox {
   appearance: none;
-  width: 22px;
-  height: 22px;
-  border: 2px solid #cbd5e1;
-  border-radius: 7px;
+  width: 20px;
+  height: 20px;
+  border: 2px solid #94a3b8;
+  border-radius: 6px;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.3s;
-  flex-shrink: 0;
+  transition: all 0.2s;
 }
 
 .modal-checkbox:hover {
   border-color: #bc1f1b;
   background: #fef2f2;
-  transform: scale(1.08);
 }
 
 .modal-checkbox:checked {
   background: #bc1f1b;
   border-color: #bc1f1b;
-  animation: checkboxCheck 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-@keyframes checkboxCheck {
-  0% { transform: scale(0.8) rotate(-10deg); }
-  50% { transform: scale(1.15) rotate(5deg); }
-  100% { transform: scale(1) rotate(0deg); }
 }
 
 .modal-checkbox:checked::after {
   content: "✔";
   color: white;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: bold;
 }
 
 .modal-principal-container {
   width: 100%;
-  padding: 0;
-  background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
-  border-radius: 12px;
+  padding: 12px;
+  background: #d1fae5;
+  border-radius: 8px;
   cursor: pointer;
-  transition: all 0.3s;
-  overflow: hidden;
-  border: 2px solid #6ee7b7;
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 14px;
+  transition: all 0.2s;
 }
 
 .modal-principal-container:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
-  border-color: #34d399;
-}
-
-.modal-principal-badge {
-  width: 42px;
-  height: 42px;
-  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  flex-shrink: 0;
-  box-shadow: 0 4px 12px rgba(251, 191, 36, 0.4);
-  animation: badgePulse 2s ease-in-out infinite;
-}
-
-@keyframes badgePulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.08); }
-}
-
-.modal-principal-badge svg {
-  width: 24px;
-  height: 24px;
-}
-
-.modal-principal-content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+  background: #a7f3d0;
 }
 
 .modal-principal-line {
   display: flex;
-  flex-direction: column;
-  gap: 2px;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
 }
 
-.modal-principal-label {
-  font-size: 10px;
-  font-weight: 700;
-  color: #059669;
-  text-transform: uppercase;
-  letter-spacing: 0.8px;
+.modal-principal-star {
+  font-size: 20px;
 }
 
 .modal-principal-name {
   font-weight: 700;
-  color: #065f46;
+  color: #1e293b;
   font-size: 14px;
-  line-height: 1.4;
 }
 
 .modal-principal-action {
   display: flex;
   align-items: center;
   gap: 6px;
-  color: #047857;
-  font-size: 11px;
+  color: #059669;
+  font-size: 12px;
   font-weight: 600;
-  opacity: 0.8;
-  transition: opacity 0.2s;
-}
-
-.modal-principal-container:hover .modal-principal-action {
-  opacity: 1;
 }
 
 .modal-principal-action svg {
-  width: 13px;
-  height: 13px;
+  width: 14px;
+  height: 14px;
 }
 
-/* Modal Footer */
 .modal-footer {
   display: flex;
   justify-content: flex-end;
   gap: 12px;
-  padding-top: 24px;
+  padding-top: 20px;
   border-top: 2px solid #e2e8f0;
-  animation: footerSlideUp 0.5s ease-out;
-}
-
-@keyframes footerSlideUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.modal-btn-cancel,
-.modal-btn-confirm {
-  padding: 14px 28px;
-  border-radius: 12px;
-  font-weight: 700;
-  font-size: 14px;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  display: flex;
-  align-items: center;
-  gap: 10px;
 }
 
 .modal-btn-cancel {
-  background: white;
+  padding: 12px 24px;
+  background: #f1f5f9;
   border: 2px solid #e2e8f0;
+  border-radius: 10px;
+  font-weight: 700;
   color: #475569;
-}
-
-.modal-btn-cancel svg {
-  width: 18px;
-  height: 18px;
+  cursor: pointer;
+  transition: all 0.2s;
 }
 
 .modal-btn-cancel:hover {
-  background: #f8fafc;
+  background: #e2e8f0;
   border-color: #cbd5e1;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .modal-btn-confirm {
+  padding: 12px 28px;
   background: linear-gradient(135deg, #bc1f1b 0%, #8b1714 100%);
   color: white;
   border: none;
+  border-radius: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s;
   box-shadow: 0 4px 15px rgba(188, 31, 27, 0.3);
 }
 
-.modal-btn-confirm svg {
-  width: 20px;
-  height: 20px;
-}
-
 .modal-btn-confirm:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 25px rgba(188, 31, 27, 0.4);
-}
-
-.modal-btn-confirm:active {
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(188, 31, 27, 0.4);
 }
 
 /* Offcanvas Sidebar */
@@ -3258,26 +2667,8 @@ export default {
     flex-direction: column;
   }
 
-  .modal-table-column {
-    max-width: 100%;
-  }
-
   .offcanvas-sidebar {
     width: 100%;
-  }
-
-  .modal-hero-title {
-    font-size: 22px;
-  }
-
-  .modal-hero-icon {
-    width: 60px;
-    height: 60px;
-  }
-
-  .modal-risk-options {
-    flex-direction: column;
-    gap: 8px;
   }
 }
 </style>
