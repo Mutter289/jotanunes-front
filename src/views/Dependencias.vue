@@ -829,7 +829,7 @@ export default {
     async loadDependencies() {
       try {
         this.isLoading = true;
-        const response = await this.useFetch(`/api/v2/dependencias/itens`);
+        const response = await this.useFetch(`/api/v2/dependencias/`);
 
         this.dependencies = response.map(dep => {
           const risco = dep.nivel_impacto?.nivel || 'Baixo';
@@ -898,7 +898,7 @@ export default {
 
     async loadDependencyDetails(id) {
       try {
-        const dep = await this.useFetch(`/api/v2/dependencias/itens/${id}`);
+        const dep = await this.useFetch(`/api/v2/dependencias/${id}`);
 
         this.selectedDep = {
           id: dep.id,
@@ -958,7 +958,7 @@ export default {
         if (!usuario) return
 
         await this.useFetch(
-          `/api/v2/dependencias/itens/${dep.id}?usuario=${encodeURIComponent(usuario)}`,
+          `/api/v2/dependencias/${dep.id}?usuario=${encodeURIComponent(usuario)}`,
           { method: 'DELETE' },
         )
         this.showToast('Dependência excluída!', 'success')
@@ -1171,7 +1171,7 @@ export default {
 
     async modal_fetchItems(tabela) {
       try {
-        return await this.useFetch(`/api/v2/dependencias/tabelas/${tabela}/itens`);
+        return await this.useFetch(`/api/v2/dependencias/itens/${tabela}`);
       } catch (e) {
         console.error(`Erro ao buscar itens da tabela ${tabela}:`, e);
         // Retornar array vazio para não quebrar o modal
@@ -1181,7 +1181,7 @@ export default {
 
     async modal_loadTables() {
       try {
-        this.tiposItens = await this.useFetch("/api/v2/dependencias/tabelas");
+        this.tiposItens = await this.useFetch("/api/v2/dependencias/lista-tabelas");
         const arr = [];
 
         for (const tabela of this.tabelasDisponiveis) {
@@ -1262,13 +1262,13 @@ export default {
 
       try {
         if (this.isEditing && this.editingDependency) {
-          await this.useFetch(`/api/v2/dependencias/itens/${this.editingDependency.id}`, {
+          await this.useFetch(`/api/v2/dependencias/${this.editingDependency.id}`, {
             method: "PUT",
             body: payload
           });
           this.showToast('Dependência atualizada!', 'success');
         } else {
-          await this.useFetch(`/api/v2/dependencias/itens`, {
+          await this.useFetch(`/api/v2/dependencias/`, {
             method: "POST",
             body: payload
           });
