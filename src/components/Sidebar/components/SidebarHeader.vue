@@ -33,8 +33,8 @@
     </div>
 
     <div v-if="!isCollapsed" class="section-title">
-      <h2>Portal Admin</h2>
-      <p>Funcionalidades disponíveis</p>
+      <h2>Sentinela</h2>
+      <p>Painel Administrativo</p>
     </div>
   </div>
 </template>
