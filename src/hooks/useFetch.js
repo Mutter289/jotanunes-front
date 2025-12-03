@@ -1,3 +1,5 @@
+import { API_BASE } from '@/config/api.js'
+
 export async function useFetch(
   endpoint,
   { method = 'GET', body = null, headers = {}, isFormData = false } = {},
@@ -34,9 +36,7 @@ export async function useFetch(
   }
 
   try {
-    const baseUrl = (window.API_BASE_URL || '').startsWith('http')
-      ? window.API_BASE_URL
-      : `http://${window.API_BASE_URL || '192.168.195.162:8000'}`
+    const baseUrl = API_BASE
     const res = await fetch(`${baseUrl}${endpoint}`, options)
 
     let data
