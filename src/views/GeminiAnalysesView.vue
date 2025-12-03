@@ -613,7 +613,8 @@ Este relatório foi gerado automaticamente pelo sistema de auditoria Sentinela..
       const endpoint = `/api/v3/export/google-docs-pdf/${analiseId}`
       const token = localStorage.getItem('access_token') || sessionStorage.getItem('access_token')
 
-      const response = await fetch(`http://192.168.195.162:8000${endpoint}`, {
+      const API_BASE = "https://jotanunes-api.onrender.com";
+      const response = await fetch(`${API_BASE}${endpoint}`, {
         method: 'POST',
         headers: { ...(token && { Authorization: `Bearer ${token}` }) },
       })
