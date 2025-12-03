@@ -5,6 +5,7 @@ import { createPinia } from 'pinia'
 
 import App from './App.vue'
 import router from './router'
+import { API_BASE } from '@/config/api.js'
 
 import { library } from '@fortawesome/fontawesome-svg-core'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
@@ -126,11 +127,10 @@ app.config.globalProperties.$showToast = window.showToast || (() => {})
 app.config.globalProperties.$showConfirm = window.showConfirm || (() => Promise.resolve(false))
 
 if (typeof window !== 'undefined') {
-  const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000' //http://192.168.195.162:8000 //http://192.168.0.7:8000
-  window.API_BASE_URL = API_BASE_URL
+  window.API_BASE_URL = API_BASE
 
   if (import.meta.env.DEV) {
-    console.log('API Base URL:', API_BASE_URL)
+    console.log('API Base URL:', API_BASE)
   }
 }
 app.config.errorHandler = (err, vm, info) => {

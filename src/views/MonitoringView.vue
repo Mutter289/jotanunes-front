@@ -368,6 +368,7 @@ import VButton from '@/components/Button/VButton.vue'
 import VModal from '@/components/Modal/VModal.vue'
 import VPopup from '@/components/Popup/VPopup.vue'
 import { useError, useSuccess, useQuestion } from '@/hooks/useAlerts'
+import { API_BASE } from '@/config/api.js'
 
 export default {
   components: {
@@ -377,11 +378,8 @@ export default {
   },
 
   data() {
-    const base = (window.API_BASE_URL || '').startsWith('http')
-      ? window.API_BASE_URL
-      : `http://${window.API_BASE_URL || '192.168.195.162:8000'}`
     return {
-      API_BASE_URL: base,
+      API_BASE_URL: API_BASE,
       services: [],
       stats: {
         total_services: 0,
