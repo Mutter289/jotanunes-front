@@ -55,11 +55,47 @@
 
       <!-- Stats Cards -->
       <div class="stats-cards">
-        <div class="stat-card" v-for="(card, index) in statsCards" :key="index">
-          <div class="stat-icon" :class="card.iconClass" v-html="card.icon"></div>
-          <div class="stat-content">
-            <div class="stat-value">{{ card.value }}</div>
-            <div class="stat-label">{{ card.label }}</div>
+        <div class="stat-card stat-card-expanded" v-for="(card, index) in statsCards" :key="index">
+          <div class="stat-main">
+            <div class="stat-icon" :class="card.iconClass" v-html="card.icon"></div>
+            <div class="stat-content">
+              <div class="stat-value">{{ card.value }}</div>
+              <div class="stat-label">{{ card.label }}</div>
+            </div>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="stat-sub-items">
+            <div
+              class="stat-sub-item"
+              v-for="(subStat, subIndex) in card.subStats"
+              :key="subIndex"
+              :class="{ 'has-trend': subStat.trend }"
+            >
+              <div class="sub-stat-label">{{ subStat.label }}</div>
+              <div class="sub-stat-value-wrapper">
+                <div class="sub-stat-value">{{ subStat.value }}</div>
+                <svg
+                  v-if="subStat.trend === 'up'"
+                  class="trend-icon trend-up"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="3"
+                >
+                  <polyline points="18 15 12 9 6 15" />
+                </svg>
+                <svg
+                  v-else-if="subStat.trend === 'down'"
+                  class="trend-icon trend-down"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="3"
+                >
+                  <polyline points="6 9 12 15 18 9" />
+                </svg>
+              </div>
+            </div>
           </div>
           <div class="stat-decoration">
             <svg viewBox="0 0 100 100" class="stat-bg-pattern">
@@ -226,12 +262,34 @@ const stats = computed(() => {
       tamanhoMedio: 0,
       aplicacoesAtivas: 0,
       modificacoesRecentes: 0,
+      modificacoesHoje: 0,
+      modificacoesSemana: 0,
+      tamanhoTotal: 0,
+      usuariosAtivos: 0,
+      crescimentoMensal: 0,
     }
   }
 
   const data = apiData.value
   const now = new Date()
   const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
+  const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  const sixtyDaysAgo = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000)
+
+  const modLast30Days = data.filter((item) => {
+    const modDate = new Date(item.RECMODIFIEDON)
+    return modDate > thirtyDaysAgo
+  }).length
+
+  const modLast60Days = data.filter((item) => {
+    const modDate = new Date(item.RECMODIFIEDON)
+    return modDate > sixtyDaysAgo && modDate <= thirtyDaysAgo
+  }).length
+
+  const crescimento = modLast60Days > 0
+    ? Math.round(((modLast30Days - modLast60Days) / modLast60Days) * 100)
+    : 0
 
   return {
     totalSentencas: data.length,
@@ -239,10 +297,25 @@ const stats = computed(() => {
       data.reduce((sum, item) => sum + (item.TAMANHO || 0), 0) / data.length,
     ),
     aplicacoesAtivas: new Set(data.map((item) => item.APLICACAO).filter(Boolean)).size,
-    modificacoesRecentes: data.filter((item) => {
+    modificacoesRecentes: modLast30Days,
+    modificacoesHoje: data.filter((item) => {
       const modDate = new Date(item.RECMODIFIEDON)
-      return modDate > thirtyDaysAgo
+      return modDate >= startOfToday
     }).length,
+    modificacoesSemana: data.filter((item) => {
+      const modDate = new Date(item.RECMODIFIEDON)
+      return modDate > sevenDaysAgo
+    }).length,
+    tamanhoTotal: Math.round(
+      data.reduce((sum, item) => sum + (item.TAMANHO || 0), 0) / 1024
+    ),
+    usuariosAtivos: new Set(
+      data
+        .filter((item) => new Date(item.RECMODIFIEDON) > thirtyDaysAgo)
+        .map((item) => item.RECMODIFIEDBY)
+        .filter(Boolean)
+    ).size,
+    crescimentoMensal: crescimento,
   }
 })
 
@@ -256,27 +329,12 @@ const statsCards = computed(() => [
       <ellipse cx="12" cy="5" rx="9" ry="3" />
       <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3" />
       <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5" />
-    </svg>`
-  },
-  {
-    value: `${stats.value.tamanhoMedio} KB`,
-    label: 'Tamanho Médio',
-    iconClass: 'icon-size',
-    icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <polyline points="16 18 22 12 16 6" />
-      <polyline points="8 6 2 12 8 18" />
-    </svg>`
-  },
-  {
-    value: stats.value.aplicacoesAtivas,
-    label: 'Aplicações Ativas',
-    iconClass: 'icon-apps',
-    icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <rect x="3" y="3" width="7" height="7" rx="1" />
-      <rect x="14" y="3" width="7" height="7" rx="1" />
-      <rect x="3" y="14" width="7" height="7" rx="1" />
-      <rect x="14" y="14" width="7" height="7" rx="1" />
-    </svg>`
+    </svg>`,
+    subStats: [
+      { label: 'Aplicações Ativas', value: stats.value.aplicacoesAtivas },
+      { label: 'Tamanho Total', value: `${stats.value.tamanhoTotal} MB` },
+      { label: 'Tamanho Médio', value: `${stats.value.tamanhoMedio} KB` },
+    ]
   },
   {
     value: stats.value.modificacoesRecentes,
@@ -284,7 +342,16 @@ const statsCards = computed(() => [
     iconClass: 'icon-activity',
     icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
-    </svg>`
+    </svg>`,
+    subStats: [
+      { label: 'Hoje', value: stats.value.modificacoesHoje },
+      { label: 'Última Semana', value: stats.value.modificacoesSemana },
+      {
+        label: 'Crescimento Mensal',
+        value: `${stats.value.crescimentoMensal > 0 ? '+' : ''}${stats.value.crescimentoMensal}%`,
+        trend: stats.value.crescimentoMensal > 0 ? 'up' : stats.value.crescimentoMensal < 0 ? 'down' : 'neutral'
+      },
+    ]
   }
 ])
 
@@ -605,7 +672,7 @@ watch(apiData, () => {
 /* Stats Cards */
 .stats-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  grid-template-columns: repeat(2, 1fr);
   gap: 24px;
   margin-bottom: 1rem;
 }
@@ -613,16 +680,20 @@ watch(apiData, () => {
 .stat-card {
   position: relative;
   background: white;
-  padding: 28px;
+  padding: 32px;
   border-radius: 16px;
   border: 2px solid #e9ecef;
   display: flex;
-  align-items: center;
+  flex-direction: column;
   gap: 20px;
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   animation: slideUp 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.stat-card-expanded {
+  min-height: 240px;
 }
 
 @keyframes slideUp {
@@ -637,9 +708,25 @@ watch(apiData, () => {
 }
 
 .stat-card:hover {
-  transform: translateY(-6px) scale(1.02);
+  transform: translateY(-6px);
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
   border-color: rgba(188, 31, 27, 0.3);
+}
+
+.stat-main {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  z-index: 2;
+  position: relative;
+}
+
+.stat-divider {
+  height: 2px;
+  background: linear-gradient(90deg, #e9ecef 0%, rgba(233, 236, 239, 0) 100%);
+  margin: 8px 0;
+  z-index: 2;
+  position: relative;
 }
 
 .stat-icon {
@@ -659,16 +746,77 @@ watch(apiData, () => {
   transform: scale(1.1) rotate(5deg);
 }
 
+.stat-sub-items {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  z-index: 2;
+  position: relative;
+}
+
+.stat-sub-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: #f8f9fa;
+  border-radius: 10px;
+  transition: all 0.3s;
+}
+
+.stat-sub-item:hover {
+  background: #e9ecef;
+  transform: translateX(4px);
+}
+
+.sub-stat-label {
+  font-size: 13px;
+  color: #64748b;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.sub-stat-value-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sub-stat-value {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.trend-icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.trend-up {
+  color: #10b981;
+  animation: bounceUp 0.6s ease-out;
+}
+
+.trend-down {
+  color: #ef4444;
+  animation: bounceDown 0.6s ease-out;
+}
+
+@keyframes bounceUp {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+@keyframes bounceDown {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(4px); }
+}
+
 .stat-icon.icon-database {
   background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-}
-
-.stat-icon.icon-size {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-}
-
-.stat-icon.icon-apps {
-  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
 }
 
 .stat-icon.icon-activity {
@@ -811,10 +959,6 @@ watch(apiData, () => {
   .charts-grid {
     grid-template-columns: 1fr;
   }
-
-  .stats-cards {
-    grid-template-columns: repeat(2, 1fr);
-  }
 }
 
 @media (max-width: 768px) {
@@ -831,11 +975,23 @@ watch(apiData, () => {
   }
 
   .stat-card {
-    padding: 20px;
+    padding: 24px;
+  }
+
+  .stat-card-expanded {
+    min-height: auto;
   }
 
   .stat-value {
     font-size: 28px;
+  }
+
+  .sub-stat-value {
+    font-size: 16px;
+  }
+
+  .stat-sub-item {
+    padding: 10px 14px;
   }
 }
 </style>
