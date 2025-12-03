@@ -333,37 +333,117 @@
       </div>
     </div>
 
-    <VPopup
-      v-model:visible="showConfirmModal"
-      :msg="confirmData.title"
-      mark="warning"
-      :auto-close="0"
-    >
-      <div class="confirm-content">
-        <p>{{ confirmData.message }}</p>
-        <div v-if="confirmData.type === 'block'" class="form-group">
-          <label>Motivo do bloqueio:</label>
-          <textarea
-            v-model="blockReason"
-            class="form-textarea"
-            placeholder="Informe o motivo do bloqueio..."
-            rows="3"
-          ></textarea>
+    <!-- Modal de Confirmação -->
+    <div v-if="showConfirmModal" class="modal-overlay" @click.self="closeConfirmModal">
+      <div class="confirm-modal" :class="{ 'modal-visible': showConfirmModal }">
+        <div class="confirm-header" :class="`header-${confirmData.variant}`">
+          <div class="confirm-icon-wrapper">
+            <svg
+              v-if="confirmData.type === 'approve'"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+              <polyline points="22 4 12 14.01 9 11.01"></polyline>
+            </svg>
+            <svg
+              v-else-if="confirmData.type === 'block'"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line>
+            </svg>
+            <svg
+              v-else-if="confirmData.type === 'delete'"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <polyline points="3 6 5 6 21 6"></polyline>
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+              <line x1="10" y1="11" x2="10" y2="17"></line>
+              <line x1="14" y1="11" x2="14" y2="17"></line>
+            </svg>
+          </div>
+          <h3>{{ confirmData.title }}</h3>
+          <button class="confirm-close" @click="closeConfirmModal">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+
+        <div class="confirm-body">
+          <p class="confirm-message">{{ confirmData.message }}</p>
+
+          <div v-if="confirmData.type === 'block'" class="form-group">
+            <label class="form-label">Motivo do bloqueio:</label>
+            <textarea
+              v-model="blockReason"
+              class="form-textarea"
+              placeholder="Informe o motivo do bloqueio..."
+              rows="3"
+            ></textarea>
+          </div>
+        </div>
+
+        <div class="confirm-footer">
+          <button class="btn-cancel-confirm" @click="closeConfirmModal" :disabled="isExecuting">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+            Cancelar
+          </button>
+          <button
+            class="btn-confirm"
+            :class="`btn-${confirmData.variant}`"
+            @click="executeAction"
+            :disabled="isExecuting"
+          >
+            <div v-if="isExecuting" class="spinner-confirm"></div>
+            <svg
+              v-else-if="confirmData.type === 'approve'"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            <svg
+              v-else-if="confirmData.type === 'block'"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="15" y1="9" x2="9" y2="15"></line>
+              <line x1="9" y1="9" x2="15" y2="15"></line>
+            </svg>
+            <svg
+              v-else-if="confirmData.type === 'delete'"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <polyline points="3 6 5 6 21 6"></polyline>
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+            </svg>
+            {{ isExecuting ? 'Processando...' : confirmData.confirmText }}
+          </button>
         </div>
       </div>
-
-      <template #footer>
-        <div class="modal-actions">
-          <VButton text="Cancelar" variant="secondary" @click="closeConfirmModal" />
-          <VButton
-            :text="confirmData.confirmText"
-            :variant="confirmData.variant"
-            @click="executeAction"
-            :loading="isExecuting"
-          />
-        </div>
-      </template>
-    </VPopup>
+    </div>
 
     <VPopup v-model:visible="showBatchModal" msg="Ações em Lote" mark="info" :auto-close="0">
       <div class="batch-content">
@@ -1694,6 +1774,298 @@ export default {
   .btn-submit {
     width: 100%;
     justify-content: center;
+    padding: 14px 20px;
+  }
+}
+
+/* Modal de Confirmação */
+.confirm-modal {
+  background: white;
+  border-radius: 20px;
+  max-width: 500px;
+  width: 100%;
+  overflow: hidden;
+  box-shadow:
+    0 20px 60px rgba(0, 0, 0, 0.3),
+    0 0 0 1px rgba(255, 255, 255, 0.1);
+  animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+}
+
+.confirm-header {
+  position: relative;
+  padding: 32px 28px 24px;
+  text-align: center;
+  background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+  border-bottom: 2px solid #f0f0f0;
+}
+
+.header-primary {
+  background: linear-gradient(135deg, #e0f2fe 0%, #f0f9ff 100%);
+}
+
+.header-danger {
+  background: linear-gradient(135deg, #fee2e2 0%, #fef2f2 100%);
+}
+
+.confirm-icon-wrapper {
+  width: 72px;
+  height: 72px;
+  margin: 0 auto 16px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: iconBounce 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes iconBounce {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.header-primary .confirm-icon-wrapper {
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
+}
+
+.header-danger .confirm-icon-wrapper {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  box-shadow: 0 8px 20px rgba(220, 38, 38, 0.3);
+}
+
+.confirm-icon-wrapper svg {
+  width: 36px;
+  height: 36px;
+  color: white;
+  stroke-width: 2.5;
+}
+
+.confirm-header h3 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.confirm-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.04);
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.confirm-close:hover {
+  background: rgba(220, 38, 38, 0.1);
+  transform: rotate(90deg);
+}
+
+.confirm-close svg {
+  width: 18px;
+  height: 18px;
+  color: #6b7280;
+}
+
+.confirm-close:hover svg {
+  color: #dc2626;
+}
+
+.confirm-body {
+  padding: 28px 32px;
+}
+
+.confirm-message {
+  font-size: 16px;
+  color: #64748b;
+  line-height: 1.6;
+  margin: 0 0 20px 0;
+  text-align: center;
+}
+
+.confirm-body .form-group {
+  margin-top: 20px;
+}
+
+.confirm-body .form-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #2b2522;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.form-textarea {
+  width: 100%;
+  padding: 12px 14px;
+  border: 2px solid #e5e7eb;
+  border-radius: 10px;
+  font-size: 14px;
+  font-family: inherit;
+  resize: vertical;
+  transition: all 0.3s;
+  background: white;
+  color: #2b2522;
+}
+
+.form-textarea:focus {
+  outline: none;
+  border-color: #bc1f1b;
+  box-shadow: 0 0 0 4px rgba(188, 31, 27, 0.1);
+}
+
+.confirm-footer {
+  padding: 20px 32px 28px;
+  background: #fafafa;
+  border-top: 2px solid #f0f0f0;
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.btn-cancel-confirm,
+.btn-confirm {
+  flex: 1;
+  padding: 14px 24px;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: inherit;
+}
+
+.btn-cancel-confirm {
+  background: white;
+  color: #6b7280;
+  border: 2px solid #e5e7eb;
+}
+
+.btn-cancel-confirm:hover:not(:disabled) {
+  background: #f9fafb;
+  border-color: #d1d5db;
+  color: #374151;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.btn-cancel-confirm svg {
+  width: 18px;
+  height: 18px;
+}
+
+.btn-confirm {
+  border: 2px solid transparent;
+}
+
+.btn-confirm.btn-primary {
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  color: white;
+  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+}
+
+.btn-confirm.btn-primary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
+}
+
+.btn-confirm.btn-danger {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  color: white;
+  box-shadow: 0 4px 15px rgba(220, 38, 38, 0.3);
+}
+
+.btn-confirm.btn-danger:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(220, 38, 38, 0.4);
+}
+
+.btn-confirm:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+.btn-confirm svg {
+  width: 20px;
+  height: 20px;
+  stroke-width: 2.5;
+}
+
+.spinner-confirm {
+  width: 20px;
+  height: 20px;
+  border: 2.5px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+/* Responsivo para modal de confirmação */
+@media (max-width: 768px) {
+  .confirm-modal {
+    max-width: 95%;
+    border-radius: 16px;
+  }
+
+  .confirm-header {
+    padding: 24px 20px 20px;
+  }
+
+  .confirm-icon-wrapper {
+    width: 64px;
+    height: 64px;
+    margin-bottom: 12px;
+  }
+
+  .confirm-icon-wrapper svg {
+    width: 32px;
+    height: 32px;
+  }
+
+  .confirm-header h3 {
+    font-size: 20px;
+  }
+
+  .confirm-body {
+    padding: 20px 24px;
+  }
+
+  .confirm-message {
+    font-size: 15px;
+  }
+
+  .confirm-footer {
+    padding: 16px 24px 24px;
+    flex-direction: column;
+  }
+
+  .btn-cancel-confirm,
+  .btn-confirm {
+    width: 100%;
     padding: 14px 20px;
   }
 }
