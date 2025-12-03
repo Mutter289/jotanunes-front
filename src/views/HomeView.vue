@@ -227,7 +227,7 @@
 
       <div class="login-image-section">
         <p>{{ welcomeMessage }}</p>
-        <h1>Seja bem-vindo!</h1>
+        <h1>Seja bem-vindo ao Sentinela</h1>
         <p>
           {{
             currentMode === 'login'
