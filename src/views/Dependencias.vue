@@ -387,7 +387,9 @@
               class="form-select"
               @change="loadOrigemItens"
             >
-              <option v-for="t in tabelasDisponiveis" :key="t" :value="t">{{ t }}</option>
+              <option v-for="t in tabelasDisponiveis" :key="t" :value="t">
+                {{ tableLabel(t) }}
+              </option>
             </select>
           </div>
           <div class="form-group">
@@ -418,8 +420,11 @@
           <div class="form-group">
             <label>Dependências</label>
             <div class="dep-chooser grid-2">
-              <div class="dep-chooser-col" v-if="newDependency.tabela_origem !== 'AUD_FV'">
-                <div class="dep-col-header">Forma Visual</div>
+              <div class="dep-chooser-col">
+                <div class="dep-col-header">
+                  <span>Formas Visuais</span>
+                  <span class="dep-col-count">{{ itensPorTabela.AUD_FV.length }}</span>
+                </div>
                 <div class="option-list" @mouseenter="ensureItens('AUD_FV')">
                   <div
                     v-for="fv in availableOptions('AUD_FV')"
@@ -434,8 +439,11 @@
                   </div>
                 </div>
               </div>
-              <div class="dep-chooser-col" v-if="newDependency.tabela_origem !== 'AUD_SQLS'">
-                <div class="dep-col-header">SQL</div>
+              <div class="dep-chooser-col">
+                <div class="dep-col-header">
+                  <span>Códigos SQL</span>
+                  <span class="dep-col-count">{{ itensPorTabela.AUD_SQLS.length }}</span>
+                </div>
                 <div class="option-list" @mouseenter="ensureItens('AUD_SQLS')">
                   <div
                     v-for="s in itensPorTabela.AUD_SQLS"
@@ -450,8 +458,11 @@
                   </div>
                 </div>
               </div>
-              <div class="dep-chooser-col" v-if="newDependency.tabela_origem !== 'AUD_REPORT'">
-                <div class="dep-col-header">Relatório</div>
+              <div class="dep-chooser-col">
+                <div class="dep-col-header">
+                  <span>Relatórios</span>
+                  <span class="dep-col-count">{{ itensPorTabela.AUD_REPORT.length }}</span>
+                </div>
                 <div class="option-list" @mouseenter="ensureItens('AUD_REPORT')">
                   <div
                     v-for="r in itensPorTabela.AUD_REPORT"
@@ -725,6 +736,11 @@ export default {
       },
 
       tabelasDisponiveis: ['AUD_FV', 'AUD_SQLS', 'AUD_REPORT'],
+      tabelaLabels: {
+        AUD_FV: 'Formas Visuais',
+        AUD_SQLS: 'Códigos SQL',
+        AUD_REPORT: 'Relatórios',
+      },
       itensOrigem: [],
       itensPorTabela: { AUD_FV: [], AUD_SQLS: [], AUD_REPORT: [] },
       depSelecionada: { fv: [], sql: [], report: [] }, // seleção múltipla por clique
@@ -940,13 +956,6 @@ export default {
       this.editingDependency = dep
       this.showAddModal = true
 
-      // Carregar itens disponíveis para as tabelas
-      await this.loadTabelas()
-      await this.loadOrigemItens()
-      await this.ensureItens('AUD_FV')
-      await this.ensureItens('AUD_SQLS')
-      await this.ensureItens('AUD_REPORT')
-
       // Definir dados do item
       this.newDependency = {
         nome: dep.nome,
@@ -957,6 +966,10 @@ export default {
         descricao: dep.descricao || '',
         dependencias: [],
       }
+
+      // Carregar itens disponíveis para as tabelas
+      await this.loadItensPorTabela()
+      await this.loadOrigemItens()
 
       // Pré-carrega seleções e lista
       this.depSelecionada = { fv: [], sql: [], report: [] }
@@ -1061,11 +1074,6 @@ export default {
 
     async openCreateModal() {
       this.showAddModal = true
-      await this.loadTabelas()
-      await this.loadOrigemItens()
-      await this.ensureItens('AUD_FV')
-      await this.ensureItens('AUD_SQLS')
-      await this.ensureItens('AUD_REPORT')
 
       // Limpar dados para nova criação
       this.editingDependency = null
@@ -1080,32 +1088,43 @@ export default {
       }
       this.depSelecionada = { fv: [], sql: [], report: [] }
 
+      await this.loadItensPorTabela()
+      await this.loadOrigemItens()
+
       // Não carregar draft para nova criação
       this.draftKey = this.getDraftKey()
     },
 
-    async loadTabelas() {
-      try {
-        const tabs = await this.useFetch('/api/v2/dependencias/tabelas')
-        if (Array.isArray(tabs) && tabs.length) this.tabelasDisponiveis = tabs
-      } catch {}
+    tableLabel(tabela) {
+      return this.tabelaLabels[tabela] || tabela
+    },
+
+    async loadItensPorTabela() {
+      await Promise.all(this.tabelasDisponiveis.map((tabela) => this.ensureItens(tabela, true)))
     },
 
     async loadOrigemItens() {
       try {
         const t = this.newDependency.tabela_origem
+        if (this.itensPorTabela[t] && this.itensPorTabela[t].length) {
+          this.itensOrigem = this.itensPorTabela[t]
+          return
+        }
+
         const itens = await this.useFetch(
           `/api/v2/dependencias/tabelas/${encodeURIComponent(t)}/itens`,
         )
-        this.itensOrigem = itens
-        // ✅ Não forçar id_origem - deixar usuário escolher no select
+        this.itensPorTabela[t] = Array.isArray(itens) ? itens : []
+        this.itensOrigem = this.itensPorTabela[t]
+        // Nao forcar id_origem - deixar usuario escolher no select
       } catch (e) {
+        console.error(`Erro ao carregar itens de origem (${this.newDependency.tabela_origem}):`, e)
         this.itensOrigem = []
       }
     },
 
-    async ensureItens(tabela) {
-      if (this.itensPorTabela[tabela] && this.itensPorTabela[tabela].length) {
+    async ensureItens(tabela, force = false) {
+      if (!force && this.itensPorTabela[tabela] && this.itensPorTabela[tabela].length) {
         return
       }
 
@@ -1113,17 +1132,17 @@ export default {
         const itens = await this.useFetch(
           `/api/v2/dependencias/tabelas/${encodeURIComponent(tabela)}/itens`,
         )
-        this.itensPorTabela[tabela] = itens
+        this.itensPorTabela[tabela] = Array.isArray(itens) ? itens : []
       } catch (error) {
-        console.error('Erro ao carregar itens:', error)
+        console.error(`Erro ao carregar itens da tabela ${tabela}:`, error)
+        this.itensPorTabela[tabela] = []
       }
     },
-
     adicionarSequencia() {
       // Não limpar dependências já adicionadas; apenas acrescentar
 
       // FV múltiplos (aplica regra de negócio nos disponíveis; aqui apenas adiciona os selecionados)
-      if (Array.isArray(this.depSelecionada.fv) && this.newDependency.tabela_origem !== 'AUD_FV') {
+      if (Array.isArray(this.depSelecionada.fv)) {
         this.depSelecionada.fv.forEach((idSel) => {
           const item = this.availableOptions('AUD_FV').find((x) => String(x.id) === String(idSel))
           if (item) {
@@ -1138,8 +1157,7 @@ export default {
 
       // SQL múltiplos
       if (
-        Array.isArray(this.depSelecionada.sql) &&
-        this.newDependency.tabela_origem !== 'AUD_SQLS'
+        Array.isArray(this.depSelecionada.sql)
       ) {
         this.depSelecionada.sql.forEach((idSel) => {
           const item = this.itensPorTabela.AUD_SQLS.find((s) => String(s.id) === String(idSel))
@@ -1155,8 +1173,7 @@ export default {
 
       // REPORT múltiplos
       if (
-        Array.isArray(this.depSelecionada.report) &&
-        this.newDependency.tabela_origem !== 'AUD_REPORT'
+        Array.isArray(this.depSelecionada.report)
       ) {
         this.depSelecionada.report.forEach((idSel) => {
           const item = this.itensPorTabela.AUD_REPORT.find((r) => String(r.id) === String(idSel))
@@ -2328,15 +2345,30 @@ export default {
 /* UI de seleção múltipla por clique (SQL/Relatório) */
 .dep-chooser.grid-2 {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 1rem;
 }
 
 .dep-col-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
   font-size: 0.9rem;
   font-weight: 700;
   color: #64748b;
   margin-bottom: 0.5rem;
+}
+
+.dep-col-count {
+  min-width: 1.75rem;
+  border-radius: 999px;
+  background: #eef2ff;
+  color: #4338ca;
+  font-size: 0.75rem;
+  line-height: 1.4;
+  padding: 0.1rem 0.45rem;
+  text-align: center;
 }
 
 .option-list {
