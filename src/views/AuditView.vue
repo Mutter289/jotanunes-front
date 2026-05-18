@@ -1,15 +1,36 @@
 <template>
   <div class="audit">
-    <VSelect
-      v-model="tableActive"
-      label="Tabelas"
-      placeholder="Selecione a tabela"
-      :options="listTable"
-      option-label="text"
-      option-value="value"
-      style="flex: 1"
-      @change="onTableChange"
-    />
+    <!-- Header -->
+    <div class="page-header">
+      <div class="header-content">
+        <h1>Auditoria de Dados</h1>
+        <p>Selecione o tipo de registro para visualizar</p>
+      </div>
+    </div>
+
+    <!-- Table Selector -->
+    <div class="table-filter-container">
+      <div class="table-tabs">
+        <button
+          v-for="table in listTable"
+          :key="table.value"
+          :class="['table-tab', { active: tableActive === table.value }]"
+          @click="selectTable(table.value)"
+        >
+          <div class="tab-icon" v-html="getTableIcon(table.value)"></div>
+          <div class="tab-content">
+            <span class="tab-title">{{ table.text }}</span>
+            <span class="tab-subtitle">{{ getTableSubtitle(table.value) }}</span>
+          </div>
+          <div v-if="tableActive === table.value" class="tab-active-indicator">
+            <svg viewBox="0 0 24 24" fill="none">
+              <path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+        </button>
+      </div>
+    </div>
+
     <VTable
       @row-click="handleRowClick"
       @selection-change="handleSelection"
@@ -402,6 +423,36 @@ export default {
   methods: {
     useFetch,
 
+    getTableIcon(tableValue) {
+      const icons = {
+        audfv: `<svg viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
+        </svg>`,
+        audsql: `<svg viewBox="0 0 448 512" fill="currentColor">
+          <path d="M448 80v48c0 44.2-100.3 80-224 80S0 172.2 0 128V80C0 35.8 100.3 0 224 0S448 35.8 448 80zM393.2 214.7c20.8-7.4 39.9-16.9 54.8-28.6V288c0 44.2-100.3 80-224 80S0 332.2 0 288V186.1c14.9 11.8 34 21.2 54.8 28.6C99.7 230.7 159.5 240 224 240s124.3-9.3 169.2-25.3zM0 346.1c14.9 11.8 34 21.2 54.8 28.6C99.7 390.7 159.5 400 224 400s124.3-9.3 169.2-25.3c20.8-7.4 39.9-16.9 54.8-28.6V432c0 44.2-100.3 80-224 80S0 476.2 0 432V346.1z"/>
+        </svg>`,
+        audreport: `<svg viewBox="0 0 24 24" fill="currentColor">
+          <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/>
+        </svg>`
+      }
+      return icons[tableValue] || ''
+    },
+
+    getTableSubtitle(tableValue) {
+      const subtitles = {
+        audfv: 'Interfaces e componentes visuais',
+        audsql: 'Consultas e comandos SQL',
+        audreport: 'Documentos e relatórios'
+      }
+      return subtitles[tableValue] || ''
+    },
+
+    async selectTable(tableValue) {
+      if (this.tableActive === tableValue) return
+      this.tableActive = tableValue
+      await this.onTableChange()
+    },
+
     async onTableChange() {
       console.log('Tabela alterada para:', this.tableActive)
       this.tableData = []
@@ -535,9 +586,9 @@ export default {
 
         const newObservation = await this.useFetch(`${endpoint}${rowId}/observacao`, {
           method: 'POST',
-          body: JSON.stringify({
+          body: {
             observacao: this.observationText.trim(),
-          }),
+          },
         })
 
         // Adiciona a nova observação ao array
@@ -763,10 +814,244 @@ export default {
 <style scoped>
 /* Container principal */
 .audit {
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 2rem;
   display: flex;
   flex-direction: column;
-  gap: 15px;
-  margin-left: 20px;
+  gap: 24px;
+}
+
+/* Header */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 2px solid #e9ecef;
+}
+
+.header-content h1 {
+  margin: 0 0 0.5rem 0;
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #2c3e50;
+  background: var(--badge-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.header-content p {
+  margin: 0;
+  color: #6c757d;
+  font-size: 1.1rem;
+}
+
+/* Table Filter Container */
+.table-filter-container {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  animation: slideDown 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative;
+  overflow: hidden;
+  border: 2px solid #e9ecef;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.table-tabs {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px;
+  position: relative;
+  z-index: 1;
+}
+
+.table-tab {
+  position: relative;
+  background: #ffffff;
+  border: 2px solid #e9ecef;
+  border-radius: 12px;
+  padding: 18px 16px;
+  color: #495057;
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.table-tab::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(188, 31, 27, 0.05), transparent);
+  transition: left 0.5s;
+}
+
+.table-tab:hover::before {
+  left: 100%;
+}
+
+.table-tab:hover {
+  transform: translateY(-6px) scale(1.02);
+  box-shadow:
+    0 12px 30px rgba(0, 0, 0, 0.12),
+    0 0 20px rgba(188, 31, 27, 0.1);
+  border-color: rgba(188, 31, 27, 0.3);
+  color: #bc1f1b;
+}
+
+.table-tab:hover .tab-icon {
+  transform: scale(1.15) rotate(5deg);
+  color: #bc1f1b;
+}
+
+.table-tab.active {
+  background: linear-gradient(135deg, #bc1f1b 0%, #8b1714 100%);
+  border-color: #bc1f1b;
+  color: #ffffff;
+  transform: translateY(-4px) scale(1.03);
+  box-shadow:
+    0 12px 40px rgba(188, 31, 27, 0.35),
+    0 0 0 3px rgba(188, 31, 27, 0.15);
+  animation: tabActivate 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes tabActivate {
+  0% {
+    transform: translateY(-4px) scale(1);
+  }
+  50% {
+    transform: translateY(-4px) scale(1.06);
+  }
+  100% {
+    transform: translateY(-4px) scale(1.03);
+  }
+}
+
+.table-tab.active .tab-icon {
+  animation: iconPulse 0.6s ease-out;
+  color: #ffffff;
+}
+
+@keyframes iconPulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  30% {
+    transform: scale(1.3) rotate(-10deg);
+  }
+  60% {
+    transform: scale(0.9) rotate(5deg);
+  }
+}
+
+.table-tab:active {
+  transform: translateY(-2px) scale(0.98);
+}
+
+.tab-icon {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.12));
+}
+
+.tab-icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.tab-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: left;
+}
+
+.tab-title {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+  line-height: 1.2;
+}
+
+.tab-subtitle {
+  font-size: 11px;
+  opacity: 0.85;
+  font-weight: 500;
+  line-height: 1.3;
+  letter-spacing: 0.1px;
+}
+
+.table-tab.active .tab-subtitle {
+  opacity: 0.95;
+}
+
+.tab-active-indicator {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  background: #ffffff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #bc1f1b;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  animation: checkmarkAppear 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.tab-active-indicator svg {
+  width: 16px;
+  height: 16px;
+  animation: checkmarkDraw 0.4s ease-out;
+}
+
+@keyframes checkmarkAppear {
+  from {
+    transform: scale(0) rotate(-180deg);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+@keyframes checkmarkDraw {
+  from {
+    stroke-dasharray: 100;
+    stroke-dashoffset: 100;
+  }
+  to {
+    stroke-dasharray: 100;
+    stroke-dashoffset: 0;
+  }
 }
 
 /* Estilos do conteúdo do Offcanvas */
@@ -1224,7 +1509,79 @@ export default {
 }
 
 /* Responsividade */
+@media (max-width: 1024px) {
+  .audit {
+    padding: 1.5rem;
+  }
+
+  .page-header {
+    margin-bottom: 0.75rem;
+    padding-bottom: 1rem;
+  }
+
+  .header-content h1 {
+    font-size: 2rem;
+  }
+
+  .header-content p {
+    font-size: 1rem;
+  }
+}
+
 @media (max-width: 768px) {
+  .audit {
+    padding: 1rem;
+  }
+
+  .page-header {
+    margin-bottom: 0.5rem;
+    padding-bottom: 0.75rem;
+  }
+
+  .header-content h1 {
+    font-size: 1.75rem;
+  }
+
+  .header-content p {
+    font-size: 0.95rem;
+  }
+
+  .table-filter-container {
+    padding: 20px 16px;
+  }
+
+  .table-tabs {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .table-tab {
+    padding: 16px 14px;
+  }
+
+  .tab-icon {
+    width: 36px;
+    height: 36px;
+  }
+
+  .tab-title {
+    font-size: 14px;
+  }
+
+  .tab-subtitle {
+    font-size: 10px;
+  }
+
+  .tab-active-indicator {
+    width: 22px;
+    height: 22px;
+  }
+
+  .tab-active-indicator svg {
+    width: 14px;
+    height: 14px;
+  }
+
   .detail-grid {
     grid-template-columns: 1fr;
   }

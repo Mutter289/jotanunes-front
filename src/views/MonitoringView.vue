@@ -1,220 +1,156 @@
 <template>
   <div class="pm2-monitor">
-    <div class="monitor-header">
-      <div class="header-title">
-        <h1>Monitoramento de Serviços Gunicorn</h1>
-        <div class="connection-status">
-          <div
-            :class="['status-indicator', { connected: sseConnected, disconnected: !sseConnected }]"
-          ></div>
-          <span>{{ sseConnected ? 'Conectado (SSE)' : 'Desconectado' }}</span>
-        </div>
+    <!-- Page Header -->
+    <div class="page-header">
+      <div class="header-content">
+        <h1>Monitoramento de Serviços</h1>
+        <p>Status em tempo real dos serviços Gunicorn e workers</p>
       </div>
-
-      <div class="stats-grid">
-        <div class="stat-card">
-          <div class="stat-icon online">
-            <svg
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <circle cx="12" cy="12" r="10" />
-              <path d="M8 14s1.5 2 4 2 4-2 4-2" />
-              <line x1="9" y1="9" x2="9.01" y2="9" />
-              <line x1="15" y1="9" x2="15.01" y2="9" />
-            </svg>
-          </div>
-          <div class="stat-content">
-            <div class="stat-value">{{ stats.services_online || 0 }}</div>
-            <div class="stat-label">Online</div>
-          </div>
-        </div>
-
-        <div class="stat-card">
-          <div class="stat-icon stopped">
-            <svg
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <rect x="6" y="4" width="4" height="16" />
-              <rect x="14" y="4" width="4" height="16" />
-            </svg>
-          </div>
-          <div class="stat-content">
-            <div class="stat-value">{{ stats.services_offline || 0 }}</div>
-            <div class="stat-label">Offline</div>
-          </div>
-        </div>
-
-        <div class="stat-card">
-          <div class="stat-icon workers">
-            <svg
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-              <circle cx="9" cy="7" r="4" />
-              <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-              <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-            </svg>
-          </div>
-          <div class="stat-content">
-            <div class="stat-value">{{ stats.total_workers || 0 }}</div>
-            <div class="stat-label">Workers Ativos</div>
-          </div>
-        </div>
-
-        <div class="stat-card">
-          <div class="stat-icon memory">
-            <svg
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
-              <line x1="8" y1="21" x2="16" y2="21" />
-              <line x1="12" y1="17" x2="12" y2="21" />
-            </svg>
-          </div>
-          <div class="stat-content">
-            <div class="stat-value">{{ formatMemory(stats.total_memory_mb) }}</div>
-            <div class="stat-label">Memória Total</div>
-          </div>
-        </div>
-
-        <div class="stat-card">
-          <div class="stat-icon cpu">
-            <svg
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <rect x="4" y="4" width="16" height="16" rx="2" ry="2" />
-              <rect x="9" y="9" width="6" height="6" />
-              <line x1="9" y1="1" x2="9" y2="4" />
-              <line x1="15" y1="1" x2="15" y2="4" />
-              <line x1="9" y1="20" x2="9" y2="23" />
-              <line x1="15" y1="20" x2="15" y2="23" />
-              <line x1="20" y1="9" x2="23" y2="9" />
-              <line x1="20" y1="14" x2="23" y2="14" />
-              <line x1="1" y1="9" x2="4" y2="9" />
-              <line x1="1" y1="14" x2="4" y2="14" />
-            </svg>
-          </div>
-          <div class="stat-content">
-            <div class="stat-value">{{ (stats.total_cpu_percent || 0).toFixed(1) }}%</div>
-            <div class="stat-label">CPU Total</div>
-          </div>
-        </div>
-
-        <div class="stat-card">
-          <div class="stat-icon services">
-            <svg
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <rect x="2" y="2" width="20" height="8" rx="2" ry="2" />
-              <rect x="2" y="14" width="20" height="8" rx="2" ry="2" />
-              <line x1="6" y1="6" x2="6.01" y2="6" />
-              <line x1="6" y1="18" x2="6.01" y2="18" />
-            </svg>
-          </div>
-          <div class="stat-content">
-            <div class="stat-value">{{ stats.total_services || 0 }}</div>
-            <div class="stat-label">Total Serviços</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Controles -->
-    <div class="controls">
-      <div class="search-container">
-        <div class="search-input-wrapper">
-          <svg
-            class="search-icon"
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-          >
-            <circle cx="11" cy="11" r="8" />
-            <path d="M21 21l-4.35-4.35" />
-          </svg>
-          <input
-            v-model="searchTerm"
-            type="text"
-            placeholder="Buscar serviço..."
-            class="search-input"
-          />
-        </div>
-      </div>
-
-      <div class="control-buttons">
-        <VButton
+      <div class="header-actions">
+        <button
+          class="btn-stream"
           @click="toggleConnection"
-          :variant="sseConnected ? 'secondary' : 'primary'"
-          size="small"
+          :class="{ connected: sseConnected }"
         >
-          <svg
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-          >
-            <polyline points="23 4 23 10 17 10" />
-            <polyline points="1 20 1 14 7 14" />
-            <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15" />
+          <svg v-if="sseConnected" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="20 6 9 17 4 12" />
+          </svg>
+          <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
           </svg>
           {{ sseConnected ? 'Stream Ativo' : 'Conectar Stream' }}
-        </VButton>
-
-        <VButton @click="refreshData" size="small" :disabled="loading">
-          <svg
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            :class="{ spin: loading }"
-          >
-            <polyline points="23 4 23 10 17 10" />
-            <polyline points="1 20 1 14 7 14" />
-            <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15" />
+        </button>
+        <button
+          class="btn-refresh"
+          @click="refreshData"
+          :class="{ rotating: loading }"
+          :disabled="loading"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 2v6h-6" />
+            <path d="M3 12a9 9 0 0 1 15-6.7L21 8" />
+            <path d="M3 22v-6h6" />
+            <path d="M21 12a9 9 0 0 1-15 6.7L3 16" />
           </svg>
-          Atualizar
-        </VButton>
+        </button>
       </div>
     </div>
 
-    <!-- Tabela de Serviços -->
+    <!-- Stats Grid -->
+    <div class="stats-grid">
+      <div class="stat-card online-card">
+        <div class="stat-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10" />
+            <path d="M8 14s1.5 2 4 2 4-2 4-2" />
+            <line x1="9" y1="9" x2="9.01" y2="9" />
+            <line x1="15" y1="9" x2="15.01" y2="9" />
+          </svg>
+        </div>
+        <div class="stat-content">
+          <div class="stat-value">{{ stats.services_online || 0 }}</div>
+          <div class="stat-label">Serviços Online</div>
+        </div>
+        <div class="stat-pulse"></div>
+      </div>
+
+      <div class="stat-card stopped-card">
+        <div class="stat-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="6" y="4" width="4" height="16" />
+            <rect x="14" y="4" width="4" height="16" />
+          </svg>
+        </div>
+        <div class="stat-content">
+          <div class="stat-value">{{ stats.services_offline || 0 }}</div>
+          <div class="stat-label">Serviços Offline</div>
+        </div>
+      </div>
+
+      <div class="stat-card workers-card">
+        <div class="stat-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+            <circle cx="9" cy="7" r="4" />
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+          </svg>
+        </div>
+        <div class="stat-content">
+          <div class="stat-value">{{ stats.total_workers || 0 }}</div>
+          <div class="stat-label">Workers Ativos</div>
+        </div>
+      </div>
+
+      <div class="stat-card memory-card">
+        <div class="stat-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
+            <line x1="8" y1="21" x2="16" y2="21" />
+            <line x1="12" y1="17" x2="12" y2="21" />
+          </svg>
+        </div>
+        <div class="stat-content">
+          <div class="stat-value">{{ formatMemory(stats.total_memory_mb) }}</div>
+          <div class="stat-label">Memória Total</div>
+        </div>
+      </div>
+
+      <div class="stat-card cpu-card">
+        <div class="stat-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="4" y="4" width="16" height="16" rx="2" ry="2" />
+            <rect x="9" y="9" width="6" height="6" />
+            <line x1="9" y1="1" x2="9" y2="4" />
+            <line x1="15" y1="1" x2="15" y2="4" />
+            <line x1="9" y1="20" x2="9" y2="23" />
+            <line x1="15" y1="20" x2="15" y2="23" />
+            <line x1="20" y1="9" x2="23" y2="9" />
+            <line x1="20" y1="14" x2="23" y2="14" />
+            <line x1="1" y1="9" x2="4" y2="9" />
+            <line x1="1" y1="14" x2="4" y2="14" />
+          </svg>
+        </div>
+        <div class="stat-content">
+          <div class="stat-value">{{ (stats.total_cpu_percent || 0).toFixed(1) }}%</div>
+          <div class="stat-label">CPU Total</div>
+        </div>
+      </div>
+
+      <div class="stat-card services-card">
+        <div class="stat-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="2" y="2" width="20" height="8" rx="2" ry="2" />
+            <rect x="2" y="14" width="20" height="8" rx="2" ry="2" />
+            <line x1="6" y1="6" x2="6.01" y2="6" />
+            <line x1="6" y1="18" x2="6.01" y2="18" />
+          </svg>
+        </div>
+        <div class="stat-content">
+          <div class="stat-value">{{ stats.total_services || 0 }}</div>
+          <div class="stat-label">Total de Serviços</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Controls Section -->
+    <div class="controls-section">
+      <div class="search-container">
+        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8" />
+          <path d="m21 21-4.35-4.35" />
+        </svg>
+        <input
+          v-model="searchTerm"
+          type="text"
+          placeholder="Buscar serviço..."
+          class="search-input"
+        />
+      </div>
+    </div>
+
+    <!-- Table Container -->
     <div class="table-container">
       <div class="table-wrapper">
         <table class="processes-table">
@@ -223,15 +159,7 @@
               <th @click="sort('status')" class="sortable">
                 <div class="th-content">
                   Status
-                  <svg
-                    class="sort-icon"
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                  >
+                  <svg class="sort-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <polyline points="6 9 12 15 18 9" />
                   </svg>
                 </div>
@@ -239,15 +167,7 @@
               <th @click="sort('service_name')" class="sortable">
                 <div class="th-content">
                   Serviço
-                  <svg
-                    class="sort-icon"
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                  >
+                  <svg class="sort-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <polyline points="6 9 12 15 18 9" />
                   </svg>
                 </div>
@@ -255,15 +175,7 @@
               <th @click="sort('main_pid')" class="sortable">
                 <div class="th-content">
                   PID
-                  <svg
-                    class="sort-icon"
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                  >
+                  <svg class="sort-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <polyline points="6 9 12 15 18 9" />
                   </svg>
                 </div>
@@ -271,15 +183,7 @@
               <th @click="sort('cpu_percent')" class="sortable">
                 <div class="th-content">
                   CPU
-                  <svg
-                    class="sort-icon"
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                  >
+                  <svg class="sort-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <polyline points="6 9 12 15 18 9" />
                   </svg>
                 </div>
@@ -287,15 +191,7 @@
               <th @click="sort('memory_mb')" class="sortable">
                 <div class="th-content">
                   Memória
-                  <svg
-                    class="sort-icon"
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                  >
+                  <svg class="sort-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <polyline points="6 9 12 15 18 9" />
                   </svg>
                 </div>
@@ -303,15 +199,7 @@
               <th @click="sort('uptime')" class="sortable">
                 <div class="th-content">
                   Uptime
-                  <svg
-                    class="sort-icon"
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                  >
+                  <svg class="sort-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <polyline points="6 9 12 15 18 9" />
                   </svg>
                 </div>
@@ -331,14 +219,7 @@
             </tr>
             <tr v-else-if="filteredServices.length === 0">
               <td colspan="10" class="empty-row">
-                <svg
-                  width="48"
-                  height="48"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1"
-                >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
                   <circle cx="12" cy="12" r="10" />
                   <path d="M16 16s-1.5-2-4-2-4 2-4 2" />
                   <line x1="9" y1="9" x2="9.01" y2="9" />
@@ -403,14 +284,7 @@
               <td class="actions">
                 <div class="action-buttons">
                   <button @click="viewWorkers(service)" class="action-btn view" title="Ver Workers">
-                    <svg
-                      width="14"
-                      height="14"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                    >
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                       <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
                       <circle cx="12" cy="12" r="3" />
                     </svg>
@@ -421,14 +295,7 @@
                     title="Reiniciar"
                     :disabled="service.status !== 'online'"
                   >
-                    <svg
-                      width="14"
-                      height="14"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                    >
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                       <polyline points="23 4 23 10 17 10" />
                       <polyline points="1 20 1 14 7 14" />
                       <path
@@ -444,7 +311,7 @@
       </div>
     </div>
 
-    <!-- Modal Workers -->
+    <!-- Workers Modal -->
     <VModal
       v-model="showWorkersModal"
       size="large"
@@ -475,11 +342,16 @@
       </div>
     </VModal>
 
+    <!-- Footer -->
     <div class="footer" v-if="lastUpdate">
-      <span class="last-update"> Última atualização: {{ formatDate(lastUpdate) }} </span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10" />
+        <polyline points="12 6 12 12 16 14" />
+      </svg>
+      <span>Última atualização: {{ formatDate(lastUpdate) }}</span>
     </div>
 
-    <!-- Popup de Conectando -->
+    <!-- Connecting Popup -->
     <VPopup
       v-model:visible="showConnectingPopup"
       msg="Conectando ao servidor"
@@ -496,6 +368,7 @@ import VButton from '@/components/Button/VButton.vue'
 import VModal from '@/components/Modal/VModal.vue'
 import VPopup from '@/components/Popup/VPopup.vue'
 import { useError, useSuccess, useQuestion } from '@/hooks/useAlerts'
+import { API_BASE } from '@/config/api.js'
 
 export default {
   components: {
@@ -505,11 +378,8 @@ export default {
   },
 
   data() {
-    const base = (window.API_BASE_URL || '').startsWith('http')
-      ? window.API_BASE_URL
-      : `http://${window.API_BASE_URL || '192.168.195.162:8000'}`
     return {
-      API_BASE_URL: base, //http://192.168.195.162:8000
+      API_BASE_URL: API_BASE,
       services: [],
       stats: {
         total_services: 0,
@@ -573,8 +443,6 @@ export default {
       }
 
       console.log('Conectando SSE:', `${this.API_BASE_URL}/monitoring/stream`)
-
-      // Mostrar popup de conectando
       this.showConnectingPopup = true
 
       this.eventSource = new EventSource(`${this.API_BASE_URL}/monitoring/stream`)
@@ -603,7 +471,6 @@ export default {
         this.sseConnected = false
         this.showConnectingPopup = false
 
-        // Reconectar após 5 segundos
         setTimeout(() => {
           if (!this.sseConnected) {
             console.log('Tentando reconectar SSE...')
@@ -631,7 +498,6 @@ export default {
     },
 
     updateMetrics(data) {
-      // Atualizar estatísticas
       this.stats = {
         total_services: data.total_services || 0,
         services_online: data.services_online || 0,
@@ -641,7 +507,6 @@ export default {
         total_memory_mb: data.total_memory_mb || 0,
       }
 
-      // Atualizar serviços
       this.services = Object.entries(data.services || {}).map(([name, service]) => ({
         ...service,
         service_name: name,
@@ -697,11 +562,6 @@ export default {
         })
 
         if (confirm) {
-          // Aqui você implementaria o endpoint de restart
-          // const response = await fetch(`${this.API_BASE_URL}/monitoring/service/${serviceName}/restart`, {
-          //   method: 'POST'
-          // })
-
           useSuccess({
             title: 'Sucesso',
             text: 'Funcionalidade em desenvolvimento',
@@ -729,12 +589,10 @@ export default {
       const diffMs = now.getTime() - d.getTime()
       const diffSec = Math.floor(diffMs / 1000)
       const diffMin = Math.floor(diffSec / 60)
-      const diffHour = Math.floor(diffMin / 60)
 
       const pad = (n) => String(n).padStart(2, '0')
       const timeStr = `${pad(d.getHours())}:${pad(d.getMinutes())}`
 
-      // Mesma data (hoje/ontem) com base em meia-noite local
       const startOfDay = (x) => new Date(x.getFullYear(), x.getMonth(), x.getDate())
       const todayStart = startOfDay(now).getTime()
       const dateStart = startOfDay(d).getTime()
@@ -779,122 +637,248 @@ export default {
 </script>
 
 <style scoped>
+/* Global Styles */
 .pm2-monitor {
-  min-height: 100vh;
-  padding: 2rem;
   width: 100%;
   max-width: 100%;
-  margin: 0 auto;
-  box-sizing: border-box;
-  margin: 1rem !important;
+  margin: 0;
+  padding: 2rem 3rem;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  min-height: 100vh;
 }
 
-.monitor-header {
-  /* background: rgba(255, 255, 255, 0.95); */
-  backdrop-filter: blur(20px);
-  border-radius: 20px;
-  padding: 2rem;
-  margin-bottom: 2rem;
-  box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
-  border: 1px solid rgba(255, 255, 255, 0.18);
-}
-
-.header-title {
+/* Page Header */
+.page-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 2rem;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 2px solid #e9ecef;
 }
 
-.header-title h1 {
-  margin: 0;
-  color: #2d3748;
-  font-size: 2rem;
+.header-content h1 {
+  margin: 0 0 0.5rem 0;
+  font-size: 2.5rem;
   font-weight: 700;
+  color: #2c3e50;
+  background: linear-gradient(135deg, #bc1f1b 0%, #8b1714 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
-.connection-status {
+.header-content p {
+  margin: 0;
+  color: #6c757d;
+  font-size: 1.1rem;
+}
+
+.header-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.btn-stream {
+  background: white;
+  color: #64748b;
+  border: 2px solid #e9ecef;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 14px;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  font-size: 0.9rem;
-  color: #4a5568;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.status-indicator {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  transition: all 0.3s ease;
+.btn-stream svg {
+  width: 18px;
+  height: 18px;
 }
 
-.status-indicator.connected {
-  background: #48bb78;
-  box-shadow: 0 0 0 2px rgba(72, 187, 120, 0.3);
-}
-
-.status-indicator.disconnected {
-  background: #f56565;
-  box-shadow: 0 0 0 2px rgba(245, 101, 101, 0.3);
-}
-
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1.5rem;
-}
-
-.stat-card {
-  background: linear-gradient(135deg, #ffffff 0%, #f7fafc 100%);
-  border-radius: 16px;
-  padding: 1.5rem;
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  border: 1px solid rgba(226, 232, 240, 0.8);
-  transition:
-    transform 0.2s ease,
-    box-shadow 0.2s ease;
-}
-
-.stat-card:hover {
+.btn-stream:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
 }
 
-.stat-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
+.btn-stream.connected {
+  background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+  color: white;
+  border-color: #48bb78;
+  box-shadow: 0 4px 15px rgba(72, 187, 120, 0.3);
+}
+
+.btn-refresh {
+  width: 44px;
+  height: 44px;
+  background: white;
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.btn-refresh:hover:not(:disabled) {
+  background: #f8fafc;
+  border-color: #bc1f1b;
+}
+
+.btn-refresh:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-refresh svg {
+  width: 20px;
+  height: 20px;
+  color: #64748b;
+}
+
+.btn-refresh.rotating svg {
+  animation: rotate 1s linear infinite;
+}
+
+@keyframes rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Stats Grid */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+}
+
+.stat-card {
+  position: relative;
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  border: 2px solid #e9ecef;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+  animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.stat-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
+}
+
+.stat-pulse {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 100px;
+  height: 100px;
+  background: radial-gradient(circle, rgba(72, 187, 120, 0.2), transparent 70%);
+  border-radius: 50%;
+  animation: pulse 2s ease-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.3);
+    opacity: 0;
+  }
+}
+
+.online-card:hover {
+  border-color: rgba(72, 187, 120, 0.5);
+}
+
+.stopped-card:hover {
+  border-color: rgba(160, 174, 192, 0.5);
+}
+
+.workers-card:hover {
+  border-color: rgba(66, 153, 225, 0.5);
+}
+
+.memory-card:hover {
+  border-color: rgba(159, 122, 234, 0.5);
+}
+
+.cpu-card:hover {
+  border-color: rgba(237, 137, 54, 0.5);
+}
+
+.services-card:hover {
+  border-color: rgba(188, 31, 27, 0.5);
+}
+
+.stat-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: transform 0.3s;
+}
+
+.stat-card:hover .stat-icon {
+  transform: scale(1.1) rotate(5deg);
+}
+
+.stat-icon svg {
+  width: 28px;
+  height: 28px;
   color: white;
 }
 
-.stat-icon.online {
-  background: linear-gradient(135deg, #48bb78, #38a169);
+.online-card .stat-icon {
+  background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
 }
-.stat-icon.stopped {
-  background: linear-gradient(135deg, #a0aec0, #718096);
+
+.stopped-card .stat-icon {
+  background: linear-gradient(135deg, #a0aec0 0%, #718096 100%);
 }
-.stat-icon.errored {
-  background: linear-gradient(135deg, #f56565, #e53e3e);
+
+.workers-card .stat-icon {
+  background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
 }
-.stat-icon.memory {
-  background: linear-gradient(135deg, #4299e1, #3182ce);
+
+.memory-card .stat-icon {
+  background: linear-gradient(135deg, #9f7aea 0%, #805ad5 100%);
 }
-.stat-icon.cpu {
-  background: linear-gradient(135deg, #ed8936, #dd6b20);
+
+.cpu-card .stat-icon {
+  background: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%);
 }
-.stat-icon.restarts {
-  background: linear-gradient(135deg, #9f7aea, #805ad5);
-}
-.stat-icon.workers {
-  background: linear-gradient(135deg, #48bb78, #38a169);
-}
-.stat-icon.services {
-  background: linear-gradient(135deg, #4299e1, #3182ce);
+
+.services-card .stat-icon {
+  background: linear-gradient(135deg, #bc1f1b 0%, #8b1714 100%);
 }
 
 .stat-content {
@@ -902,139 +886,67 @@ export default {
 }
 
 .stat-value {
-  font-size: 1.5rem;
+  font-size: 2rem;
   font-weight: 700;
-  color: #2d3748;
-  margin-bottom: 0.25rem;
+  color: #1e293b;
+  margin-bottom: 4px;
+  line-height: 1;
 }
 
 .stat-label {
-  font-size: 0.875rem;
-  color: #718096;
+  font-size: 14px;
+  color: #64748b;
   font-weight: 500;
 }
 
-.controls {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 2rem;
-  gap: 1rem;
+/* Controls Section */
+.controls-section {
+  margin: 0;
 }
 
 .search-container {
-  flex: 1;
-  max-width: 400px;
+  background: white;
+  border: 2px solid #e9ecef;
+  border-radius: 12px;
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: all 0.3s;
 }
 
-.search-input-wrapper {
-  position: relative;
+.search-container:focus-within {
+  border-color: #bc1f1b;
+  box-shadow: 0 0 0 3px rgba(188, 31, 27, 0.1);
 }
 
 .search-icon {
-  position: absolute;
-  left: 1rem;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #a0aec0;
-  pointer-events: none;
+  width: 20px;
+  height: 20px;
+  color: #94a3b8;
+  flex-shrink: 0;
 }
 
 .search-input {
-  width: 100%;
-  padding: 0.75rem 1rem 0.75rem 3rem;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(10px);
-  font-size: 1rem;
-  transition: all 0.3s ease;
-}
-
-.search-input:focus {
-  outline: none;
-  border-color: #4299e1;
-  background: rgba(255, 255, 255, 0.95);
-  box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
-}
-
-.control-buttons {
-  display: flex;
-  gap: 0.75rem;
-}
-
-.btn {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1.5rem;
+  flex: 1;
   border: none;
-  border-radius: 12px;
-  font-size: 0.875rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  backdrop-filter: blur(10px);
+  outline: none;
+  font-size: 15px;
+  color: #1e293b;
 }
 
-.btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
+.search-input::placeholder {
+  color: #94a3b8;
 }
 
-.btn-primary {
-  background: linear-gradient(135deg, #4299e1, #3182ce);
-  color: white;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.btn-primary:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 15px rgba(66, 153, 225, 0.4);
-}
-
-.btn-secondary {
-  background: rgba(255, 255, 255, 0.9);
-  color: #4a5568;
-  border: 1px solid rgba(226, 232, 240, 0.8);
-}
-
-.btn-secondary.active {
-  background: linear-gradient(135deg, #48bb78, #38a169);
-  color: white;
-  border-color: rgba(255, 255, 255, 0.2);
-}
-
-.btn-secondary:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 1);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-}
-
-.btn-secondary.active:hover:not(:disabled) {
-  box-shadow: 0 4px 15px rgba(72, 187, 120, 0.4);
-}
-
-.spin {
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
+/* Table Container */
 .table-container {
-  background: rgba(255, 255, 255, 0.95);
+  background: white;
   backdrop-filter: blur(20px);
-  border-radius: 20px;
+  border-radius: 16px;
   overflow: hidden;
-  box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border: 2px solid #e9ecef;
 }
 
 .table-wrapper {
@@ -1047,13 +959,15 @@ export default {
 }
 
 .processes-table th {
-  background: linear-gradient(135deg, #f7fafc, #edf2f7);
-  padding: 1rem 1.5rem;
+  background: #f8fafc;
+  padding: 16px;
   text-align: left;
-  font-weight: 600;
-  color: #2d3748;
-  font-size: 0.875rem;
-  border-bottom: 1px solid #e2e8f0;
+  font-weight: 700;
+  color: #475569;
+  font-size: 13px;
+  border-bottom: 2px solid #e2e8f0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .processes-table th.sortable {
@@ -1063,16 +977,18 @@ export default {
 }
 
 .processes-table th.sortable:hover {
-  background: linear-gradient(135deg, #edf2f7, #e2e8f0);
+  background: #f1f5f9;
 }
 
 .th-content {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 8px;
 }
 
 .sort-icon {
+  width: 16px;
+  height: 16px;
   opacity: 0.5;
   transition: opacity 0.2s ease;
 }
@@ -1082,8 +998,8 @@ export default {
 }
 
 .processes-table td {
-  padding: 1rem 1.5rem;
-  border-bottom: 1px solid rgba(226, 232, 240, 0.6);
+  padding: 16px;
+  border-bottom: 1px solid #f1f5f9;
   vertical-align: middle;
 }
 
@@ -1092,7 +1008,7 @@ export default {
 }
 
 .process-row:hover {
-  background: rgba(66, 153, 225, 0.05);
+  background: rgba(188, 31, 27, 0.03);
 }
 
 .process-row:last-child td {
@@ -1102,55 +1018,40 @@ export default {
 .status-badge {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.375rem 0.75rem;
-  border-radius: 8px;
-  font-size: 0.75rem;
-  font-weight: 600;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.3px;
 }
 
 .status-badge.online {
-  background: rgba(72, 187, 120, 0.1);
-  color: #2f855a;
-  border: 1px solid rgba(72, 187, 120, 0.2);
+  background: #dcfce7;
+  color: #166534;
 }
 
 .status-badge.stopped {
-  background: rgba(160, 174, 192, 0.1);
-  color: #4a5568;
-  border: 1px solid rgba(160, 174, 192, 0.2);
+  background: #f1f5f9;
+  color: #475569;
 }
 
 .status-badge.errored {
-  background: rgba(245, 101, 101, 0.1);
-  color: #c53030;
-  border: 1px solid rgba(245, 101, 101, 0.2);
+  background: #fee2e2;
+  color: #991b1b;
 }
 
 .status-dot {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
-  animation: pulse 2s infinite;
+  background: currentColor;
+  animation: pulse-dot 2s infinite;
 }
 
-.status-badge.online .status-dot {
-  background: #48bb78;
-}
-
-.status-badge.stopped .status-dot {
-  background: #a0aec0;
-}
-
-.status-badge.errored .status-dot {
-  background: #f56565;
-}
-
-@keyframes pulse {
-  0%,
-  100% {
+@keyframes pulse-dot {
+  0%, 100% {
     opacity: 1;
   }
   50% {
@@ -1161,30 +1062,31 @@ export default {
 .name-cell {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 4px;
 }
 
 .process-name strong {
-  color: #2d3748;
-  font-size: 0.9rem;
+  color: #1e293b;
+  font-size: 14px;
+  font-weight: 600;
 }
 
 .process-id {
-  font-size: 0.75rem;
-  color: #718096;
+  font-size: 12px;
+  color: #64748b;
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
 }
 
 .metric-cell {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 12px;
 }
 
 .metric-bar {
   width: 60px;
   height: 6px;
-  background: rgba(226, 232, 240, 0.8);
+  background: #e2e8f0;
   border-radius: 3px;
   overflow: hidden;
 }
@@ -1200,59 +1102,67 @@ export default {
 }
 
 .memory-fill {
-  background: linear-gradient(90deg, #4299e1, #3182ce);
+  background: linear-gradient(90deg, #9f7aea, #805ad5);
 }
 
 .metric-cell span {
-  font-size: 0.875rem;
+  font-size: 13px;
   font-weight: 600;
-  color: #4a5568;
-  min-width: 45px;
+  color: #1e293b;
+  min-width: 50px;
 }
 
 .error-count {
   font-weight: 600;
-  color: #4a5568;
+  color: #64748b;
 }
 
 .error-count.high {
-  color: #e53e3e;
+  color: #dc2626;
   font-weight: 700;
 }
 
 .metric-value {
   font-weight: 600;
-  color: #4a5568;
+  color: #64748b;
 }
 
 .instance-count {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
+  min-width: 32px;
   height: 32px;
+  padding: 0 8px;
   background: linear-gradient(135deg, #4299e1, #3182ce);
   color: white;
   border-radius: 50%;
-  font-size: 0.875rem;
-  font-weight: 600;
+  font-size: 13px;
+  font-weight: 700;
 }
 
 .action-buttons {
   display: flex;
-  gap: 0.5rem;
+  gap: 8px;
 }
 
 .action-btn {
+  width: 36px;
+  height: 36px;
+  border: 1px solid #e2e8f0;
+  background: white;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
-  border: none;
-  border-radius: 8px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.2s;
+}
+
+.action-btn:hover:not(:disabled) {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+  transform: scale(1.05);
 }
 
 .action-btn:disabled {
@@ -1260,35 +1170,30 @@ export default {
   cursor: not-allowed;
 }
 
-.action-btn.view {
-  background: rgba(66, 153, 225, 0.1);
-  color: #2b6cb0;
-}
-
-.action-btn.view:hover:not(:disabled) {
-  background: rgba(66, 153, 225, 0.2);
-  transform: scale(1.1);
-}
-
-.action-btn.restart {
-  background: rgba(237, 137, 54, 0.1);
-  color: #c05621;
+.action-btn svg {
+  width: 16px;
+  height: 16px;
+  color: #64748b;
 }
 
 .action-btn.restart:hover:not(:disabled) {
-  background: rgba(237, 137, 54, 0.2);
-  transform: scale(1.1);
+  background: #fef2f2;
+  border-color: #fca5a5;
+}
+
+.action-btn.restart:hover:not(:disabled) svg {
+  color: #dc2626;
 }
 
 .loading-row,
 .empty-row {
   text-align: center;
   padding: 3rem 1.5rem;
-  color: #718096;
+  color: #64748b;
 }
 
 .loading-row {
-  background: linear-gradient(90deg, transparent, rgba(66, 153, 225, 0.05), transparent);
+  background: linear-gradient(90deg, transparent, rgba(188, 31, 27, 0.03), transparent);
   background-size: 200% 100%;
   animation: shimmer 2s infinite;
 }
@@ -1306,20 +1211,27 @@ export default {
   display: inline-block;
   width: 24px;
   height: 24px;
-  border: 3px solid rgba(66, 153, 225, 0.3);
+  border: 3px solid #e5e7eb;
+  border-top-color: #bc1f1b;
   border-radius: 50%;
-  border-top-color: #4299e1;
   animation: spin 1s ease-in-out infinite;
   margin-right: 1rem;
   vertical-align: middle;
 }
 
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
 .empty-row svg {
   display: block;
   margin: 0 auto 1rem;
+  width: 48px;
+  height: 48px;
   color: #cbd5e0;
 }
 
+/* Workers Modal */
 .workers-content {
   padding: 1rem 0;
 }
@@ -1327,149 +1239,131 @@ export default {
 .workers-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 1rem;
+  gap: 16px;
 }
 
 .worker-card {
-  background: linear-gradient(135deg, #ffffff 0%, #f7fafc 100%);
+  background: white;
   border-radius: 12px;
-  padding: 1rem;
-  border: 1px solid rgba(226, 232, 240, 0.8);
-  transition: all 0.2s ease;
+  padding: 16px;
+  border: 2px solid #e9ecef;
+  transition: all 0.3s;
 }
 
 .worker-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
 }
 
 .worker-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 0.75rem;
+  margin-bottom: 12px;
 }
 
 .worker-pid {
-  font-size: 0.875rem;
+  font-size: 13px;
   font-weight: 600;
-  color: #2d3748;
+  color: #475569;
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
 }
 
 .worker-status {
-  padding: 0.25rem 0.5rem;
-  border-radius: 6px;
-  font-size: 0.75rem;
+  padding: 4px 10px;
+  border-radius: 16px;
+  font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
 }
 
 .worker-status.online {
-  background: rgba(72, 187, 120, 0.1);
-  color: #2f855a;
+  background: #dcfce7;
+  color: #166534;
 }
 
 .worker-metrics {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 8px;
 }
 
 .worker-metric {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding: 8px;
+  background: #f8fafc;
+  border-radius: 8px;
 }
 
 .worker-metric .metric-label {
-  font-size: 0.875rem;
-  color: #718096;
-  font-weight: 500;
+  font-size: 12px;
+  color: #64748b;
+  font-weight: 600;
 }
 
 .worker-metric .metric-value {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #2d3748;
+  font-size: 13px;
+  font-weight: 700;
+  color: #1e293b;
 }
 
 .no-workers {
   text-align: center;
   padding: 2rem;
-  color: #718096;
+  color: #94a3b8;
   font-style: italic;
 }
 
+/* Footer */
 .footer {
   margin-top: 2rem;
   text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 1rem;
+  background: white;
+  border-radius: 12px;
+  border: 2px solid #e9ecef;
+  font-size: 14px;
+  color: #64748b;
 }
 
-.last-update {
-  display: inline-block;
-  padding: 0.5rem 1rem;
-  background: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(10px);
-  border-radius: 20px;
-  font-size: 0.875rem;
-  color: #718096;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+.footer svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+  .stats-grid {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  }
 }
 
 @media (max-width: 768px) {
   .pm2-monitor {
-    padding: 1rem;
+    padding: 1.5rem 2rem;
   }
 
-  .monitor-header {
-    padding: 1.5rem;
-    border-radius: 16px;
-  }
-
-  .header-title {
+  .page-header {
     flex-direction: column;
-    align-items: flex-start;
     gap: 1rem;
   }
 
-  .header-title h1 {
-    font-size: 1.5rem;
+  .header-content h1 {
+    font-size: 2rem;
+  }
+
+  .header-content p {
+    font-size: 1rem;
   }
 
   .stats-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .controls {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .search-container {
-    max-width: none;
-  }
-
-  .control-buttons {
-    justify-content: center;
-  }
-
-  .table-container {
-    border-radius: 16px;
-  }
-
-  .processes-table th,
-  .processes-table td {
-    padding: 0.75rem;
-    font-size: 0.875rem;
-  }
-
-  .metric-bar {
-    width: 40px;
-  }
-
-  .action-buttons {
-    flex-direction: column;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   }
 
   .workers-grid {
@@ -1479,26 +1373,15 @@ export default {
 
 @media (max-width: 480px) {
   .pm2-monitor {
-    padding: 0.5rem;
-  }
-
-  .stat-card {
     padding: 1rem;
   }
 
-  .processes-table th,
-  .processes-table td {
-    padding: 0.5rem;
+  .header-content h1 {
+    font-size: 1.75rem;
   }
 
-  .metric-cell {
-    flex-direction: column;
-    gap: 0.25rem;
-    text-align: center;
-  }
-
-  .metric-bar {
-    width: 60px;
+  .stat-value {
+    font-size: 1.5rem;
   }
 }
 </style>

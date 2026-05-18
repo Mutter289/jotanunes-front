@@ -20,11 +20,23 @@ import SidebarMenu from './components/SidebarMenu.vue'
 
 export default {
   components: { SidebarHeader, SidebarMenu },
+
+  props: {
+    // nova prop para permitir controlar o colapso externamente
+    collapsed: {
+      type: Boolean,
+      default: null, // null = comportamento normal (auto mobile)
+    },
+  },
+
   emits: ['collapsed-changed'],
+
   data() {
     return {
-      isCollapsed: false,
+      // estado inicial respeitando a prop
+      isCollapsed: this.collapsed ?? false,
       isMobileMenuOpen: false,
+
       menu: [
         {
           name: 'Dashboard',
@@ -53,27 +65,35 @@ export default {
       ],
     }
   },
+
   methods: {
     toggleSidebar() {
       this.isCollapsed = !this.isCollapsed
       this.$emit('collapsed-changed', this.isCollapsed)
     },
+
     toggleMobileMenu() {
       this.isMobileMenuOpen = !this.isMobileMenuOpen
     },
+
     closeMobileMenu() {
       this.isMobileMenuOpen = false
     },
   },
-  mounted() {
-    const mediaQuery = window.matchMedia('(max-width: 1024px)')
-    this.isCollapsed = mediaQuery.matches
 
-    mediaQuery.addListener((e) => {
+  mounted() {
+    const mediaQuery = window.matchMedia('(max-width: 1024px)');
+    this.isCollapsed = true; // sempre inicia colapsado
+
+    // avisa o pai imediatamente que está colapsado
+    this.$emit('collapsed-changed', true);
+
+    mediaQuery.addEventListener("change", (e) => {
       if (e.matches) {
-        this.isCollapsed = true
+        this.isCollapsed = true;
+        this.$emit("collapsed-changed", true);
       }
-    })
-  },
+    });
+  }
 }
 </script>

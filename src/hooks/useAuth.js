@@ -47,7 +47,7 @@ export function useAuth() {
     }
 
     if (!isAdmin.value) {
-      router.push('/dashboard')
+      router.push('/main')
       return false
     }
 
@@ -56,7 +56,7 @@ export function useAuth() {
 
   const requireGuest = () => {
     if (isAuthenticated.value) {
-      router.push('/dashboard')
+      router.push('/main')
       return false
     }
     return true

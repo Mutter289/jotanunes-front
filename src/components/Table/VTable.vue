@@ -2,27 +2,65 @@
   <div class="v-table-container">
     <!-- Search Bar -->
     <div v-if="searchable" class="v-table-search">
-      <div class="search-input-wrapper">
-        <svg
-          class="search-icon"
-          width="16"
-          height="16"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-        >
-          <circle cx="11" cy="11" r="8"></circle>
-          <path d="m21 21-4.35-4.35"></path>
-        </svg>
-        <input
-          v-model="searchQuery"
-          type="text"
-          :placeholder="searchPlaceholder"
-          class="search-input"
-        />
+      <div class="search-header">
+        <h3 class="search-title">Filtros de Pesquisa</h3>
+        <button v-if="hasActiveFilters" class="clear-filters-btn" @click="clearAllFilters">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+          Limpar Filtros
+        </button>
       </div>
-      <div class="search-actions">
-        <button class="icon-btn refresh-btn" @click="handleRefresh">
+
+      <div class="filters-row">
+        <div class="search-input-wrapper">
+          <svg
+            class="search-icon"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+          >
+            <circle cx="11" cy="11" r="8"></circle>
+            <path d="m21 21-4.35-4.35"></path>
+          </svg>
+          <input
+            v-model="searchQuery"
+            type="text"
+            :placeholder="searchPlaceholder"
+            class="search-input"
+          />
+          <button v-if="searchQuery" class="clear-search-btn" @click="searchQuery = ''">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+
+        <div v-if="filterableColumns.length > 0" class="filter-group">
+          <label class="filter-label">Coluna:</label>
+          <select v-model="selectedColumn" class="filter-select">
+            <option value="">Todas</option>
+            <option v-for="col in filterableColumns" :key="col.key" :value="col.key">
+              {{ col.label }}
+            </option>
+          </select>
+        </div>
+
+        <div v-if="statusOptions.length > 0" class="filter-group">
+          <label class="filter-label">Status:</label>
+          <select v-model="selectedStatus" class="filter-select">
+            <option value="">Todos</option>
+            <option v-for="status in statusOptions" :key="status" :value="status">
+              {{ status }}
+            </option>
+          </select>
+        </div>
+
+        <button class="icon-btn refresh-btn" @click="handleRefresh" title="Atualizar">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
             <path d="M21 2v6h-6"></path>
             <path d="M3 12a9 9 0 0 1 15-6.7L21 8"></path>
@@ -30,17 +68,31 @@
             <path d="M21 12a9 9 0 0 1-15 6.7L3 16"></path>
           </svg>
         </button>
-        <span class="results-info">{{ filteredData.length }} out of {{ data.length }}</span>
-        <button class="icon-btn nav-btn" @click="navigatePrev" :disabled="!canNavigatePrev">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <polyline points="15 18 9 12 15 6"></polyline>
+      </div>
+
+      <div class="search-footer">
+        <span class="results-info">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <line x1="16" y1="13" x2="8" y2="13"></line>
+            <line x1="16" y1="17" x2="8" y2="17"></line>
+            <polyline points="10 9 9 9 8 9"></polyline>
           </svg>
-        </button>
-        <button class="icon-btn nav-btn" @click="navigateNext" :disabled="!canNavigateNext">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <polyline points="9 18 15 12 9 6"></polyline>
-          </svg>
-        </button>
+          {{ filteredData.length }} de {{ data.length }} registros
+        </span>
+        <div class="nav-controls">
+          <button class="icon-btn nav-btn" @click="navigatePrev" :disabled="!canNavigatePrev" title="Anterior">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+          </button>
+          <button class="icon-btn nav-btn" @click="navigateNext" :disabled="!canNavigateNext" title="Próximo">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </button>
+        </div>
       </div>
     </div>
 
@@ -108,11 +160,6 @@
                   'truncate',
               ]"
               :style="column.maxWidth ? { maxWidth: column.maxWidth } : {}"
-              :title="
-                shouldShowTooltip(getNestedValue(row, column.key), column)
-                  ? getNestedValue(row, column.key)
-                  : ''
-              "
             >
               <div class="cell-content">
                 <!-- Custom slot for cell content -->
@@ -147,133 +194,81 @@
             <td v-if="hasActions" class="actions-column">
               <div class="actions-wrapper">
                 <slot name="actions" :row="row">
+                  <!-- Ação Editar -->
                   <button
-                    v-for="action in actions"
-                    :key="action.key"
-                    @click.stop="handleAction(action, row)"
+                    v-if="actions.find(a => a.key === 'edit')"
+                    @click.stop="handleAction(actions.find(a => a.key === 'edit'), row)"
                     :class="[
                       'action-btn',
-                      action.className,
-                      action.variant && `action-btn-${action.variant}`,
+                      'action-btn-edit',
+                      actions.find(a => a.key === 'edit').className,
+                      actions.find(a => a.key === 'edit').variant && `action-btn-${actions.find(a => a.key === 'edit').variant}`,
                     ]"
-                    :disabled="action.disabled && action.disabled(row)"
-                    :title="action.tooltip"
+                    :disabled="actions.find(a => a.key === 'edit').disabled && actions.find(a => a.key === 'edit').disabled(row)"
                   >
-                    <!-- Built-in icons -->
-                    <svg
-                      v-if="action.icon === 'lock'"
-                      class="action-icon"
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                    >
+                    <div class="action-tooltip">Editar</div>
+                    <svg class="action-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                    </svg>
+                  </button>
+
+                  <!-- Ação Bloquear -->
+                  <button
+                    v-if="actions.find(a => a.key === 'block')"
+                    @click.stop="handleAction(actions.find(a => a.key === 'block'), row)"
+                    :class="[
+                      'action-btn',
+                      'action-btn-block',
+                      actions.find(a => a.key === 'block').className,
+                      actions.find(a => a.key === 'block').variant && `action-btn-${actions.find(a => a.key === 'block').variant}`,
+                    ]"
+                    :disabled="actions.find(a => a.key === 'block').disabled && actions.find(a => a.key === 'block').disabled(row)"
+                  >
+                    <div class="action-tooltip">Bloquear</div>
+                    <svg class="action-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                       <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                      <path d="M7 11V7a5 5 0 0110 0v4"></path>
+                      <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
                     </svg>
-                    <svg
-                      v-else-if="action.icon === 'unlock'"
-                      class="action-icon"
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                    >
-                      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                      <path d="M7 11V7a5 5 0 019.9-1"></path>
+                  </button>
+
+                  <!-- Ação Aprovar -->
+                  <button
+                    v-if="actions.find(a => a.key === 'approve')"
+                    @click.stop="handleAction(actions.find(a => a.key === 'approve'), row)"
+                    :class="[
+                      'action-btn',
+                      'action-btn-approve',
+                      actions.find(a => a.key === 'approve').className,
+                      actions.find(a => a.key === 'approve').variant && `action-btn-${actions.find(a => a.key === 'approve').variant}`,
+                    ]"
+                    :disabled="actions.find(a => a.key === 'approve').disabled && actions.find(a => a.key === 'approve').disabled(row)"
+                  >
+                    <div class="action-tooltip">Aprovar</div>
+                    <svg class="action-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <polyline points="20 6 9 17 4 12"></polyline>
                     </svg>
-                    <svg
-                      v-else-if="action.icon === 'link'"
-                      class="action-icon"
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                    >
-                      <path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"></path>
-                      <path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"></path>
-                    </svg>
-                    <svg
-                      v-else-if="action.icon === 'trash'"
-                      class="action-icon"
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                    >
+                  </button>
+
+                  <!-- Ação Excluir -->
+                  <button
+                    v-if="actions.find(a => a.key === 'delete')"
+                    @click.stop="handleAction(actions.find(a => a.key === 'delete'), row)"
+                    :class="[
+                      'action-btn',
+                      'action-btn-delete',
+                      actions.find(a => a.key === 'delete').className,
+                      actions.find(a => a.key === 'delete').variant && `action-btn-${actions.find(a => a.key === 'delete').variant}`,
+                    ]"
+                    :disabled="actions.find(a => a.key === 'delete').disabled && actions.find(a => a.key === 'delete').disabled(row)"
+                  >
+                    <div class="action-tooltip">Excluir</div>
+                    <svg class="action-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                       <polyline points="3 6 5 6 21 6"></polyline>
-                      <path
-                        d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"
-                      ></path>
+                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
                     </svg>
-                    <svg
-                      v-else-if="action.icon === 'edit'"
-                      class="action-icon"
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                    >
-                      <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"></path>
-                      <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                    </svg>
-                    <svg
-                      v-else-if="action.icon === 'view'"
-                      class="action-icon"
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                    >
-                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                      <circle cx="12" cy="12" r="3"></circle>
-                    </svg>
-                    <svg
-                      v-else-if="action.icon === 'download'"
-                      class="action-icon"
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                    >
-                      <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"></path>
-                      <polyline points="7 10 12 15 17 10"></polyline>
-                      <line x1="12" y1="15" x2="12" y2="3"></line>
-                    </svg>
-                    <!-- Custom component icon -->
-                    <component
-                      v-else-if="action.icon && typeof action.icon !== 'string'"
-                      :is="action.icon"
-                      class="action-icon"
-                    />
-                    <span v-if="action.label">{{ action.label }}</span>
                   </button>
                 </slot>
-                <button
-                  v-if="showMoreActions"
-                  class="action-btn more-btn"
-                  @click.stop="toggleMoreMenu(row)"
-                >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <circle cx="12" cy="5" r="1"></circle>
-                    <circle cx="12" cy="12" r="1"></circle>
-                    <circle cx="12" cy="19" r="1"></circle>
-                  </svg>
-                </button>
               </div>
             </td>
           </tr>
@@ -281,7 +276,11 @@
             <td :colspan="totalColumns" class="empty-state">
               <slot name="empty">
                 <div class="empty-content">
-                  <p>{{ emptyText }}</p>
+                  <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M9 13h6m-3-3v6m5 5H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5.586a1 1 0 0 1 .707.293l5.414 5.414a1 1 0 0 1 .293.707V19a2 2 0 0 1-2 2z"></path>
+                  </svg>
+                  <p class="empty-title">{{ emptyText }}</p>
+                  <p class="empty-subtitle">Nenhum registro encontrado</p>
                 </div>
               </slot>
             </td>
@@ -403,7 +402,13 @@ export default {
     },
     emptyText: {
       type: String,
-      default: 'No data available',
+      default: 'Sem dados para exibir',
+    },
+
+    // Filter options
+    statusOptions: {
+      type: Array,
+      default: () => [],
     },
 
     // Events handlers
@@ -429,6 +434,8 @@ export default {
       sortOrder: 'asc',
       currentPage: 1,
       moreMenuRow: null,
+      selectedColumn: '',
+      selectedStatus: '',
     }
   },
 
@@ -444,8 +451,32 @@ export default {
       return count
     },
 
+    filterableColumns() {
+      return this.columns.filter((col) => col.filterable !== false)
+    },
+
+    hasActiveFilters() {
+      return this.searchQuery || this.selectedColumn || this.selectedStatus
+    },
+
     filteredData() {
       let result = [...this.data]
+
+      // Column filter
+      if (this.selectedColumn) {
+        result = result.filter((row) => {
+          const value = this.getNestedValue(row, this.selectedColumn)
+          return value !== null && value !== undefined && value !== ''
+        })
+      }
+
+      // Status filter
+      if (this.selectedStatus) {
+        result = result.filter((row) => {
+          const statusValue = this.getNestedValue(row, 'status') || this.getNestedValue(row, 'estado')
+          return statusValue && statusValue.toString() === this.selectedStatus
+        })
+      }
 
       // Search
       if (this.searchQuery && this.searchable) {
@@ -619,6 +650,13 @@ export default {
       this.$emit('refresh')
     },
 
+    clearAllFilters() {
+      this.searchQuery = ''
+      this.selectedColumn = ''
+      this.selectedStatus = ''
+      this.currentPage = 1
+    },
+
     isRowSelected(row) {
       const key = this.getRowKey(row)
       return this.selectedRows.some((selected) => this.getRowKey(selected) === key)
@@ -738,92 +776,225 @@ export default {
 }
 
 .v-table-container {
-  background: var(--white-color);
-  border-radius: var(--table-border-radius);
+  background: white;
+  border-radius: 16px;
   overflow: hidden;
-  box-shadow: var(--box-shadow);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
 }
 
 /* Search Section */
 .v-table-search {
+  background: linear-gradient(135deg, #bc1f1b 0%, #8b1714 100%);
+  border-radius: 16px 16px 0 0;
+  padding: 24px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.search-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 16px;
-  border-bottom: 1px solid var(--grey-color);
-  background: var(--header-bg);
+  margin-bottom: 16px;
+}
+
+.search-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--white-color);
+  letter-spacing: 0.3px;
+}
+
+.clear-filters-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  color: var(--white-color);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.clear-filters-btn:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.filters-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
 }
 
 .search-input-wrapper {
   position: relative;
   flex: 1;
-  max-width: 400px;
+  min-width: 250px;
 }
 
 .search-icon {
   position: absolute;
-  left: 12px;
+  left: 14px;
   top: 50%;
   transform: translateY(-50%);
   color: var(--grey-dark);
   pointer-events: none;
+  transition: color 0.3s;
 }
 
 .search-input {
   width: 100%;
-  padding: 8px 12px 8px 36px;
-  border: 1px solid var(--grey-color);
-  border-radius: 6px;
+  padding: 12px 40px 12px 42px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
   font-size: 14px;
   outline: none;
-  transition: all 0.2s;
-  background: white;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  background: rgba(255, 255, 255, 0.95);
   color: var(--secundary-color);
 }
 
 .search-input:focus {
-  border-color: var(--theme-color);
-  box-shadow: 0 0 0 3px var(--theme-color-hover);
+  border-color: var(--white-color);
+  background: white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
 }
 
 .search-input::placeholder {
-  color: var(--grey-light);
+  color: var(--grey-dark);
+  font-weight: 400;
 }
 
-.search-actions {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.icon-btn {
-  padding: 6px;
-  border: 1px solid var(--grey-color);
-  border-radius: 4px;
-  background: white;
+.clear-search-btn {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 4px;
+  border: none;
+  background: transparent;
+  color: var(--grey-dark);
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--grey-dark);
+  border-radius: 50%;
+}
+
+.clear-search-btn:hover {
+  background: var(--theme-color-hover);
+  color: var(--theme-color);
+  transform: translateY(-50%) scale(1.1);
+}
+
+.filter-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(8px);
+  padding: 8px 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.3s;
+}
+
+.filter-group:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.filter-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--white-color);
+  white-space: nowrap;
+  margin: 0;
+}
+
+.filter-select {
+  padding: 6px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.95);
+  color: var(--secundary-color);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s;
+  min-width: 120px;
+}
+
+.filter-select:hover {
+  background: white;
+  border-color: white;
+}
+
+.filter-select:focus {
+  outline: none;
+  border-color: white;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.2);
+}
+
+.icon-btn {
+  padding: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(8px);
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--white-color);
 }
 
 .icon-btn:hover:not(:disabled) {
-  background: var(--theme-color-hover);
-  border-color: var(--theme-color);
-  color: var(--theme-color);
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
 .icon-btn:disabled {
-  opacity: 0.5;
+  opacity: 0.4;
   cursor: not-allowed;
 }
 
+.search-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
 .results-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-size: 13px;
-  color: var(--grey-dark);
+  font-weight: 600;
+  color: var(--white-color);
   white-space: nowrap;
+}
+
+.nav-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 /* Table Wrapper */
@@ -831,6 +1002,7 @@ export default {
   overflow-x: auto;
   background: white;
   position: relative;
+  min-height: 500px;
 }
 
 .v-table {
@@ -842,24 +1014,27 @@ export default {
 
 /* Table Header */
 .v-table thead {
-  background: var(--header-bg);
-  border-bottom: 2px solid var(--grey-color);
+  background: linear-gradient(135deg, #f5f5f5 0%, #ffffff 100%);
+  border-bottom: 3px solid var(--theme-color);
   position: sticky;
   top: 0;
   z-index: 10;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .table-header {
   padding: var(--cell-padding-y) var(--cell-padding-x);
   text-align: left;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--secundary-color);
   white-space: nowrap;
   user-select: none;
   position: relative;
   border-right: 1px solid rgba(221, 221, 221, 0.3);
   overflow: hidden;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .table-header:last-child {
@@ -881,29 +1056,55 @@ export default {
 
 .table-header.sortable {
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .table-header.sortable:hover {
-  background: var(--theme-color-hover);
+  background: linear-gradient(135deg, var(--theme-color-hover), rgba(188, 31, 27, 0.15));
   color: var(--theme-color);
+  transform: translateY(-2px);
 }
 
 .sort-indicator {
   flex-shrink: 0;
-  font-size: 11px;
+  font-size: 14px;
+  font-weight: 700;
   color: var(--theme-color);
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.1);
+  }
 }
 
 /* Table Rows */
 .table-row {
   border-bottom: 1px solid rgba(221, 221, 221, 0.3);
-  transition: all 0.2s;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   background: white;
+  position: relative;
 }
 
 .table-row:hover {
-  background: var(--row-hover-bg);
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0) 0%, var(--theme-color-hover) 50%, rgba(255, 255, 255, 0) 100%);
+  transform: scale(1.01);
+  box-shadow: 0 2px 8px rgba(188, 31, 27, 0.1);
+  z-index: 1;
+}
+
+.table-row:nth-child(even) {
+  background: rgba(240, 240, 240, 0.3);
+}
+
+.table-row:nth-child(even):hover {
+  background: linear-gradient(90deg, rgba(240, 240, 240, 0.3) 0%, var(--theme-color-hover) 50%, rgba(240, 240, 240, 0.3) 100%);
 }
 
 /* Table Cells - Enhanced */
@@ -977,7 +1178,7 @@ export default {
 /* Actions Column */
 .actions-column {
   width: auto;
-  min-width: 120px;
+  min-width: fit-content;
   padding: 8px 12px;
   text-align: right;
   position: sticky;
@@ -990,34 +1191,40 @@ export default {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 8px;
+  gap: 6px;
   flex-wrap: nowrap;
 }
 
 /* Action Buttons */
 .action-btn {
-  padding: 6px 12px;
+  position: relative;
+  padding: 8px;
   border: 1px solid transparent;
-  border-radius: 4px;
+  border-radius: 8px;
   background: transparent;
-  font-size: 13px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  justify-content: center;
   color: var(--grey-dark);
-  white-space: nowrap;
 }
 
 .action-btn:hover:not(:disabled) {
   background: var(--theme-color-hover);
   border-color: var(--theme-color);
-  transform: scale(1.05);
+  transform: translateY(-2px) scale(1.1);
+  box-shadow: 0 4px 8px rgba(188, 31, 27, 0.15);
+}
+
+.action-btn:hover:not(:disabled) .action-tooltip {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(-50%) translateX(-8px);
 }
 
 .action-btn:disabled {
-  opacity: 0.5;
+  opacity: 0.3;
   cursor: not-allowed;
 }
 
@@ -1059,32 +1266,92 @@ export default {
 }
 
 .action-icon {
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
   flex-shrink: 0;
+  stroke-width: 2.5;
+}
+
+.action-tooltip {
+  position: absolute;
+  right: calc(100% + 12px);
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(43, 37, 34, 0.95);
+  backdrop-filter: blur(8px);
+  color: var(--white-color);
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 1000;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.action-tooltip::after {
+  content: '';
+  position: absolute;
+  right: -4px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border-top: 4px solid transparent;
+  border-bottom: 4px solid transparent;
+  border-left: 4px solid rgba(43, 37, 34, 0.95);
 }
 
 .more-btn {
-  padding: 4px;
+  padding: 8px;
 }
 
-.more-btn:hover {
-  background: var(--theme-color-hover);
-  border-radius: 50%;
+.more-btn svg {
+  width: 18px;
+  height: 18px;
+  stroke-width: 2.5;
 }
 
 /* Empty State */
 .empty-state {
-  padding: 48px 16px;
+  padding: 80px 16px;
   text-align: center;
-  color: var(--grey-dark);
-  background: linear-gradient(135deg, transparent, var(--theme-color-hover), transparent);
+  background: linear-gradient(135deg, #fafafa 0%, #f5f5f5 100%);
+  height: 100%;
+  position: relative;
 }
 
-.empty-content p {
+.empty-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.empty-icon {
+  width: 64px;
+  height: 64px;
+  color: #d1d5db;
+  stroke-width: 1.5;
+  margin-bottom: 8px;
+}
+
+.empty-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--grey-dark);
+}
+
+.empty-subtitle {
   margin: 0;
   font-size: 14px;
-  color: var(--secundary-color);
+  font-weight: 400;
+  color: #9ca3af;
 }
 
 /* Pagination */
@@ -1092,34 +1359,35 @@ export default {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 16px;
-  border-top: 2px solid var(--grey-color);
-  background: linear-gradient(to top, var(--white-color), rgba(240, 240, 240, 0.3));
+  padding: 16px 24px;
+  border-top: 3px solid var(--theme-color);
+  background: linear-gradient(135deg, #f5f5f5 0%, #ffffff 100%);
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .pagination-info {
-  font-size: 13px;
-  color: var(--grey-dark);
-  font-weight: 500;
+  font-size: 14px;
+  color: var(--secundary-color);
+  font-weight: 600;
 }
 
 .pagination-controls {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
 }
 
 .pagination-btn,
 .page-btn {
-  padding: 6px 12px;
-  border: 1px solid var(--grey-color);
+  padding: 8px 14px;
+  border: 2px solid var(--grey-color);
   background: white;
   font-size: 13px;
   color: var(--secundary-color);
   cursor: pointer;
-  transition: all 0.2s;
-  border-radius: 4px;
-  font-weight: 500;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 8px;
+  font-weight: 600;
 }
 
 .pagination-btn:hover:not(:disabled),
@@ -1127,27 +1395,33 @@ export default {
   background: var(--theme-color-hover);
   border-color: var(--theme-color);
   color: var(--theme-color);
-  transform: translateY(-2px);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 4px 12px rgba(188, 31, 27, 0.2);
 }
 
 .pagination-btn:disabled {
-  opacity: 0.5;
+  opacity: 0.4;
   cursor: not-allowed;
   background: var(--grey-color);
+  border-color: var(--grey-color);
 }
 
 .page-btn.active {
   background: var(--badge-gradient);
   color: white;
   border-color: var(--theme-color);
-  font-weight: 600;
-  box-shadow: 0 2px 4px rgba(188, 31, 27, 0.3);
+  font-weight: 700;
+  box-shadow: 0 4px 12px rgba(188, 31, 27, 0.4);
+  transform: translateY(-2px);
+}
+
+.page-btn.active:hover {
+  transform: translateY(-3px) scale(1.05);
 }
 
 .page-numbers {
   display: flex;
-  gap: 4px;
+  gap: 6px;
   margin: 0 8px;
 }
 

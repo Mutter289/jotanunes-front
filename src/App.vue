@@ -26,7 +26,7 @@
     </div>
 
     <template v-else>
-      <VSidebar v-if="showSidebar" class="sidebar" @collapsed-changed="handleSidebarCollapsed" />
+      <VSidebar v-if="showSidebar" class="sidebar" :collapsed="true" @collapsed-changed="handleSidebarCollapsed" />
 
       <div v-if="showSidebar" class="main-content">
         <VNav
@@ -306,7 +306,7 @@ window.showConfirm = showConfirm
 #app {
   display: grid;
   width: 100%;
-  height: 100vh;
+  min-height: 100vh;
   gap: 0;
   position: relative;
 }
@@ -319,8 +319,8 @@ window.showConfirm = showConfirm
   grid-area: main;
   display: flex;
   flex-direction: column;
-  height: 100vh;
-  overflow: hidden;
+  min-height: 100vh;
+  overflow-x: hidden;
 }
 
 .navbar {

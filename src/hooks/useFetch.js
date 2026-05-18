@@ -1,3 +1,5 @@
+import { API_BASE } from '@/config/api.js'
+
 export async function useFetch(
   endpoint,
   { method = 'GET', body = null, headers = {}, isFormData = false } = {},
@@ -34,9 +36,7 @@ export async function useFetch(
   }
 
   try {
-    const baseUrl = (window.API_BASE_URL || '').startsWith('http')
-      ? window.API_BASE_URL
-      : `http://${window.API_BASE_URL || '192.168.195.162:8000'}`
+    const baseUrl = API_BASE
     const res = await fetch(`${baseUrl}${endpoint}`, options)
 
     let data
@@ -94,7 +94,7 @@ export async function useFetch(
       throw error
     }
 
-    return data.data ?? data
+    return data?.data ?? data
   } catch (error) {
     // Se for um erro de rede ou outro erro não relacionado ao HTTP
     if (!error.status) {
@@ -107,28 +107,28 @@ export async function useFetch(
   }
 }
 
-function mockResponse(endpoint) {
-  try {
-    if (
-      endpoint &&
-      endpoint.startsWith('/api/v2/dependencias/itens/') &&
-      endpoint.endsWith('/json-model')
-    ) {
-      return {
-        titulo_dependencia: 'Titulo',
-        versao: 'v1.0.0',
-        criado: 'Gustavo Trindade',
-        origem: {
-          tabela: 'AUD_SQLS',
-          item: 'SELECT * FROM AUD_SQLS',
-          id: 'COD2201.0001',
-        },
-        descricao: 'aqui vai ter uma descrição',
-        dependencias: [
-          { tabela: 'AUD_FVS', item: 'alguma coisa vaivim aqui', id: 1 },
-          { tabela: 'AUD_REPORTS', item: 'alguma coisa vaivim aqui', id: 1 },
-        ],
-      }
-    }
-  } catch {}
-}
+// function mockResponse(endpoint) {
+//   try {
+//     if (
+//       endpoint &&
+//       endpoint.startsWith('/api/v2/dependencias/itens/') &&
+//       endpoint.endsWith('/json-model')
+//     ) {
+//       return {
+//         titulo_dependencia: 'Titulo',
+//         versao: 'v1.0.0',
+//         criado: 'Gustavo Trindade',
+//         origem: {
+//           tabela: 'AUD_SQLS',
+//           item: 'SELECT * FROM AUD_SQLS',
+//           id: 'COD2201.0001',
+//         },
+//         descricao: 'aqui vai ter uma descrição',
+//         dependencias: [
+//           { tabela: 'AUD_FVS', item: 'alguma coisa vaivim aqui', id: 1 },
+//           { tabela: 'AUD_REPORTS', item: 'alguma coisa vaivim aqui', id: 1 },
+//         ],
+//       }
+//     }
+//   } catch {}
+// }
