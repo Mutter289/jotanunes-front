@@ -726,6 +726,11 @@ export default {
         AUD_REPORTS: 2,
         AUD_FVS: 3
       },
+      tabelaEndpointMap: {
+        AUD_FVS: 'AUD_FV',
+        AUD_SQLS: 'AUD_SQLS',
+        AUD_REPORTS: 'AUD_REPORT'
+      },
 
       // Modal data
       titulo: "",
@@ -1171,7 +1176,8 @@ export default {
 
     async modal_fetchItems(tabela) {
       try {
-        return await this.useFetch(`/api/v2/dependencias/itens/${tabela}`);
+        const tabelaEndpoint = this.tabelaEndpointMap[tabela] || tabela;
+        return await this.useFetch(`/api/v2/dependencias/tabelas/${tabelaEndpoint}/itens`);
       } catch (e) {
         console.error(`Erro ao buscar itens da tabela ${tabela}:`, e);
         // Retornar array vazio para não quebrar o modal
@@ -1180,39 +1186,27 @@ export default {
     },
 
     async modal_loadTables() {
-      try {
-        this.tiposItens = await this.useFetch("/api/v2/dependencias/lista-tabelas");
-        const arr = [];
+      const arr = [];
 
-        for (const tabela of this.tabelasDisponiveis) {
-          try {
-            const items = await this.modal_fetchItems(tabela);
-            arr.push({ name: tabela, items: items || [] });
-            console.log(`Tabela ${tabela} carregada: ${items?.length || 0} itens`);
-          } catch (e) {
-            console.error(`Falha ao carregar tabela ${tabela}:`, e);
-            // Continua carregando as outras tabelas mesmo se uma falhar
-            arr.push({ name: tabela, items: [] });
-          }
+      for (const tabela of this.tabelasDisponiveis) {
+        try {
+          const items = await this.modal_fetchItems(tabela);
+          arr.push({ name: tabela, items: Array.isArray(items) ? items : [] });
+          console.log(`Tabela ${tabela} carregada: ${items?.length || 0} itens`);
+        } catch (e) {
+          console.error(`Falha ao carregar tabela ${tabela}:`, e);
+          // Continua carregando as outras tabelas mesmo se uma falhar
+          arr.push({ name: tabela, items: [] });
         }
-
-        this.tablesData = arr;
-        console.log(`Total de tabelas carregadas: ${arr.length}`);
-      } catch (e) {
-        console.error("Erro crítico ao carregar tabelas:", e);
-        // Inicializar com tabelas vazias para não quebrar o modal
-        this.tablesData = this.tabelasDisponiveis.map(tabela => ({
-          name: tabela,
-          items: []
-        }));
       }
+
+      this.tablesData = arr;
+      console.log(`Total de tabelas carregadas: ${arr.length}`);
     },
 
     modal_tipoItemIdPorTabela(nomeTabela) {
-      const found = this.tiposItens.find(t => t.tabela === nomeTabela);
-      return found ? found.id : null;
+      return this.tipoMapa[nomeTabela] || null;
     },
-
     modal_riscoParaImpacto(r) {
       return {
         "Baixo": 1,
